@@ -2568,6 +2568,8 @@
                 // First time switch, hint to user
                 if (!FIXER_API_KEY || FIXER_API_KEY === 'YOUR_API_KEY_HERE') {
                     alert("Please set your Fixer.io API Key in the code (variable: FIXER_API_KEY).");
+                } else {
+                    fetchLiveRates();
                 }
             }
             convertCurrency();
@@ -2584,15 +2586,22 @@
             btn.textContent = "Loading...";
             btn.disabled = true;
 
-            fetch(`http://data.fixer.io/api/latest?access_key=${FIXER_API_KEY}`)
-                .then(response => response.json())
+            fetch(`https://data.fixer.io/api/latest?access_key=${FIXER_API_KEY}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    if (data.success) {
+                    if (data.success && data.rates) {
                         liveRates = data.rates;
-                        document.getElementById('last-updated').textContent = "Last Updated: " + new Date().toLocaleTimeString();
+                        const stamp = data.date ? `${data.date} (base ${data.base || 'EUR'})` : new Date().toLocaleTimeString();
+                        document.getElementById('last-updated').textContent = "Last Updated: " + stamp;
                         convertCurrency();
                     } else {
-                        alert("API Error: " + (data.error ? data.error.type : "Unknown error"));
+                        const apiDetail = data.error ? `${data.error.type}${data.error.info ? ` - ${data.error.info}` : ''}` : "Unknown error";
+                        alert("API Error: " + apiDetail);
                     }
                 })
                 .catch(err => {
@@ -2610,22 +2619,19 @@
             const toCur = document.getElementById('currency-to').value;
 
             let result;
-            if (useLiveRates && liveRates) {
+            const canUseLive = useLiveRates && liveRates &&
+                typeof liveRates[fromCur] === 'number' &&
+                typeof liveRates[toCur] === 'number';
+
+            if (canUseLive) {
                 // Live rates are usually based on EUR
-                // Check if currencies exist in liveRates
                 const fromRate = liveRates[fromCur];
                 const toRate = liveRates[toCur];
-
-                if (fromRate && toRate) {
-                    // Convert from -> Base (EUR) -> to
-                    const inBase = fromVal / fromRate;
-                    result = inBase * toRate;
-                } else {
-                    // Fallback if specific currency not found in live data
-                    result = 0;
-                }
+                // Convert from -> Base (EUR) -> to
+                const inBase = fromVal / fromRate;
+                result = inBase * toRate;
             } else {
-                // Static rates (USD based in our mock data, but let's assume relative to USD=1)
+                // Offline fallback (USD-base table)
                 const inUSD = fromVal / currencyRates[fromCur];
                 result = inUSD * currencyRates[toCur];
             }
