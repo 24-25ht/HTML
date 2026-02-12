@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e27"/>
+      <stop offset="0.5" stop-color="#2d1b4e"/>
+      <stop offset="1" stop-color="#0f1545"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4d46a"/>
+      <stop offset="1" stop-color="#d4af37"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#00d9ff" stroke-opacity=".45" stroke-width="2"/>
+
+  <circle cx="14" cy="14" r="1.8" fill="#b856ff"/>
+  <circle cx="50" cy="18" r="1.6" fill="#00d9ff"/>
+  <circle cx="46" cy="50" r="1.7" fill="#ff00ff"/>
+
+  <rect x="18" y="16" width="8" height="32" rx="2" fill="url(#gold)"/>
+  <rect x="38" y="16" width="8" height="32" rx="2" fill="url(#gold)"/>
+  <rect x="18" y="29" width="28" height="6" rx="2" fill="url(#gold)"/>
+
+  <path d="M50 10l1.8 3.8L56 15.6l-4.2 1.8L50 21.2l-1.8-3.8L44 15.6l4.2-1.8z" fill="#d4af37"/>
+</svg>
