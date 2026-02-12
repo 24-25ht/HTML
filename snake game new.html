@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-    <title>OUROBOROS — VENOM PROTOCOL</title>
+    <title>OUROBOROS</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap');
 
         *,
         *::before,
@@ -17,21 +17,19 @@
         }
 
         :root {
-            --bg-void: #050508;
-            --bg-panel: #0a0a10;
-            --bg-card: #0d0d15;
-            --neon-cyan: #00f0ff;
-            --neon-magenta: #ff00aa;
-            --neon-green: #39ff14;
-            --neon-amber: #ffae00;
-            --neon-red: #ff2244;
-            --neon-purple: #b040ff;
-            --text-bright: #e0e8f0;
-            --text-dim: #556070;
-            --text-muted: #2a3040;
-            --glow-cyan: 0 0 8px #00f0ff, 0 0 20px rgba(0, 240, 255, .3);
-            --glow-magenta: 0 0 8px #ff00aa, 0 0 20px rgba(255, 0, 170, .3);
-            --glow-green: 0 0 8px #39ff14, 0 0 20px rgba(57, 255, 20, .3);
+            --stone-dark: #1a1f1a;
+            --stone-mid: #2a322a;
+            --stone-light: #3d4a3d;
+            --moss-green: #4a6741;
+            --moss-glow: #6b8f5e;
+            --moss-bright: #8ab878;
+            --gold-ancient: #c9a84c;
+            --gold-glow: #e8c84a;
+            --ember-orange: #c47a2a;
+            --text-light: #d4cfc0;
+            --text-dim: #8a8575;
+            --heart-red: #8b3a3a;
+            --heart-glow: #c45050;
         }
 
         html,
@@ -41,9 +39,9 @@
         }
 
         body {
-            background: var(--bg-void);
-            color: var(--text-bright);
-            font-family: 'Rajdhani', sans-serif;
+            background: var(--stone-dark);
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -52,8 +50,8 @@
             -webkit-tap-highlight-color: transparent
         }
 
-        /* === PARTICLE BG === */
-        .particle-field {
+        /* EMBERS */
+        .embers-container {
             position: fixed;
             inset: 0;
             pointer-events: none;
@@ -61,52 +59,94 @@
             overflow: hidden
         }
 
-        .particle {
+        .ember {
             position: absolute;
-            width: 2px;
-            height: 2px;
+            width: 3px;
+            height: 3px;
             border-radius: 50%;
-            background: var(--neon-cyan);
+            background: var(--ember-orange);
             opacity: 0;
-            animation: float-up linear infinite
+            animation: drift-ember linear infinite
         }
 
-        @keyframes float-up {
+        @keyframes drift-ember {
             0% {
-                transform: translateY(100vh) scale(1);
+                transform: translateY(100vh) translateX(0) scale(1);
                 opacity: 0
             }
 
             10% {
-                opacity: .6
+                opacity: .8
             }
 
             90% {
-                opacity: .2
+                opacity: .3
             }
 
             100% {
-                transform: translateY(-20px) scale(.3);
+                transform: translateY(-20px) translateX(80px) scale(.2);
                 opacity: 0
             }
         }
 
-        /* === SCANLINE === */
-        .scanline-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 999;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, .06) 2px, rgba(0, 0, 0, .06) 4px);
-            mix-blend-mode: overlay
+        /* ANIMATIONS */
+        @keyframes title-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px rgba(201, 168, 76, .3), 0 2px 4px rgba(0, 0, 0, .8)
+            }
+
+            50% {
+                text-shadow: 0 0 25px rgba(201, 168, 76, .6), 0 0 50px rgba(201, 168, 76, .2), 0 2px 4px rgba(0, 0, 0, .8)
+            }
         }
 
-        /* === GLITCH FX === */
+        @keyframes glow-breathe {
+
+            0%,
+            100% {
+                filter: brightness(1) drop-shadow(0 0 4px var(--moss-glow))
+            }
+
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 12px var(--moss-bright))
+            }
+        }
+
+        @keyframes screen-shake {
+
+            0%,
+            100% {
+                transform: translate(0)
+            }
+
+            10% {
+                transform: translate(-8px, 4px)
+            }
+
+            20% {
+                transform: translate(6px, -6px)
+            }
+
+            30% {
+                transform: translate(-4px, 2px)
+            }
+
+            40% {
+                transform: translate(4px, -2px)
+            }
+
+            50% {
+                transform: translate(-2px, 4px)
+            }
+        }
+
         @keyframes glitch-h {
 
             0%,
             100% {
-                clip-path: inset(0 0 0 0);
+                clip-path: inset(0);
                 transform: translate(0)
             }
 
@@ -128,60 +168,6 @@
             80% {
                 clip-path: inset(10% 0 70% 0);
                 transform: translate(2px, -1px)
-            }
-        }
-
-        @keyframes screen-shake {
-
-            0%,
-            100% {
-                transform: translate(0)
-            }
-
-            10% {
-                transform: translate(-6px, 3px)
-            }
-
-            20% {
-                transform: translate(5px, -5px)
-            }
-
-            30% {
-                transform: translate(-3px, 2px)
-            }
-
-            40% {
-                transform: translate(3px, -1px)
-            }
-
-            50% {
-                transform: translate(-1px, 3px)
-            }
-        }
-
-        @keyframes pulse-glow {
-
-            0%,
-            100% {
-                filter: brightness(1) drop-shadow(0 0 4px var(--neon-cyan))
-            }
-
-            50% {
-                filter: brightness(1.4) drop-shadow(0 0 14px var(--neon-cyan))
-            }
-        }
-
-        @keyframes title-flicker {
-
-            0%,
-            100% {
-                opacity: 1;
-                text-shadow: 0 0 10px rgba(0, 240, 255, .4), 0 0 40px rgba(0, 240, 255, .15)
-            }
-
-            50% {
-                opacity: .97;
-                text-shadow: 0 0 20px rgba(0, 240, 255, .7), 0 0 60px rgba(0, 240, 255, .3)
             }
         }
 
@@ -238,25 +224,15 @@
             }
         }
 
-        @keyframes radar-sweep {
-            0% {
-                transform: rotate(0deg)
-            }
+        @keyframes moss-pulse {
 
+            0%,
             100% {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes hud-slide {
-            from {
-                opacity: 0;
-                transform: translateY(-20px)
+                opacity: .3
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0)
+            50% {
+                opacity: .6
             }
         }
 
@@ -268,7 +244,7 @@
             animation: glitch-h .15s linear
         }
 
-        /* === APP === */
+        /* APP */
         #app {
             width: 100vw;
             height: 100vh;
@@ -292,110 +268,95 @@
             display: flex
         }
 
-        /* === MENU === */
-        #menu-screen {
-            gap: 0
-        }
-
+        /* MENU */
         .menu-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2.2rem, 6vw, 4.5rem);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
             font-weight: 900;
-            color: var(--neon-cyan);
-            animation: title-flicker 3s ease-in-out infinite;
-            letter-spacing: 8px;
-            margin-bottom: 4px;
+            color: var(--gold-ancient);
+            animation: title-glow 3s ease-in-out infinite;
+            letter-spacing: 6px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             user-select: none
         }
 
         .menu-subtitle {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: clamp(.7rem, 1.8vw, .95rem);
+            font-family: 'MedievalSharp', cursive;
+            font-size: clamp(.75rem, 2vw, 1rem);
             color: var(--text-dim);
-            letter-spacing: 6px;
+            letter-spacing: 8px;
             text-transform: uppercase;
-            margin-bottom: 36px
+            margin-bottom: 40px
         }
 
         .menu-divider {
             width: 200px;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-            margin-bottom: 32px;
-            box-shadow: var(--glow-cyan)
+            background: linear-gradient(90deg, transparent, var(--gold-ancient), transparent);
+            margin-bottom: 36px
         }
 
         .menu-buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
             width: 280px
         }
 
-        .btn-neon {
-            font-family: 'Orbitron', sans-serif;
+        .btn-stone {
+            font-family: 'Cinzel', serif;
             font-weight: 700;
-            font-size: .85rem;
+            font-size: 1rem;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: var(--text-bright);
-            background: linear-gradient(180deg, rgba(13, 13, 21, .9), rgba(5, 5, 8, .95));
-            border: 1px solid rgba(0, 240, 255, .2);
+            color: var(--text-light);
+            background: radial-gradient(ellipse at 30% 20%, rgba(74, 103, 65, .2), transparent 60%), linear-gradient(180deg, var(--stone-light), var(--stone-mid));
+            border: 2px solid rgba(201, 168, 76, .25);
             border-radius: 4px;
             padding: 14px 20px;
             cursor: pointer;
             transition: all .25s ease;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .03);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .05);
             position: relative;
             overflow: hidden
         }
 
-        .btn-neon::before {
+        .btn-stone::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(0, 240, 255, .06), transparent 60%);
+            background: linear-gradient(180deg, rgba(201, 168, 76, .1), transparent 60%);
             opacity: 0;
             transition: opacity .25s
         }
 
-        .btn-neon:hover {
-            border-color: var(--neon-cyan);
+        .btn-stone:hover {
+            border-color: var(--gold-ancient);
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, .7), var(--glow-cyan);
-            color: var(--neon-cyan)
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .6), 0 0 15px rgba(201, 168, 76, .15);
+            color: var(--gold-glow)
         }
 
-        .btn-neon:hover::before {
+        .btn-stone:hover::before {
             opacity: 1
         }
 
-        .btn-neon:active {
+        .btn-stone:active {
             transform: translateY(0)
         }
 
-        .btn-neon.primary {
-            border-color: rgba(0, 240, 255, .4)
+        .btn-stone.primary {
+            border-color: rgba(201, 168, 76, .5)
         }
 
-        .btn-neon.danger {
-            border-color: rgba(255, 34, 68, .3)
-        }
-
-        .btn-neon.danger:hover {
-            border-color: var(--neon-red);
-            color: var(--neon-red);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, .7), 0 0 8px var(--neon-red)
-        }
-
-        /* === MODAL === */
+        /* MODALS */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(5, 5, 8, .88);
-            backdrop-filter: blur(8px);
+            background: rgba(10, 12, 10, .85);
+            backdrop-filter: blur(6px);
             z-index: 100;
             align-items: center;
             justify-content: center;
@@ -407,20 +368,20 @@
         }
 
         .modal-box {
-            background: linear-gradient(160deg, #0d0d18, #08080e);
-            border: 1px solid rgba(0, 240, 255, .2);
+            background: radial-gradient(ellipse at 20% 20%, rgba(74, 103, 65, .12), transparent 50%), linear-gradient(160deg, #252d25, #1a1f1a);
+            border: 2px solid rgba(201, 168, 76, .3);
             border-radius: 8px;
-            padding: 32px 28px;
+            padding: 36px 32px;
             max-width: 520px;
             width: 100%;
             max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .9), 0 0 40px rgba(0, 240, 255, .05);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .03);
             animation: modal-enter .35s ease-out
         }
 
         .modal-box::-webkit-scrollbar {
-            width: 5px
+            width: 6px
         }
 
         .modal-box::-webkit-scrollbar-track {
@@ -428,29 +389,28 @@
         }
 
         .modal-box::-webkit-scrollbar-thumb {
-            background: var(--text-muted);
+            background: var(--stone-light);
             border-radius: 3px
         }
 
         .modal-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
-            color: var(--neon-cyan);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.6rem;
+            color: var(--gold-ancient);
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             letter-spacing: 3px
         }
 
         .modal-divider {
             width: 100px;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-            margin: 0 auto 20px;
-            box-shadow: var(--glow-cyan)
+            background: linear-gradient(90deg, transparent, var(--gold-ancient), transparent);
+            margin: 0 auto 24px
         }
 
         .modal-text {
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'MedievalSharp', cursive;
             font-size: .95rem;
             line-height: 1.7;
             color: var(--text-dim);
@@ -459,65 +419,104 @@
 
         .modal-close {
             display: block;
-            margin: 20px auto 0;
-            font-family: 'Orbitron', sans-serif;
+            margin: 24px auto 0;
+            font-family: 'Cinzel', serif;
             font-weight: 700;
-            font-size: .75rem;
+            font-size: .85rem;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: var(--text-bright);
-            background: linear-gradient(180deg, rgba(13, 13, 21, .9), rgba(5, 5, 8, .95));
-            border: 1px solid rgba(0, 240, 255, .2);
+            color: var(--text-light);
+            background: linear-gradient(180deg, var(--stone-light), var(--stone-mid));
+            border: 1px solid rgba(201, 168, 76, .3);
             border-radius: 4px;
-            padding: 10px 28px;
+            padding: 10px 32px;
             cursor: pointer;
             transition: all .2s
         }
 
         .modal-close:hover {
-            border-color: var(--neon-cyan);
-            color: var(--neon-cyan)
+            border-color: var(--gold-ancient);
+            color: var(--gold-glow)
         }
 
-        /* === TUTORIAL === */
+        /* TUTORIAL */
         .tut-section {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 14px;
+            margin-bottom: 20px;
             text-align: left;
-            padding: 12px;
-            background: rgba(0, 240, 255, .03);
+            padding: 14px;
+            background: rgba(42, 50, 42, .5);
             border-radius: 6px;
-            border-left: 3px solid var(--neon-cyan)
+            border-left: 3px solid var(--gold-ancient)
         }
 
         .tut-icon {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             flex-shrink: 0;
             margin-top: 2px
         }
 
         .tut-content h4 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--neon-cyan);
-            font-size: .8rem;
-            margin-bottom: 3px;
+            font-family: 'Cinzel', serif;
+            color: var(--gold-ancient);
+            font-size: .9rem;
+            margin-bottom: 4px;
             letter-spacing: 1px
         }
 
         .tut-content p {
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'MedievalSharp', cursive;
             font-size: .85rem;
             color: var(--text-dim);
             line-height: 1.5
         }
 
         .tut-content p b {
-            color: var(--text-bright)
+            color: var(--text-light)
         }
 
-        /* === HUD === */
+        /* INPUT */
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left
+        }
+
+        .input-group label {
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-size: .8rem;
+            color: var(--gold-ancient);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-transform: uppercase
+        }
+
+        .name-input {
+            width: 100%;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            color: var(--text-light);
+            background: rgba(26, 31, 26, .8);
+            border: 2px solid var(--stone-light);
+            border-radius: 4px;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color .2s;
+            letter-spacing: 1px
+        }
+
+        .name-input:focus {
+            border-color: var(--gold-ancient)
+        }
+
+        .name-input::placeholder {
+            color: var(--text-dim);
+            opacity: .5
+        }
+
+        /* HUD */
         .game-hud {
             position: absolute;
             top: 0;
@@ -526,32 +525,32 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 12px 20px;
+            padding: 14px 20px;
             z-index: 10;
-            pointer-events: none;
-            animation: hud-slide .4s ease-out
+            pointer-events: none
         }
 
         .hud-block {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px
+            gap: 4px;
+            pointer-events: auto
         }
 
         .hud-label {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: .65rem;
+            font-family: 'MedievalSharp', cursive;
+            font-size: .7rem;
             color: var(--text-dim);
             letter-spacing: 2px;
             text-transform: uppercase
         }
 
         .hud-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.3rem;
-            color: var(--neon-cyan);
-            text-shadow: var(--glow-cyan)
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.4rem;
+            color: var(--text-light);
+            text-shadow: 0 0 8px rgba(201, 168, 76, .3)
         }
 
         .hud-center {
@@ -563,32 +562,31 @@
 
         .btn-pause {
             margin-top: 4px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: .6rem;
+            font-family: 'Cinzel', serif;
+            font-size: .65rem;
             color: var(--text-dim);
-            background: rgba(10, 10, 16, .7);
-            border: 1px solid rgba(0, 240, 255, .15);
+            background: rgba(42, 50, 42, .6);
+            border: 1px solid rgba(201, 168, 76, .2);
             border-radius: 3px;
             padding: 4px 12px;
             cursor: pointer;
             letter-spacing: 1px;
-            transition: all .2s;
-            pointer-events: auto
+            transition: all .2s
         }
 
         .btn-pause:hover {
-            border-color: var(--neon-cyan);
-            color: var(--text-bright)
+            border-color: var(--gold-ancient);
+            color: var(--text-light)
         }
 
-        /* === CANVAS === */
+        /* CANVAS */
         #game-canvas {
-            border: 2px solid rgba(0, 240, 255, .15);
+            border: 3px solid rgba(201, 168, 76, .25);
             border-radius: 4px;
-            box-shadow: 0 0 40px rgba(0, 0, 0, .7), 0 0 80px rgba(0, 240, 255, .04)
+            box-shadow: 0 0 40px rgba(0, 0, 0, .6), inset 0 0 60px rgba(0, 0, 0, .3), 0 0 80px rgba(74, 103, 65, .08)
         }
 
-        /* === OVERLAYS === */
+        /* OVERLAYS */
         .countdown-overlay,
         .pause-overlay,
         .gameover-overlay {
@@ -602,22 +600,21 @@
         }
 
         .countdown-overlay {
-            background: rgba(5, 5, 8, .6);
-            z-index: 50
+            background: rgba(10, 12, 10, .7)
         }
 
         .pause-overlay {
-            background: rgba(5, 5, 8, .8);
-            backdrop-filter: blur(4px);
+            background: rgba(10, 12, 10, .75);
+            backdrop-filter: blur(3px);
             z-index: 55;
-            gap: 14px
+            gap: 16px
         }
 
         .gameover-overlay {
-            background: rgba(5, 5, 8, .88);
-            backdrop-filter: blur(6px);
+            background: rgba(10, 12, 10, .85);
+            backdrop-filter: blur(4px);
             z-index: 60;
-            gap: 10px;
+            gap: 12px;
             animation: fadeIn .5s ease-out
         }
 
@@ -628,10 +625,10 @@
         }
 
         .cd-text {
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Cinzel Decorative', cursive;
             font-size: clamp(3rem, 10vw, 6rem);
-            color: var(--neon-cyan);
-            text-shadow: 0 0 30px rgba(0, 240, 255, .5);
+            color: var(--gold-ancient);
+            text-shadow: 0 0 30px rgba(201, 168, 76, .5), 0 4px 8px rgba(0, 0, 0, .8);
             animation: countdown-pop .5s ease-out
         }
 
@@ -640,37 +637,37 @@
         }
 
         .pause-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.8rem;
-            color: var(--neon-cyan);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2rem;
+            color: var(--gold-ancient);
             letter-spacing: 4px
         }
 
         .go-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.6rem, 5vw, 2.8rem);
-            color: var(--neon-red);
-            text-shadow: 0 0 20px rgba(255, 34, 68, .4);
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            color: var(--gold-ancient);
+            text-shadow: 0 0 20px rgba(201, 168, 76, .4);
             letter-spacing: 4px
         }
 
         .go-subtitle {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.1rem;
             color: var(--text-dim);
             margin-bottom: 6px
         }
 
         .go-score {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.8rem;
-            color: var(--neon-cyan);
-            text-shadow: var(--glow-cyan)
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2.2rem;
+            color: var(--gold-glow);
+            text-shadow: 0 0 12px rgba(201, 168, 76, .5)
         }
 
         .go-stats {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: .75rem;
+            font-family: 'MedievalSharp', cursive;
+            font-size: .85rem;
             color: var(--text-dim);
             text-align: center;
             line-height: 1.8
@@ -679,17 +676,17 @@
         .go-buttons {
             display: flex;
             gap: 12px;
-            margin-top: 10px;
+            margin-top: 12px;
             flex-wrap: wrap;
             justify-content: center
         }
 
-        .go-buttons .btn-neon {
-            font-size: .75rem;
-            padding: 10px 22px
+        .go-buttons .btn-stone {
+            font-size: .85rem;
+            padding: 10px 24px
         }
 
-        /* === LEADERBOARD === */
+        /* LEADERBOARD */
         .lb-table {
             width: 100%;
             border-collapse: collapse;
@@ -697,125 +694,85 @@
         }
 
         .lb-table th {
-            font-family: 'Orbitron', sans-serif;
-            font-size: .65rem;
-            color: var(--neon-cyan);
+            font-family: 'Cinzel', serif;
+            font-size: .75rem;
+            color: var(--gold-ancient);
             letter-spacing: 2px;
             text-transform: uppercase;
-            padding: 8px;
-            border-bottom: 1px solid rgba(0, 240, 255, .2);
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(201, 168, 76, .3);
             text-align: left
         }
 
         .lb-table td {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: .9rem;
+            font-family: 'MedievalSharp', cursive;
+            font-size: .95rem;
             color: var(--text-dim);
-            padding: 8px;
-            border-bottom: 1px solid rgba(0, 240, 255, .05)
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(42, 50, 42, .5)
         }
 
         .lb-table tr:first-child td {
-            color: var(--neon-amber)
+            color: var(--gold-glow)
         }
 
         .lb-rank {
-            color: var(--neon-cyan) !important;
+            color: var(--gold-ancient) !important;
             font-weight: bold;
-            width: 36px
+            width: 40px
         }
 
         .lb-empty {
             text-align: center;
-            padding: 24px;
+            padding: 30px;
             color: var(--text-dim);
+            font-family: 'MedievalSharp', cursive;
             font-style: italic
         }
 
-        /* === INPUT === */
-        .input-group {
-            margin-bottom: 14px;
-            text-align: left
-        }
-
-        .input-group label {
-            display: block;
-            font-family: 'Orbitron', sans-serif;
-            font-size: .7rem;
-            color: var(--neon-cyan);
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-            text-transform: uppercase
-        }
-
-        .neon-input {
-            width: 100%;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 1rem;
-            color: var(--text-bright);
-            background: rgba(5, 5, 8, .8);
-            border: 1px solid var(--text-muted);
-            border-radius: 4px;
-            padding: 10px 12px;
-            outline: none;
-            transition: border-color .2s;
-            letter-spacing: 1px
-        }
-
-        .neon-input:focus {
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 8px rgba(0, 240, 255, .15)
-        }
-
-        .neon-input::placeholder {
-            color: var(--text-dim);
-            opacity: .5
-        }
-
-        /* === RESPONSIVE === */
+        /* RESPONSIVE */
         @media(max-width:600px) {
             .menu-title {
-                letter-spacing: 4px
+                letter-spacing: 3px
             }
 
             .menu-buttons {
                 width: 240px
             }
 
-            .btn-neon {
-                padding: 12px 14px;
-                font-size: .75rem
+            .btn-stone {
+                padding: 12px 16px;
+                font-size: .85rem
             }
 
             .modal-box {
-                padding: 22px 18px
+                padding: 24px 20px
             }
 
             .game-hud {
-                padding: 8px 10px
+                padding: 10px 12px
             }
 
             .hud-value {
-                font-size: 1rem
+                font-size: 1.1rem
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="particle-field" id="particles"></div>
-    <div class="scanline-overlay"></div>
+    <div class="embers-container" id="embers"></div>
     <div id="app">
         <!-- MENU -->
         <div class="screen active" id="menu-screen">
             <div class="menu-title">Ouroboros</div>
-            <div class="menu-subtitle">Venom Protocol v1.0</div>
+            <div class="menu-subtitle">The Eternal Serpent</div>
             <div class="menu-divider"></div>
             <div class="menu-buttons">
-                <button class="btn-neon primary" onclick="launchGame()">▶ DEPLOY</button>
-                <button class="btn-neon" onclick="showModal('tutorial')">◈ COMMAND BRIEFING</button>
-                <button class="btn-neon" onclick="showModal('leaderboard')">◆ HALL OF VENOMS</button>
-                <button class="btn-neon" onclick="showModal('archives')">◇ ARCHIVES</button>
+                <button class="btn-stone primary" onclick="launchGame()">⚔ Begin Hunt</button>
+                <button class="btn-stone" onclick="showModal('tutorial')">📜 How to Play</button>
+                <button class="btn-stone" onclick="showModal('leaderboard')">🏆 Hall of Legends</button>
+                <button class="btn-stone" onclick="showModal('archives')">🗿 About</button>
             </div>
         </div>
         <!-- GAME -->
@@ -824,15 +781,15 @@
                 style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center">
                 <div class="game-hud">
                     <div class="hud-block">
-                        <div class="hud-label">SCORE</div>
+                        <div class="hud-label">Score</div>
                         <div class="hud-value" id="hud-score">0</div>
                     </div>
                     <div class="hud-center">
-                        <div class="hud-label" id="hud-rank">RANK: HATCHLING</div><button class="btn-pause"
-                            onclick="togglePause()">⏸ PAUSE</button>
+                        <div class="hud-label" id="hud-rank">Hatchling</div><button class="btn-pause"
+                            onclick="togglePause()">⏸ Pause</button>
                     </div>
                     <div class="hud-block">
-                        <div class="hud-label">HIGH</div>
+                        <div class="hud-label">Best</div>
                         <div class="hud-value" id="hud-high">0</div>
                     </div>
                 </div>
@@ -841,18 +798,18 @@
                     <div class="cd-text" id="cd-text">3</div>
                 </div>
                 <div class="pause-overlay" id="pause-overlay">
-                    <div class="pause-title">PAUSED</div>
-                    <button class="btn-neon" onclick="togglePause()">▶ RESUME</button>
-                    <button class="btn-neon danger" onclick="quitToMenu()">✖ ABORT</button>
+                    <div class="pause-title">Paused</div>
+                    <button class="btn-stone" onclick="togglePause()">▶ Resume</button>
+                    <button class="btn-stone" onclick="quitToMenu()">✖ Quit</button>
                 </div>
                 <div class="gameover-overlay" id="go-overlay">
-                    <div class="go-title" id="go-title">SYSTEM CRASH</div>
+                    <div class="go-title" id="go-title">Fallen</div>
                     <div class="go-subtitle" id="go-subtitle"></div>
                     <div class="go-score" id="go-score"></div>
                     <div class="go-stats" id="go-stats"></div>
                     <div class="go-buttons">
-                        <button class="btn-neon primary" onclick="restartGame()">↻ REDEPLOY</button>
-                        <button class="btn-neon" onclick="quitToMenu()">◀ TERMINAL</button>
+                        <button class="btn-stone primary" onclick="restartGame()">⚔ Hunt Again</button>
+                        <button class="btn-stone" onclick="quitToMenu()">🏠 Menu</button>
                     </div>
                 </div>
             </div>
@@ -861,62 +818,56 @@
     <!-- MODALS -->
     <div class="modal-overlay" id="modal-name">
         <div class="modal-box">
-            <div class="modal-title">OPERATOR ID</div>
+            <div class="modal-title">Enter Thy Name</div>
             <div class="modal-divider"></div>
-            <div class="input-group"><label>Call Sign</label><input class="neon-input" id="input-name" type="text"
-                    placeholder="Enter call sign..." maxlength="16" autofocus></div>
-            <button class="btn-neon primary" style="width:100%" onclick="confirmName()">▶ INITIALIZE</button>
+            <div class="input-group">
+                <label>Thy Name</label>
+                <input class="name-input" id="input-name" type="text" placeholder="Enter name..." maxlength="16">
+            </div>
+            <button class="btn-stone primary" style="width:100%" id="btn-confirm-name">⚔ Begin</button>
             <button class="modal-close" onclick="closeModal('name')">Cancel</button>
         </div>
     </div>
     <div class="modal-overlay" id="modal-tutorial">
         <div class="modal-box">
-            <div class="modal-title">◈ COMMAND BRIEFING</div>
+            <div class="modal-title">📜 How to Play</div>
             <div class="modal-divider"></div>
             <div class="tut-section">
                 <div class="tut-icon">🎮</div>
                 <div class="tut-content">
-                    <h4>PC Controls</h4>
-                    <p><b>WASD</b> or <b>Arrow Keys</b> to steer the Venom. Zero input lag.</p>
-                </div>
-            </div>
-            <div class="tut-section">
-                <div class="tut-icon">📱</div>
-                <div class="tut-content">
-                    <h4>Mobile Controls</h4>
-                    <p><b>Swipe</b> in any direction to change heading. Touch anywhere on screen.</p>
+                    <h4>Controls</h4>
+                    <p>Use <b>WASD</b> or <b>Arrow Keys</b> to guide the serpent. On mobile, <b>Swipe</b> in any
+                        direction.</p>
                 </div>
             </div>
             <div class="tut-section">
                 <div class="tut-icon">🎯</div>
                 <div class="tut-content">
-                    <h4>Objective</h4>
-                    <p>Consume <b>bio-targets</b> to grow. Each target adds length and score. Avoid walls and your own
-                        trail.</p>
+                    <h4>The Hunt</h4>
+                    <p>Consume the <b>enchanted orbs</b> to grow longer. Each orb grants power and score. Avoid the
+                        ancient walls and thine own tail.</p>
                 </div>
             </div>
             <div class="tut-section">
                 <div class="tut-icon">⚡</div>
                 <div class="tut-content">
-                    <h4>Speed Ramping</h4>
-                    <p>Every <b>5 targets</b> consumed increases velocity. The grid intensifies. CRT glitch effects rise
-                        with difficulty.</p>
+                    <h4>The Challenge</h4>
+                    <p>Every <b>5 orbs</b> consumed quickens the serpent. The hunt grows ever more intense.</p>
                 </div>
             </div>
             <div class="tut-section">
                 <div class="tut-icon">🏆</div>
                 <div class="tut-content">
-                    <h4>Ranks</h4>
-                    <p>Climb from <b>HATCHLING</b> → <b>SERPENT</b> → <b>VIPER</b> → <b>COBRA</b> → <b>LEVIATHAN</b> →
-                        <b>OUROBOROS</b> as you grow.
-                    </p>
+                    <h4>Ascension</h4>
+                    <p>Rise from <b>Hatchling</b> → <b>Serpent</b> → <b>Viper</b> → <b>Cobra</b> → <b>Leviathan</b> →
+                        <b>Ouroboros</b> as thy power grows.</p>
                 </div>
             </div>
             <div class="tut-section">
                 <div class="tut-icon">💾</div>
                 <div class="tut-content">
-                    <h4>Progression</h4>
-                    <p>High scores, total distance, and lifetime kills are saved locally. Chase the leaderboard.</p>
+                    <h4>Legacy</h4>
+                    <p>High scores and lifetime feats are etched in stone. Chase the Hall of Legends.</p>
                 </div>
             </div>
             <button class="modal-close" onclick="closeModal('tutorial')">Close</button>
@@ -924,7 +875,7 @@
     </div>
     <div class="modal-overlay" id="modal-leaderboard">
         <div class="modal-box">
-            <div class="modal-title">◆ HALL OF VENOMS</div>
+            <div class="modal-title">🏆 Hall of Legends</div>
             <div class="modal-divider"></div>
             <div id="lb-content"></div>
             <button class="modal-close" onclick="closeModal('leaderboard')">Close</button>
@@ -932,111 +883,87 @@
     </div>
     <div class="modal-overlay" id="modal-archives">
         <div class="modal-box">
-            <div class="modal-title">◇ ARCHIVES</div>
+            <div class="modal-title">🗿 About</div>
             <div class="modal-divider"></div>
             <div class="modal-text">
-                <p style="margin-bottom:10px"><b>OUROBOROS — VENOM PROTOCOL</b></p>
-                <p style="margin-bottom:10px">In the digital abyss, a synthetic serpent hunts. Each bio-target consumed
-                    extends its neon trail through the void. The ancient symbol of infinity — the snake eating its own
-                    tail — reimagined as a high-octane arcade experience.</p>
-                <p style="margin-bottom:10px">Engineered with pure HTML5 Canvas, CSS3, Web Audio API, and JavaScript. No
-                    frameworks. No dependencies. Raw code, maximum performance.</p>
-                <p style="color:var(--neon-cyan)">v1.0 — The Venom Awakens | Made by: Abdullah Karim</p>
+                <p style="margin-bottom:12px"><b>OUROBOROS</b> — the ancient symbol of the serpent devouring its own
+                    tail, reborn as a sacred arcade ritual.</p>
+                <p style="margin-bottom:12px">Guide the eternal serpent through the stone labyrinth, consuming enchanted
+                    orbs to grow in power. How long can you survive the hunt?</p>
+                <p style="margin-bottom:12px">Built with pure HTML5 Canvas, CSS3, Web Audio API, and JavaScript. No
+                    frameworks, no libraries — just raw craft, like the ancients intended.</p>
+                <p style="color:var(--gold-ancient)">Version 1.0 — The Serpent Awakens | Made by: Abdullah Karim</p>
             </div>
             <button class="modal-close" onclick="closeModal('archives')">Close</button>
         </div>
     </div>
     <script>
         // =============================================
-        //  OUROBOROS — VENOM PROTOCOL ENGINE
+        //  OUROBOROS — GAME ENGINE
         // =============================================
-        // --- State ---
-        let gameState = 'menu', animId = null, playerName = 'Operator';
+        let gameState = 'menu', animId = null, playerName = 'Wanderer';
         let score = 0, highScore = 0, totalDistance = 0, totalKills = 0, sessionDist = 0, sessionKills = 0;
         let snakeDir = { x: 1, y: 0 }, nextDir = { x: 1, y: 0 }, snake = [], food = null;
         let gridW, gridH, cellSize, moveTimer = 0, moveInterval = 120, baseInterval = 120;
-        let glitchIntensity = 0, screenPulseAlpha = 0, screenPulseColor = '#00f0ff';
-        let trailFade = [], foodAnim = 0, pulsePhase = 0;
+        let glitchIntensity = 0, screenPulseAlpha = 0, screenPulseColor = '#c9a84c';
+        let trailFade = [], pulsePhase = 0, countdownInterval = null;
         let isMobile = false, touchStartX = 0, touchStartY = 0;
-
-        const RANKS = [
-            { name: 'HATCHLING', min: 0 }, { name: 'SERPENT', min: 5 }, { name: 'VIPER', min: 15 },
-            { name: 'COBRA', min: 30 }, { name: 'LEVIATHAN', min: 50 }, { name: 'OUROBOROS', min: 80 }
-        ];
-        function getRank(s) { let r = RANKS[0]; for (const rk of RANKS) if (s >= rk.min) r = rk; return r.name }
-
-        // --- Canvas ---
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
+        const RANKS = [{ n: 'Hatchling', m: 0 }, { n: 'Serpent', m: 5 }, { n: 'Viper', m: 15 }, { n: 'Cobra', m: 30 }, { n: 'Leviathan', m: 50 }, { n: 'Ouroboros', m: 80 }];
+        function getRank(s) { let r = RANKS[0]; for (const k of RANKS) if (s >= k.m) r = k; return r.n }
+        const canvas = document.getElementById('game-canvas'), ctx = canvas.getContext('2d');
         let CW, CH;
 
         // --- Audio ---
         let audioCtx = null;
         function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)() }
-        function playTone(freq, dur, type, vol) {
+        function playTone(f, d, t, v) {
             if (!audioCtx) return; const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-            o.type = type || 'sine'; o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            g.gain.setValueAtTime(vol || .08, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + (dur || .15));
-            o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + (dur || .15));
+            o.type = t || 'sine'; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.setValueAtTime(v || .08, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + (d || .15));
+            o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + (d || .15));
         }
-        function playSlither() { playTone(80, .06, 'triangle', .04) }
-        function playEat() {
-            playTone(880, .08, 'sine', .1); setTimeout(() => playTone(1100, .06, 'sine', .07), 60);
-            setTimeout(() => playTone(1320, .1, 'sine', .05), 120);
-        }
+        function playSlither() { playTone(80, .06, 'triangle', .03) }
+        function playEat() { playTone(520, .1, 'sine', .1); setTimeout(() => playTone(660, .08, 'sine', .07), 80); setTimeout(() => playTone(780, .12, 'sine', .05), 160) }
         function playCrash() {
             if (!audioCtx) return; const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * .3, audioCtx.sampleRate);
             const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++)d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * .2));
-            const src = audioCtx.createBufferSource(), g = audioCtx.createGain();
-            src.buffer = buf; g.gain.setValueAtTime(.15, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + .3);
+            const src = audioCtx.createBufferSource(), g = audioCtx.createGain(); src.buffer = buf;
+            g.gain.setValueAtTime(.12, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + .3);
             src.connect(g); g.connect(audioCtx.destination); src.start();
         }
-        function playCountdownBeep() { playTone(600, .12, 'sine', .08) }
-        function playGoBeep() { playTone(900, .25, 'sine', .1) }
-
-        // -- Background hum (increases with difficulty) --
         let humOsc = null, humGain = null;
         function startHum() {
-            if (!audioCtx || humOsc) return;
-            humOsc = audioCtx.createOscillator(); humGain = audioCtx.createGain();
+            if (!audioCtx || humOsc) return; humOsc = audioCtx.createOscillator(); humGain = audioCtx.createGain();
             humOsc.type = 'sine'; humOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
-            humGain.gain.setValueAtTime(.02, audioCtx.currentTime);
+            humGain.gain.setValueAtTime(.015, audioCtx.currentTime);
             humOsc.connect(humGain); humGain.connect(audioCtx.destination); humOsc.start();
         }
         function updateHum() {
-            if (!humOsc || !humGain) return;
-            const speed = Math.min(score / 80, 1);
-            humOsc.frequency.setValueAtTime(55 + speed * 40, audioCtx.currentTime);
-            humGain.gain.setValueAtTime(.02 + speed * .03, audioCtx.currentTime);
+            if (!humOsc || !humGain) return; const s = Math.min(score / 80, 1);
+            humOsc.frequency.setValueAtTime(55 + s * 35, audioCtx.currentTime); humGain.gain.setValueAtTime(.015 + s * .025, audioCtx.currentTime)
         }
-        function stopHum() { if (humOsc) { humOsc.stop(); humOsc = null; humGain = null } }
+        function stopHum() { try { if (humOsc) { humOsc.stop(); humOsc.disconnect() } } catch (e) { } humOsc = null; humGain = null }
 
-        // --- Particles ---
-        function createParticles() {
-            const c = document.getElementById('particles'); c.innerHTML = '';
-            for (let i = 0; i < 35; i++) {
-                const p = document.createElement('div'); p.className = 'particle';
-                p.style.left = Math.random() * 100 + '%';
-                p.style.animationDuration = (5 + Math.random() * 10) + 's';
-                p.style.animationDelay = Math.random() * 12 + 's';
-                const sz = 1 + Math.random() * 2; p.style.width = sz + 'px'; p.style.height = sz + 'px';
-                p.style.background = ['#00f0ff', '#ff00aa', '#39ff14', '#b040ff'][Math.floor(Math.random() * 4)];
-                c.appendChild(p);
+        // --- Embers ---
+        function createEmbers() {
+            const c = document.getElementById('embers'); c.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const e = document.createElement('div'); e.className = 'ember';
+                e.style.left = Math.random() * 100 + '%'; e.style.animationDuration = (4 + Math.random() * 8) + 's';
+                e.style.animationDelay = Math.random() * 10 + 's'; const sz = 2 + Math.random() * 3;
+                e.style.width = sz + 'px'; e.style.height = sz + 'px';
+                e.style.background = Math.random() > .5 ? '#c47a2a' : '#8ab878'; c.appendChild(e)
             }
         }
-        createParticles();
+        createEmbers();
 
-        // --- Detect Mobile ---
-        function detectMobile() {
-            isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768;
-        }
+        function detectMobile() { isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768 }
         detectMobile(); window.addEventListener('resize', detectMobile);
 
-        // --- Screen/Modal ---
+        // --- Screens/Modals ---
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active') }
-        function showModal(n) { if (n === 'leaderboard') renderLeaderboard(); document.getElementById('modal-' + n).classList.add('active') }
+        function showModal(n) { if (n === 'leaderboard') renderLB(); document.getElementById('modal-' + n).classList.add('active') }
         function closeModal(n) { document.getElementById('modal-' + n).classList.remove('active') }
         document.querySelectorAll('.modal-overlay').forEach(ov => { ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('active') }) });
 
@@ -1044,112 +971,98 @@
         function getLB() { try { return JSON.parse(localStorage.getItem('ouroboros_lb')) || [] } catch { return [] } }
         function saveLB(lb) { localStorage.setItem('ouroboros_lb', JSON.stringify(lb)) }
         function addToLB(name, sc) {
-            let lb = getLB(); const ei = lb.findIndex(e => e.name.toLowerCase() === name.toLowerCase());
-            if (ei !== -1) { if (sc > lb[ei].score) lb[ei] = { name, score: sc, date: Date.now() }; else return }
-            else lb.push({ name, score: sc, date: Date.now() });
-            lb.sort((a, b) => b.score - a.score); lb = lb.slice(0, 5); saveLB(lb);
+            let lb = getLB(); const i = lb.findIndex(e => e.name.toLowerCase() === name.toLowerCase());
+            if (i !== -1) { if (sc > lb[i].score) lb[i] = { name, score: sc, date: Date.now() }; else return }
+            else lb.push({ name, score: sc, date: Date.now() }); lb.sort((a, b) => b.score - a.score); lb = lb.slice(0, 5); saveLB(lb)
         }
-        function renderLeaderboard() {
+        function renderLB() {
             const lb = getLB(), c = document.getElementById('lb-content');
-            if (!lb.length) { c.innerHTML = '<div class="lb-empty">No venoms recorded. Be the first to strike.</div>'; return }
-            const medals = ['👑', '🥈', '🥉', '4', '5'];
-            let h = '<table class="lb-table"><thead><tr><th>#</th><th>Operator</th><th>Score</th></tr></thead><tbody>';
-            lb.forEach((e, i) => { h += `<tr><td class="lb-rank">${medals[i] || i + 1}</td><td>${escH(e.name)}</td><td>${e.score}</td></tr>` });
-            h += '</tbody></table>'; c.innerHTML = h;
+            if (!lb.length) { c.innerHTML = '<div class="lb-empty">No legends yet. Be the first to etch thy name in stone.</div>'; return }
+            const m = ['👑', '🥈', '🥉', '4', '5'];
+            let h = '<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Score</th></tr></thead><tbody>';
+            lb.forEach((e, i) => { h += `<tr><td class="lb-rank">${m[i] || i + 1}</td><td>${escH(e.name)}</td><td>${e.score}</td></tr>` });
+            h += '</tbody></table>'; c.innerHTML = h
         }
         function escH(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML }
 
-        // --- Persistent Stats ---
+        // --- Stats ---
         function loadStats() {
             try {
                 const s = JSON.parse(localStorage.getItem('ouroboros_stats')) || {};
-                totalDistance = s.dist || 0; totalKills = s.kills || 0; highScore = s.high || 0; playerName = s.name || 'Operator';
-            } catch { totalDistance = 0; totalKills = 0; highScore = 0 }
-            document.getElementById('hud-high').textContent = highScore;
+                totalDistance = s.d || 0; totalKills = s.k || 0; highScore = s.h || 0; playerName = s.n || 'Wanderer'
+            } catch { }
+            document.getElementById('hud-high').textContent = highScore
         }
-        function saveStats() {
-            localStorage.setItem('ouroboros_stats', JSON.stringify({ dist: totalDistance, kills: totalKills, high: highScore, name: playerName }));
-        }
+        function saveStats() { localStorage.setItem('ouroboros_stats', JSON.stringify({ d: totalDistance, k: totalKills, h: highScore, n: playerName })) }
         loadStats();
 
-        // --- Launch / Name ---
+        // --- Launch ---
         function launchGame() {
             initAudio(); showModal('name');
-            const inp = document.getElementById('input-name'); inp.value = playerName !== 'Operator' ? playerName : '';
-            setTimeout(() => inp.focus(), 100);
+            const inp = document.getElementById('input-name'); inp.value = playerName !== 'Wanderer' ? playerName : '';
+            setTimeout(() => inp.focus(), 150)
         }
         function confirmName() {
             const inp = document.getElementById('input-name');
-            playerName = (inp.value.trim() || 'Operator').substring(0, 16); closeModal('name'); initGame();
+            playerName = (inp.value.trim() || 'Wanderer').substring(0, 16); closeModal('name'); initGame()
         }
-        document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') confirmName() });
+        document.getElementById('btn-confirm-name').addEventListener('click', confirmName);
+        document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmName() } });
 
-        // --- Canvas Sizing ---
+        // --- Canvas ---
         function sizeCanvas() {
-            const pad = isMobile ? 10 : 20; const hudH = isMobile ? 60 : 70;
-            const maxW = Math.min(window.innerWidth - pad * 2, 1000);
-            const maxH = Math.min(window.innerHeight - hudH - pad * 2, 700);
-            // Determine grid
-            const targetCell = isMobile ? 18 : 22;
-            gridW = Math.floor(maxW / targetCell); gridH = Math.floor(maxH / targetCell);
-            if (gridW < 15) gridW = 15; if (gridH < 15) gridH = 15;
-            if (gridW > 45) gridW = 45; if (gridH > 32) gridH = 32;
+            const pad = isMobile ? 10 : 20, hudH = isMobile ? 60 : 70;
+            const maxW = Math.min(window.innerWidth - pad * 2, 900), maxH = Math.min(window.innerHeight - hudH - pad * 2, 650);
+            const tc = isMobile ? 18 : 22; gridW = Math.floor(maxW / tc); gridH = Math.floor(maxH / tc);
+            gridW = Math.max(15, Math.min(42, gridW)); gridH = Math.max(15, Math.min(30, gridH));
             cellSize = Math.min(Math.floor(maxW / gridW), Math.floor(maxH / gridH));
-            CW = gridW * cellSize; CH = gridH * cellSize;
-            canvas.width = CW; canvas.height = CH;
-            canvas.style.width = CW + 'px'; canvas.style.height = CW > maxW ? maxW + 'px' : CW + 'px';
-            canvas.style.height = CH + 'px';
+            CW = gridW * cellSize; CH = gridH * cellSize; canvas.width = CW; canvas.height = CH;
+            canvas.style.width = CW + 'px'; canvas.style.height = CH + 'px'
         }
 
-        // --- Init Game ---
         function initGame() {
             sizeCanvas(); showScreen('game-screen');
-            score = 0; sessionDist = 0; sessionKills = 0; moveInterval = baseInterval; glitchIntensity = 0;
-            snakeDir = { x: 1, y: 0 }; nextDir = { x: 1, y: 0 }; trailFade = [];
+            score = 0; sessionDist = 0; sessionKills = 0; moveInterval = baseInterval; moveTimer = 0;
+            glitchIntensity = 0; screenPulseAlpha = 0; trailFade = []; pulsePhase = 0;
+            snakeDir = { x: 1, y: 0 }; nextDir = { x: 1, y: 0 };
             const cx = Math.floor(gridW / 2), cy = Math.floor(gridH / 2);
             snake = [{ x: cx, y: cy }, { x: cx - 1, y: cy }, { x: cx - 2, y: cy }, { x: cx - 3, y: cy }];
-            spawnFood(); updateHUD(); startCountdown();
+            spawnFood(); updateHUD(); startCountdown()
         }
 
-        // --- Food ---
         function spawnFood() {
-            let valid = []; for (let x = 1; x < gridW - 1; x++)for (let y = 1; y < gridH - 1; y++) {
+            let v = []; for (let x = 1; x < gridW - 1; x++)for (let y = 1; y < gridH - 1; y++) {
                 let ok = true; for (const s of snake) if (s.x === x && s.y === y) { ok = false; break }
-                if (ok) valid.push({ x, y });
+                if (ok) v.push({ x, y })
             }
-            food = valid[Math.floor(Math.random() * valid.length)] || { x: 1, y: 1 };
-            food.hue = Math.random() * 360; food.rot = 0; food.pulse = 0;
+            food = v[Math.floor(Math.random() * v.length)] || { x: 1, y: 1 }; food.hue = 30 + Math.random() * 40; food.rot = 0; food.pulse = 0
         }
 
-        // --- Countdown ---
         function startCountdown() {
             gameState = 'countdown';
+            if (countdownInterval) clearInterval(countdownInterval);
             const ov = document.getElementById('cd-overlay'), txt = document.getElementById('cd-text');
-            ov.classList.add('active'); let count = 3;
-            txt.textContent = count; txt.classList.remove('fade');
-            playCountdownBeep();
-            const iv = setInterval(() => {
+            ov.classList.add('active'); let count = 3; txt.textContent = count; txt.classList.remove('fade');
+            playTone(500, .12, 'sine', .08);
+            countdownInterval = setInterval(() => {
                 txt.classList.add('fade');
                 setTimeout(() => {
-                    count--;
-                    if (count > 0) { txt.textContent = count; txt.classList.remove('fade'); playCountdownBeep() }
+                    count--; if (count > 0) { txt.textContent = count; txt.classList.remove('fade'); playTone(500, .12, 'sine', .08) }
                     else {
-                        txt.textContent = 'GO'; txt.classList.remove('fade'); playGoBeep();
+                        clearInterval(countdownInterval); countdownInterval = null; txt.textContent = 'GO'; txt.classList.remove('fade'); playTone(700, .25, 'sine', .1);
                         setTimeout(() => { ov.classList.remove('active'); gameState = 'playing'; startHum(); lastTime = performance.now(); animId = requestAnimationFrame(gameLoop) }, 400)
                     }
-                }, 300);
-            }, 900);
+                }, 300)
+            }, 900)
         }
 
-        // --- HUD ---
         function updateHUD() {
             document.getElementById('hud-score').textContent = score;
             document.getElementById('hud-high').textContent = Math.max(highScore, score);
-            document.getElementById('hud-rank').textContent = 'RANK: ' + getRank(score);
+            document.getElementById('hud-rank').textContent = getRank(score)
         }
 
         // --- Input ---
-        const keys = {};
         document.addEventListener('keydown', e => {
             if (gameState === 'playing') {
                 if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && snakeDir.y !== 1) nextDir = { x: 0, y: -1 };
@@ -1158,249 +1071,166 @@
                 else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && snakeDir.x !== -1) nextDir = { x: 1, y: 0 };
                 else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') togglePause();
             } else if (gameState === 'paused' && (e.key === 'Escape' || e.key === 'p' || e.key === 'P')) togglePause();
-            e.preventDefault();
+            if (gameState === 'playing' || gameState === 'paused') e.preventDefault();
         });
-
-        // Touch
         let swipeLock = false;
         document.addEventListener('touchstart', e => {
-            if (gameState !== 'playing' && gameState !== 'menu') return;
-            const t = e.touches[0]; touchStartX = t.clientX; touchStartY = t.clientY; swipeLock = false;
-        }, { passive: false });
+            if (gameState !== 'playing') return;
+            const t = e.touches[0]; touchStartX = t.clientX; touchStartY = t.clientY; swipeLock = false
+        }, { passive: true });
         document.addEventListener('touchmove', e => {
             if (gameState !== 'playing' || swipeLock) return;
             const t = e.touches[0], dx = t.clientX - touchStartX, dy = t.clientY - touchStartY;
-            const minSwipe = 20;
-            if (Math.abs(dx) > minSwipe || Math.abs(dy) > minSwipe) {
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    if (dx > 0 && snakeDir.x !== (-1)) nextDir = { x: 1, y: 0 };
-                    else if (dx < 0 && snakeDir.x !== 1) nextDir = { x: -1, y: 0 };
-                } else {
-                    if (dy > 0 && snakeDir.y !== (-1)) nextDir = { x: 0, y: 1 };
-                    else if (dy < 0 && snakeDir.y !== 1) nextDir = { x: 0, y: -1 };
-                }
-                swipeLock = true; touchStartX = t.clientX; touchStartY = t.clientY;
+            if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+                if (Math.abs(dx) > Math.abs(dy)) { if (dx > 0 && snakeDir.x !== -1) nextDir = { x: 1, y: 0 }; else if (dx < 0 && snakeDir.x !== 1) nextDir = { x: -1, y: 0 } }
+                else { if (dy > 0 && snakeDir.y !== -1) nextDir = { x: 0, y: 1 }; else if (dy < 0 && snakeDir.y !== 1) nextDir = { x: 0, y: -1 } }
+                swipeLock = true; touchStartX = t.clientX; touchStartY = t.clientY
             }
-            e.preventDefault();
+            e.preventDefault()
         }, { passive: false });
 
-        // --- Pause ---
         function togglePause() {
-            if (gameState === 'playing') { gameState = 'paused'; cancelAnimationFrame(animId); document.getElementById('pause-overlay').classList.add('active'); stopHum() }
+            if (gameState === 'playing') { gameState = 'paused'; cancelAnimationFrame(animId); stopHum(); document.getElementById('pause-overlay').classList.add('active') }
             else if (gameState === 'paused') { document.getElementById('pause-overlay').classList.remove('active'); gameState = 'playing'; startHum(); lastTime = performance.now(); animId = requestAnimationFrame(gameLoop) }
         }
         function quitToMenu() {
             gameState = 'menu'; cancelAnimationFrame(animId); stopHum();
+            if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null }
+            document.getElementById('cd-overlay').classList.remove('active');
             document.getElementById('pause-overlay').classList.remove('active');
-            document.getElementById('go-overlay').classList.remove('active');
-            showScreen('menu-screen');
+            document.getElementById('go-overlay').classList.remove('active'); showScreen('menu-screen')
         }
-        function restartGame() {
-            document.getElementById('go-overlay').classList.remove('active');
-            initGame();
-        }
+        function restartGame() { document.getElementById('go-overlay').classList.remove('active'); initGame() }
 
         // --- Game Loop ---
         let lastTime = 0;
         function gameLoop(ts) {
             if (gameState !== 'playing') return;
-            const dt = ts - lastTime; lastTime = ts;
-            moveTimer += dt; foodAnim += dt; pulsePhase += dt * .003;
+            const dt = ts - lastTime; lastTime = ts; moveTimer += dt; pulsePhase += dt * .003;
             if (screenPulseAlpha > 0) screenPulseAlpha -= dt * .003;
-            // Speed ramp
-            const speedLevel = Math.floor(score / 5);
-            moveInterval = Math.max(50, baseInterval - speedLevel * 8);
-            glitchIntensity = Math.min(score / 100, .6);
-            updateHum();
-
+            const spd = Math.floor(score / 5); moveInterval = Math.max(55, baseInterval - spd * 7);
+            glitchIntensity = Math.min(score / 100, .5); updateHum();
             if (moveTimer >= moveInterval) { moveTimer = 0; updateSnake() }
-            drawGame();
-            animId = requestAnimationFrame(gameLoop);
+            drawGame(); animId = requestAnimationFrame(gameLoop)
         }
 
-        // --- Snake Logic ---
         function updateSnake() {
             snakeDir = { ...nextDir };
             const head = { x: snake[0].x + snakeDir.x, y: snake[0].y + snakeDir.y };
-            // Wall collision
             if (head.x < 0 || head.x >= gridW || head.y < 0 || head.y >= gridH) { die(); return }
-            // Self collision
             for (const s of snake) if (s.x === head.x && s.y === head.y) { die(); return }
             snake.unshift(head); sessionDist++;
-            // Eat?
             if (food && head.x === food.x && head.y === food.y) {
                 score++; sessionKills++; playEat();
-                // Screen pulse
-                screenPulseAlpha = .3; screenPulseColor = `hsl(${food.hue},100%,60%)`;
-                // Trail glow from old tail
+                screenPulseAlpha = .25; screenPulseColor = `hsl(${food.hue},80%,50%)`;
                 trailFade.push({ x: snake[snake.length - 1].x, y: snake[snake.length - 1].y, a: 1, hue: food.hue });
                 spawnFood(); updateHUD();
-                // Glitch effect on every 5th eat
-                if (score % 5 === 0) {
-                    const wrapper = document.getElementById('game-wrapper');
-                    wrapper.classList.add('chromatic'); setTimeout(() => wrapper.classList.remove('chromatic'), 150);
-                }
-            } else {
-                const tail = snake.pop();
-                trailFade.push({ x: tail.x, y: tail.y, a: .4, hue: 180 });
-            }
-            playSlither();
-            // Fade trails
-            trailFade = trailFade.filter(t => { t.a -= .03; return t.a > 0 });
+                if (score % 5 === 0) { const w = document.getElementById('game-wrapper'); w.classList.add('chromatic'); setTimeout(() => w.classList.remove('chromatic'), 150) }
+            } else { const tail = snake.pop(); trailFade.push({ x: tail.x, y: tail.y, a: .35, hue: 90 }) }
+            playSlither(); trailFade = trailFade.filter(t => { t.a -= .025; return t.a > 0 })
         }
 
-        // --- Death ---
         function die() {
             gameState = 'gameover'; cancelAnimationFrame(animId); playCrash(); stopHum();
-            // Shake
-            const wrapper = document.getElementById('game-wrapper');
-            wrapper.classList.add('shake'); setTimeout(() => wrapper.classList.remove('shake'), 400);
-            // Chromatic
-            wrapper.classList.add('chromatic'); setTimeout(() => wrapper.classList.remove('chromatic'), 200);
-            // Update stats
+            const w = document.getElementById('game-wrapper');
+            w.classList.add('shake'); setTimeout(() => w.classList.remove('shake'), 400);
+            w.classList.add('chromatic'); setTimeout(() => w.classList.remove('chromatic'), 200);
             totalDistance += sessionDist; totalKills += sessionKills;
-            if (score > highScore) highScore = score;
-            saveStats(); addToLB(playerName, score);
-            // Show overlay
-            const ov = document.getElementById('go-overlay');
-            document.getElementById('go-title').textContent = score >= 50 ? 'OUROBOROS FALLS' : 'SYSTEM CRASH';
-            document.getElementById('go-subtitle').textContent = `Operator ${escH(playerName)} — ${getRank(score)}`;
-            document.getElementById('go-score').textContent = `SCORE: ${score}`;
-            document.getElementById('go-stats').innerHTML =
-                `Distance: ${sessionDist} cells | Targets: ${sessionKills}<br>Lifetime Distance: ${totalDistance} | Lifetime Kills: ${totalKills}`;
-            ov.classList.add('active');
+            if (score > highScore) highScore = score; saveStats(); addToLB(playerName, score);
+            document.getElementById('go-title').textContent = score >= 50 ? 'The Ouroboros Falls' : 'Fallen';
+            document.getElementById('go-subtitle').textContent = `${escH(playerName)} — ${getRank(score)}`;
+            document.getElementById('go-score').textContent = score;
+            document.getElementById('go-stats').innerHTML = `Distance: ${sessionDist} · Orbs: ${sessionKills}<br>Lifetime: ${totalDistance} traveled · ${totalKills} consumed`;
+            document.getElementById('go-overlay').classList.add('active')
         }
 
         // --- Drawing ---
         function drawGame() {
             ctx.clearRect(0, 0, CW, CH);
-            // BG
-            ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, CW, CH);
-            drawGrid(); drawRadarSweep(); drawTrails(); drawFood(); drawSnake(); drawScreenPulse(); drawGlitchOverlay();
+            // Stone BG
+            const bg = ctx.createLinearGradient(0, 0, CW, CH); bg.addColorStop(0, '#1a1f1a'); bg.addColorStop(.5, '#1e241e'); bg.addColorStop(1, '#1a1f1a');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
+            drawGrid(); drawRadar(); drawTrails(); drawFood(); drawSnake(); drawPulse(); drawGlitch()
         }
+
         function drawGrid() {
-            ctx.strokeStyle = 'rgba(0,240,255,.04)'; ctx.lineWidth = .5;
+            ctx.strokeStyle = 'rgba(74,103,65,.08)'; ctx.lineWidth = .5;
             for (let x = 0; x <= gridW; x++) { ctx.beginPath(); ctx.moveTo(x * cellSize, 0); ctx.lineTo(x * cellSize, CH); ctx.stroke() }
             for (let y = 0; y <= gridH; y++) { ctx.beginPath(); ctx.moveTo(0, y * cellSize); ctx.lineTo(CW, y * cellSize); ctx.stroke() }
         }
-        function drawRadarSweep() {
-            const cx = CW / 2, cy = CH / 2, angle = pulsePhase % (Math.PI * 2);
-            const grad = ctx.createConicalGradient ? null : null;
-            // Fallback: radial line sweep
-            ctx.save(); ctx.globalAlpha = .03 + glitchIntensity * .02;
-            ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 1;
-            const r = Math.max(CW, CH);
-            ctx.beginPath(); ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r); ctx.stroke();
-            // Sweep wedge
-            ctx.beginPath(); ctx.moveTo(cx, cy);
-            ctx.arc(cx, cy, r, angle - .3, angle, .035); ctx.closePath();
-            const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-            rg.addColorStop(0, 'rgba(0,240,255,.06)'); rg.addColorStop(1, 'rgba(0,240,255,0)');
-            ctx.fillStyle = rg; ctx.fill();
-            ctx.restore();
+
+        function drawRadar() {
+            const cx = CW / 2, cy = CH / 2, a = pulsePhase % (Math.PI * 2), r = Math.max(CW, CH);
+            ctx.save(); ctx.globalAlpha = .025 + glitchIntensity * .015; ctx.strokeStyle = '#6b8f5e'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a - .3, a); ctx.closePath();
+            const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, 'rgba(106,143,94,.06)'); rg.addColorStop(1, 'rgba(106,143,94,0)');
+            ctx.fillStyle = rg; ctx.fill(); ctx.restore()
         }
+
         function drawTrails() {
             for (const t of trailFade) {
-                ctx.globalAlpha = t.a * .5;
-                ctx.fillStyle = `hsla(${t.hue},100%,60%,.3)`;
-                ctx.shadowColor = `hsl(${t.hue},100%,60%)`; ctx.shadowBlur = 8;
-                ctx.fillRect(t.x * cellSize + 2, t.y * cellSize + 2, cellSize - 4, cellSize - 4);
-                ctx.shadowBlur = 0;
-            }
-            ctx.globalAlpha = 1;
+                ctx.globalAlpha = t.a * .4;
+                ctx.fillStyle = `hsla(${t.hue},60%,45%,.3)`; ctx.shadowColor = `hsl(${t.hue},60%,45%)`; ctx.shadowBlur = 6;
+                ctx.fillRect(t.x * cellSize + 2, t.y * cellSize + 2, cellSize - 4, cellSize - 4); ctx.shadowBlur = 0
+            } ctx.globalAlpha = 1
         }
+
         function drawFood() {
-            if (!food) return;
-            food.rot += .03; food.pulse += .05;
+            if (!food) return; food.rot += .025; food.pulse += .04;
             const x = food.x * cellSize + cellSize / 2, y = food.y * cellSize + cellSize / 2;
-            const r = cellSize * .35 + Math.sin(food.pulse) * (cellSize * .06);
-            const hue = food.hue;
-            // Aura
-            ctx.save(); ctx.globalAlpha = .15 + Math.sin(food.pulse) * .08;
-            const ag = ctx.createRadialGradient(x, y, 0, x, y, cellSize * 1.2);
-            ag.addColorStop(0, `hsla(${hue},100%,60%,.4)`); ag.addColorStop(1, 'transparent');
-            ctx.fillStyle = ag; ctx.fillRect(food.x * cellSize - cellSize * .5, food.y * cellSize - cellSize * .5, cellSize * 2, cellSize * 2);
-            ctx.restore();
-            // Core
-            ctx.save(); ctx.translate(x, y); ctx.rotate(food.rot);
-            ctx.shadowColor = `hsl(${hue},100%,60%)`; ctx.shadowBlur = 14;
-            // Hexagon shape
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i - Math.PI / 2; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) }
-            ctx.closePath();
-            const fg = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
-            fg.addColorStop(0, `hsla(${hue},100%,80%,.9)`); fg.addColorStop(1, `hsla(${hue},100%,50%,.7)`);
-            ctx.fillStyle = fg; ctx.fill();
-            ctx.strokeStyle = `hsl(${hue},100%,70%)`; ctx.lineWidth = 1.5; ctx.stroke();
-            ctx.shadowBlur = 0; ctx.restore();
+            const r = cellSize * .35 + Math.sin(food.pulse) * (cellSize * .05);
+            ctx.save(); ctx.globalAlpha = .12 + Math.sin(food.pulse) * .06;
+            const ag = ctx.createRadialGradient(x, y, 0, x, y, cellSize * 1.1);
+            ag.addColorStop(0, 'rgba(201,168,76,.5)'); ag.addColorStop(1, 'transparent');
+            ctx.fillStyle = ag; ctx.fillRect(food.x * cellSize - cellSize * .4, food.y * cellSize - cellSize * .4, cellSize * 1.8, cellSize * 1.8); ctx.restore();
+            ctx.save(); ctx.translate(x, y); ctx.rotate(food.rot); ctx.shadowColor = '#c9a84c'; ctx.shadowBlur = 12;
+            ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i - Math.PI / 2; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) } ctx.closePath();
+            const fg = ctx.createRadialGradient(0, 0, 0, 0, 0, r); fg.addColorStop(0, 'rgba(232,200,74,.9)'); fg.addColorStop(1, 'rgba(201,168,76,.7)');
+            ctx.fillStyle = fg; ctx.fill(); ctx.strokeStyle = '#e8c84a'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0; ctx.restore()
         }
+
         function drawSnake() {
             const len = snake.length;
             for (let i = len - 1; i >= 0; i--) {
-                const s = snake[i];
-                const t = 1 - i / len;// 1 at head, ~0 at tail
-                const px = s.x * cellSize, py = s.y * cellSize;
-                const inset = Math.max(1, 3 - t * 2);
-                const w = cellSize - inset * 2, h = cellSize - inset * 2;
-                // Body gradient
-                const hue = 180 + i * 2;
-                const lightness = 50 + t * 20;
-                const alpha = .5 + t * .5;
-                ctx.fillStyle = `hsla(${hue},100%,${lightness}%,${alpha})`;
-                ctx.shadowColor = `hsl(${hue},100%,60%)`;
-                ctx.shadowBlur = 6 + t * 10;
-                // Rounded rect
-                const cr = Math.min(4, w / 3);
-                ctx.beginPath();
-                ctx.moveTo(px + inset + cr, py + inset);
-                ctx.lineTo(px + inset + w - cr, py + inset);
-                ctx.quadraticCurveTo(px + inset + w, py + inset, px + inset + w, py + inset + cr);
-                ctx.lineTo(px + inset + w, py + inset + h - cr);
-                ctx.quadraticCurveTo(px + inset + w, py + inset + h, px + inset + w - cr, py + inset + h);
-                ctx.lineTo(px + inset + cr, py + inset + h);
-                ctx.quadraticCurveTo(px + inset, py + inset + h, px + inset, py + inset + h - cr);
-                ctx.lineTo(px + inset, py + inset + cr);
-                ctx.quadraticCurveTo(px + inset, py + inset, px + inset + cr, py + inset);
+                const s = snake[i], t = 1 - i / len;
+                const px = s.x * cellSize, py = s.y * cellSize, ins = Math.max(1, 3 - t * 2);
+                const w = cellSize - ins * 2, h = cellSize - ins * 2;
+                const hue = 100 + i * 1.5, lit = 30 + t * 20, alp = .5 + t * .5;
+                ctx.fillStyle = `hsla(${hue},50%,${lit}%,${alp})`;
+                ctx.shadowColor = `hsl(${hue},50%,${lit + 15}%)`; ctx.shadowBlur = 4 + t * 8;
+                const cr = Math.min(4, w / 3); ctx.beginPath();
+                ctx.moveTo(px + ins + cr, py + ins); ctx.lineTo(px + ins + w - cr, py + ins);
+                ctx.quadraticCurveTo(px + ins + w, py + ins, px + ins + w, py + ins + cr);
+                ctx.lineTo(px + ins + w, py + ins + h - cr); ctx.quadraticCurveTo(px + ins + w, py + ins + h, px + ins + w - cr, py + ins + h);
+                ctx.lineTo(px + ins + cr, py + ins + h); ctx.quadraticCurveTo(px + ins, py + ins + h, px + ins, py + ins + h - cr);
+                ctx.lineTo(px + ins, py + ins + cr); ctx.quadraticCurveTo(px + ins, py + ins, px + ins + cr, py + ins);
                 ctx.closePath(); ctx.fill();
-                // Pulse effect through body
-                const pulseA = Math.sin(pulsePhase * 3 - i * .4) * .15 + .1;
-                ctx.fillStyle = `hsla(180,100%,80%,${pulseA})`; ctx.fill();
-                ctx.shadowBlur = 0;
-                // Head eyes
+                const pa = Math.sin(pulsePhase * 3 - i * .4) * .12 + .08;
+                ctx.fillStyle = `hsla(90,60%,70%,${pa})`; ctx.fill(); ctx.shadowBlur = 0;
                 if (i === 0) {
-                    const ex1 = px + cellSize * .3, ex2 = px + cellSize * .7, ey = py + cellSize * .4;
-                    const eSize = Math.max(2, cellSize * .1);
-                    ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.shadowBlur = 6;
-                    ctx.beginPath(); ctx.arc(ex1 + (snakeDir.x * 2), ey + (snakeDir.y * 2), eSize, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(ex2 + (snakeDir.x * 2), ey + (snakeDir.y * 2), eSize, 0, Math.PI * 2); ctx.fill();
-                    ctx.shadowBlur = 0;
+                    const ex1 = px + cellSize * .3, ex2 = px + cellSize * .7, ey = py + cellSize * .4, es = Math.max(2, cellSize * .1);
+                    ctx.fillStyle = '#e8c84a'; ctx.shadowColor = '#e8c84a'; ctx.shadowBlur = 5;
+                    ctx.beginPath(); ctx.arc(ex1 + snakeDir.x * 2, ey + snakeDir.y * 2, es, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(ex2 + snakeDir.x * 2, ey + snakeDir.y * 2, es, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
                 }
             }
         }
-        function drawScreenPulse() {
-            if (screenPulseAlpha <= 0) return;
-            ctx.save(); ctx.globalAlpha = screenPulseAlpha;
-            ctx.fillStyle = screenPulseColor; ctx.fillRect(0, 0, CW, CH);
-            ctx.restore();
-        }
-        function drawGlitchOverlay() {
-            if (glitchIntensity < .05) return;
-            // Random horizontal displace lines
-            if (Math.random() > 1 - glitchIntensity * .3) {
-                const y = Math.random() * CH; const h = 2 + Math.random() * 6;
-                const shift = (Math.random() - .5) * glitchIntensity * 20;
-                const imgData = ctx.getImageData(0, y, CW, h);
-                ctx.putImageData(imgData, shift, y);
-            }
-            // Chromatic aberration simulation
-            if (Math.random() > 1 - glitchIntensity * .15) {
-                ctx.save(); ctx.globalAlpha = glitchIntensity * .15; ctx.globalCompositeOperation = 'screen';
-                ctx.drawImage(canvas, 2, 0); ctx.restore();
-            }
+
+        function drawPulse() {
+            if (screenPulseAlpha <= 0) return; ctx.save(); ctx.globalAlpha = screenPulseAlpha;
+            ctx.fillStyle = screenPulseColor; ctx.fillRect(0, 0, CW, CH); ctx.restore()
         }
 
-        // --- Resize ---
+        function drawGlitch() {
+            if (glitchIntensity < .05) return;
+            if (Math.random() > 1 - glitchIntensity * .25) {
+                const y = Math.random() * CH, h = 2 + Math.random() * 5;
+                const sh = (Math.random() - .5) * glitchIntensity * 16; const img = ctx.getImageData(0, Math.max(0, y), CW, Math.min(h, CH - y)); ctx.putImageData(img, sh, Math.max(0, y))
+            }
+            if (Math.random() > 1 - glitchIntensity * .12) { ctx.save(); ctx.globalAlpha = glitchIntensity * .1; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(canvas, 2, 0); ctx.restore() }
+        }
+
         window.addEventListener('resize', () => { if (gameState === 'playing' || gameState === 'paused') sizeCanvas() });
     </script>
 </body>
