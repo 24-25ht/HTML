@@ -732,35 +732,6 @@
             }
         }
 
-        /* --- RADAR SWEEP --- */
-        .radar-sweep {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: conic-gradient(from 0deg at 50% 50%,
-                    transparent 0deg,
-                    rgba(0, 230, 255, 0.06) 15deg,
-                    rgba(0, 230, 255, 0.12) 25deg,
-                    rgba(0, 230, 255, 0.06) 35deg,
-                    transparent 50deg);
-            animation: radar-rotate 5s linear infinite;
-            pointer-events: none;
-            z-index: 1;
-            border-radius: 4px;
-        }
-
-        @keyframes radar-rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
         /* --- BATTLE SCREEN --- */
         #screen-battle {
             background: radial-gradient(ellipse at 50% 30%, #0c1a30 0%, var(--bg-abyss) 70%);
@@ -1716,10 +1687,6 @@
                     <div class="toggle-switch on" id="toggle-crt" onclick="UI.toggleCRT()"></div>
                 </div>
                 <div class="settings-row">
-                    <span class="settings-label"><i class="fas fa-satellite-dish"></i>&ensp;Radar Sweep</span>
-                    <div class="toggle-switch on" id="toggle-radar" onclick="UI.toggleRadar()"></div>
-                </div>
-                <div class="settings-row">
                     <span class="settings-label"><i class="fas fa-fire"></i>&ensp;Screen Shake</span>
                     <div class="toggle-switch on" id="toggle-shake" onclick="UI.toggleShake()"></div>
                 </div>
@@ -2275,7 +2242,7 @@
                     const raw = localStorage.getItem(this.KEYS.SETTINGS);
                     if (raw) return JSON.parse(raw);
                 } catch (e) { }
-                return { volume: 0.6, sfx: true, crt: true, radar: true, shake: true };
+                return { volume: 0.6, sfx: true, crt: true, shake: true };
             },
             loadFastestTimes() {
                 try {
@@ -2743,7 +2710,7 @@
             // Processing flag
             isProcessing: false,
             // Settings
-            settings: { volume: 0.6, sfx: true, crt: true, radar: true, shake: true },
+            settings: { volume: 0.6, sfx: true, crt: true, shake: true },
             // ---- Initialization ----
             init() {
                 this.playerStats = Persistence.loadStats();
@@ -2776,7 +2743,6 @@
                 // Apply toggle states
                 this.updateToggleState('toggle-sfx', this.settings.sfx);
                 this.updateToggleState('toggle-crt', this.settings.crt);
-                this.updateToggleState('toggle-radar', this.settings.radar);
                 this.updateToggleState('toggle-shake', this.settings.shake);
             },
             updateToggleState(id, state) {
@@ -2971,8 +2937,7 @@
                         this.setupPlayer = 2;
                         UI.showLockdown(2, 'setup');
                     } else {
-                        this.startBattle(false);
-                        UI.showLockdown(1, 'battle');
+                        this.startBattle();
                     }
                 }
             },
@@ -3187,10 +3152,12 @@
                     UI.setBattleMessage('Enemy calculating firing solution...');
                     setTimeout(() => this.executeAITurn(), CONFIG.AI_THINK_DELAY);
                 } else {
-                    // Local multiplayer — show lockdown
+                    // Local multiplayer — no lockdown screen
                     this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
                     this.salvoTargets = [];
-                    UI.showLockdown(this.currentPlayer, 'battle');
+                    UI.updateBattleUI();
+                    UI.renderBattle();
+                    UI.setBattleMessage(`${this.getPlayerName(this.currentPlayer)} - select a target`);
                 }
             },
             async executeAITurn() {
@@ -3542,12 +3509,6 @@
                         grid.appendChild(cell);
                     }
                 }
-                // Radar sweep
-                if (Game.settings.radar) {
-                    const radar = document.createElement('div');
-                    radar.className = 'radar-sweep';
-                    grid.appendChild(radar);
-                }
                 // Create row wrapper with left coordinates
                 const gridArea = document.createElement('div');
                 // Add left coords by overlaying
@@ -3710,11 +3671,6 @@
                         grid.appendChild(cell);
                     }
                 }
-                if (Game.settings.radar) {
-                    const radar = document.createElement('div');
-                    radar.className = 'radar-sweep';
-                    grid.appendChild(radar);
-                }
                 wrapper.appendChild(grid);
             },
             renderEnemyGrid() {
@@ -3775,11 +3731,6 @@
                         }
                         grid.appendChild(cell);
                     }
-                }
-                if (Game.settings.radar) {
-                    const radar = document.createElement('div');
-                    radar.className = 'radar-sweep';
-                    grid.appendChild(radar);
                 }
                 wrapper.appendChild(grid);
             },
@@ -4020,14 +3971,6 @@
                 Game.updateToggleState('toggle-crt', Game.settings.crt);
                 if (!Game.settings.crt) document.body.classList.add('no-crt');
                 else document.body.classList.remove('no-crt');
-                Persistence.saveSettings(Game.settings);
-            },
-            toggleRadar() {
-                Game.settings.radar = !Game.settings.radar;
-                Game.updateToggleState('toggle-radar', Game.settings.radar);
-                document.querySelectorAll('.radar-sweep').forEach(r => {
-                    r.style.display = Game.settings.radar ? '' : 'none';
-                });
                 Persistence.saveSettings(Game.settings);
             },
             toggleShake() {
