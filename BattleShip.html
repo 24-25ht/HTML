@@ -1619,21 +1619,21 @@
             </div>
             <div class="battle-grids">
                 <div>
-                    <div class="grid-label"><i class="fas fa-shield-halved"></i>&ensp;Your Fleet</div>
+                    <div class="grid-label" id="player-grid-label"><i class="fas fa-shield-halved"></i>&ensp;Your Fleet</div>
                     <div class="grid-wrapper" id="player-grid-wrapper"></div>
                 </div>
                 <div>
-                    <div class="grid-label"><i class="fas fa-crosshairs"></i>&ensp;Enemy Waters</div>
+                    <div class="grid-label" id="enemy-grid-label"><i class="fas fa-crosshairs"></i>&ensp;Enemy Waters</div>
                     <div class="grid-wrapper" id="enemy-grid-wrapper"></div>
                 </div>
             </div>
             <div class="fleet-status-bar glass-panel">
                 <div class="fleet-status-section">
-                    <h3><i class="fas fa-shield-halved"></i>&ensp;Your Fleet</h3>
+                    <h3 id="player-fleet-title"><i class="fas fa-shield-halved"></i>&ensp;Your Fleet</h3>
                     <div class="fleet-ship-icons" id="player-fleet-status"></div>
                 </div>
                 <div class="fleet-status-section">
-                    <h3><i class="fas fa-skull-crossbones"></i>&ensp;Enemy Fleet</h3>
+                    <h3 id="enemy-fleet-title"><i class="fas fa-skull-crossbones"></i>&ensp;Enemy Fleet</h3>
                     <div class="fleet-ship-icons" id="enemy-fleet-status"></div>
                 </div>
             </div>
@@ -1760,6 +1760,7 @@
             AI_THINK_DELAY: 800,
             AI_SHOT_DELAY: 500,
             ANIMATION_DELAY: 600,
+            FASTEST_LEADERBOARD_SIZE: 5,
             RANKS: [
                 { name: 'Seaman', minWins: 0 },
                 { name: 'Petty Officer', minWins: 3 },
@@ -2224,7 +2225,8 @@
             KEYS: {
                 STATS: 'aegis_stats',
                 GAME_STATE: 'aegis_save',
-                SETTINGS: 'aegis_settings'
+                SETTINGS: 'aegis_settings',
+                FASTEST_TIMES: 'aegis_fastest_times'
             },
             defaultStats() {
                 return {
@@ -2275,11 +2277,47 @@
                 } catch (e) { }
                 return { volume: 0.6, sfx: true, crt: true, radar: true, shake: true };
             },
+            loadFastestTimes() {
+                try {
+                    const raw = localStorage.getItem(this.KEYS.FASTEST_TIMES);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) {
+                            return parsed
+                                .map(v => Number(v))
+                                .filter(v => Number.isFinite(v) && v > 0)
+                                .sort((a, b) => a - b)
+                                .slice(0, CONFIG.FASTEST_LEADERBOARD_SIZE);
+                        }
+                    }
+                } catch (e) { }
+                return [];
+            },
+            saveFastestTimes(times) {
+                try {
+                    localStorage.setItem(this.KEYS.FASTEST_TIMES, JSON.stringify(times));
+                } catch (e) { }
+            },
+            recordFastestTime(ms) {
+                const cleanMs = Math.max(1, Math.round(ms));
+                const fastest = this.loadFastestTimes();
+                fastest.push(cleanMs);
+                fastest.sort((a, b) => a - b);
+                const trimmed = fastest.slice(0, CONFIG.FASTEST_LEADERBOARD_SIZE);
+                this.saveFastestTimes(trimmed);
+                const rankIndex = trimmed.indexOf(cleanMs);
+                return {
+                    times: trimmed,
+                    rank: rankIndex >= 0 ? rankIndex + 1 : null,
+                    isTopRecord: trimmed.length > 0 && trimmed[0] === cleanMs
+                };
+            },
             resetAll() {
                 try {
                     localStorage.removeItem(this.KEYS.STATS);
                     localStorage.removeItem(this.KEYS.GAME_STATE);
                     localStorage.removeItem(this.KEYS.SETTINGS);
+                    localStorage.removeItem(this.KEYS.FASTEST_TIMES);
                 } catch (e) { }
                 UI.showToast('All data has been reset', 'danger');
                 Game.playerStats = Persistence.defaultStats();
@@ -2696,6 +2734,12 @@
             ai: null,
             // Persistent stats
             playerStats: null,
+            // Player names for local mode
+            playerNames: { 1: '', 2: '' },
+            // Solo timer / leaderboard state
+            battleStartTs: null,
+            lastBattleDurationMs: null,
+            lastFastestEntry: null,
             // Processing flag
             isProcessing: false,
             // Settings
@@ -2746,6 +2790,21 @@
             createEmptyGrid() {
                 return Array.from({ length: CONFIG.GRID_SIZE }, () => Array(CONFIG.GRID_SIZE).fill(0));
             },
+            normalizePlayerName(name, fallback) {
+                const cleaned = (name || '')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .slice(0, 20);
+                return cleaned || fallback;
+            },
+            setPlayerNames(playerOne, playerTwo) {
+                this.playerNames[1] = this.normalizePlayerName(playerOne, 'Player 1');
+                this.playerNames[2] = this.normalizePlayerName(playerTwo, 'Player 2');
+            },
+            getPlayerName(player) {
+                const fallback = player === 1 ? 'Player 1' : 'Player 2';
+                return this.normalizePlayerName(this.playerNames[player], fallback);
+            },
             // ---- New Game Flow ----
             startNew() {
                 this.phase = 'mode-select';
@@ -2759,6 +2818,10 @@
                 this.salvoTargets = [];
                 this.currentPlayer = 1;
                 this.isProcessing = false;
+                this.playerNames = { 1: '', 2: '' };
+                this.battleStartTs = null;
+                this.lastBattleDurationMs = null;
+                this.lastFastestEntry = null;
                 Persistence.clearGameState();
                 UI.showScreen('screen-mode');
             },
@@ -2772,7 +2835,8 @@
                 this.playerShips[this.setupPlayer] = [];
                 const title = document.getElementById('setup-title');
                 if (this.mode === 'local') {
-                    title.innerHTML = `<i class="fas fa-map-marked-alt"></i>&ensp;Player ${this.setupPlayer} — Deploy Fleet`;
+                    const commander = UI.escapeHTML(this.getPlayerName(this.setupPlayer));
+                    title.innerHTML = `<i class="fas fa-map-marked-alt"></i>&ensp;${commander} - Deploy Fleet`;
                 } else {
                     title.innerHTML = `<i class="fas fa-map-marked-alt"></i>&ensp;Deploy Your Fleet`;
                 }
@@ -2907,7 +2971,8 @@
                         this.setupPlayer = 2;
                         UI.showLockdown(2, 'setup');
                     } else {
-                        this.startBattle();
+                        this.startBattle(false);
+                        UI.showLockdown(1, 'battle');
                     }
                 }
             },
@@ -2940,21 +3005,27 @@
                 } else if (this.phase === 'battle') {
                     UI.showScreen('screen-battle');
                     UI.renderBattle();
+                    UI.updateBattleUI();
                 }
             },
             // ---- Battle Phase ----
-            startBattle() {
+            startBattle(showBattleScreen = true) {
                 this.phase = 'battle';
                 this.currentPlayer = 1;
                 this.salvoTargets = [];
                 this.isProcessing = false;
+                this.battleStartTs = Date.now();
+                this.lastBattleDurationMs = null;
+                this.lastFastestEntry = null;
                 if (this.mode === 'solo') {
                     this.ai = new AIEngine(this.difficulty);
                     this.ai.initialize(this.playerShips[1]);
                 }
-                UI.showScreen('screen-battle');
-                UI.renderBattle();
-                UI.updateBattleUI();
+                if (showBattleScreen) {
+                    UI.showScreen('screen-battle');
+                    UI.renderBattle();
+                    UI.updateBattleUI();
+                }
                 this.saveCurrentState();
             },
             handleBattleCellClick(r, c) {
@@ -3106,8 +3177,7 @@
                 this.saveCurrentState();
             },
             getEnemyGridCell(r, c) {
-                const gridId = (this.mode === 'solo' || this.currentPlayer === 1) ? 'enemy-grid' : 'player-grid';
-                return document.querySelector(`#${gridId} .grid-cell[data-r="${r}"][data-c="${c}"]`);
+                return document.querySelector(`#enemy-grid .grid-cell[data-r="${r}"][data-c="${c}"]`);
             },
             endTurn() {
                 if (this.mode === 'solo') {
@@ -3235,8 +3305,8 @@
             endGame(winner) {
                 this.phase = 'gameover';
                 Persistence.clearGameState();
-                const isPlayerWin = (this.mode === 'solo' && winner === 1) ||
-                    (this.mode === 'local' && winner === this.currentPlayer);
+                this.lastBattleDurationMs = this.battleStartTs ? Math.max(0, Date.now() - this.battleStartTs) : null;
+                this.lastFastestEntry = null;
                 // Update persistent stats (only for solo mode)
                 if (this.mode === 'solo') {
                     this.playerStats.gamesPlayed++;
@@ -3247,6 +3317,9 @@
                         this.playerStats.winStreak++;
                         if (this.playerStats.winStreak > this.playerStats.bestStreak) {
                             this.playerStats.bestStreak = this.playerStats.winStreak;
+                        }
+                        if (this.lastBattleDurationMs !== null) {
+                            this.lastFastestEntry = Persistence.recordFastestTime(this.lastBattleDurationMs);
                         }
                         Audio.victory();
                     } else {
@@ -3276,6 +3349,8 @@
                     difficulty: this.difficulty,
                     salvoMode: this.salvoMode,
                     currentPlayer: this.currentPlayer,
+                    playerNames: this.playerNames,
+                    battleStartTs: this.battleStartTs,
                     playerBoards: this.playerBoards,
                     shotBoards: this.shotBoards,
                     playerShips: this.playerShips,
@@ -3291,12 +3366,16 @@
                 this.difficulty = state.difficulty;
                 this.salvoMode = state.salvoMode;
                 this.currentPlayer = state.currentPlayer;
+                this.playerNames = state.playerNames || { 1: '', 2: '' };
+                this.battleStartTs = state.battleStartTs || Date.now();
                 this.playerBoards = state.playerBoards;
                 this.shotBoards = state.shotBoards;
                 this.playerShips = state.playerShips;
                 this.battleStats = state.battleStats;
                 this.salvoTargets = [];
                 this.isProcessing = false;
+                this.lastBattleDurationMs = null;
+                this.lastFastestEntry = null;
                 if (this.mode === 'solo') {
                     this.ai = new AIEngine(this.difficulty);
                     this.ai.initialize(this.playerShips[1]);
@@ -3342,6 +3421,38 @@
                 toast.textContent = message;
                 container.appendChild(toast);
                 setTimeout(() => toast.remove(), 3000);
+            },
+            escapeHTML(value) {
+                return String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            },
+            formatDuration(ms) {
+                const totalMs = Math.max(0, Math.round(Number(ms) || 0));
+                const minutes = Math.floor(totalMs / 60000);
+                const seconds = Math.floor((totalMs % 60000) / 1000);
+                const centiseconds = Math.floor((totalMs % 1000) / 10);
+                return `${minutes}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+            },
+            promptLocalPlayerNames() {
+                const askName = (playerNum) => {
+                    let currentValue = Game.getPlayerName(playerNum);
+                    while (true) {
+                        const raw = window.prompt(`Enter commander name for Player ${playerNum}:`, currentValue);
+                        if (raw === null) return null;
+                        const cleaned = Game.normalizePlayerName(raw, '');
+                        if (cleaned) return cleaned;
+                        this.showToast(`Player ${playerNum} name is required`, 'danger');
+                    }
+                };
+                const p1 = askName(1);
+                if (!p1) return null;
+                const p2 = askName(2);
+                if (!p2) return null;
+                return { p1, p2 };
             },
             // ---- Menu ----
             updateMenuStats() {
@@ -3391,6 +3502,11 @@
                 Audio.click();
             },
             beginSetup() {
+                if (Game.mode === 'local') {
+                    const names = this.promptLocalPlayerNames();
+                    if (!names) return;
+                    Game.setPlayerNames(names.p1, names.p2);
+                }
                 Game.beginSetup(1);
             },
             // ---- Setup Grid ----
@@ -3505,17 +3621,43 @@
             },
             // ---- Lockdown Screen ----
             showLockdown(player, nextPhase) {
+                const commander = Game.mode === 'local'
+                    ? Game.getPlayerName(player).toUpperCase()
+                    : `PLAYER ${player}`;
                 document.getElementById('lockdown-text').textContent =
-                    `SECURE CHANNEL — PLAYER ${player}`;
+                    `SECURE CHANNEL - ${commander}`;
                 Game._lockdownNextPhase = nextPhase;
                 this.showScreen('screen-lockdown');
             },
             // ---- Battle Rendering ----
             renderBattle() {
+                this.updateBattleLabels();
                 this.renderPlayerGrid();
                 this.renderEnemyGrid();
                 this.updateFleetStatus();
                 this.updateShipSVGsInStatus();
+            },
+            updateBattleLabels() {
+                const viewingPlayer = this.getViewingPlayer();
+                const targetPlayer = this.getTargetPlayer();
+                const playerGridLabel = document.getElementById('player-grid-label');
+                const enemyGridLabel = document.getElementById('enemy-grid-label');
+                const playerFleetTitle = document.getElementById('player-fleet-title');
+                const enemyFleetTitle = document.getElementById('enemy-fleet-title');
+                if (!playerGridLabel || !enemyGridLabel || !playerFleetTitle || !enemyFleetTitle) return;
+                if (Game.mode === 'solo') {
+                    playerGridLabel.innerHTML = '<i class="fas fa-shield-halved"></i>&ensp;Your Fleet';
+                    enemyGridLabel.innerHTML = '<i class="fas fa-crosshairs"></i>&ensp;Enemy Waters';
+                    playerFleetTitle.innerHTML = '<i class="fas fa-shield-halved"></i>&ensp;Your Fleet';
+                    enemyFleetTitle.innerHTML = '<i class="fas fa-skull-crossbones"></i>&ensp;Enemy Fleet';
+                    return;
+                }
+                const ownName = this.escapeHTML(Game.getPlayerName(viewingPlayer));
+                const enemyName = this.escapeHTML(Game.getPlayerName(targetPlayer));
+                playerGridLabel.innerHTML = `<i class="fas fa-shield-halved"></i>&ensp;${ownName} Fleet`;
+                enemyGridLabel.innerHTML = `<i class="fas fa-crosshairs"></i>&ensp;${enemyName} Waters`;
+                playerFleetTitle.innerHTML = `<i class="fas fa-shield-halved"></i>&ensp;${ownName} Fleet`;
+                enemyFleetTitle.innerHTML = `<i class="fas fa-skull-crossbones"></i>&ensp;${enemyName} Fleet`;
             },
             renderPlayerGrid() {
                 const wrapper = document.getElementById('player-grid-wrapper');
@@ -3662,7 +3804,7 @@
                     }
                 } else {
                     indicator.className = 'turn-indicator player-turn';
-                    turnText.textContent = `PLAYER ${Game.currentPlayer} TURN`;
+                    turnText.textContent = `${Game.getPlayerName(Game.currentPlayer).toUpperCase()} TURN`;
                 }
                 // Salvo UI
                 if (Game.salvoMode) {
@@ -3724,7 +3866,7 @@
                     isVictory = true; // Both players have a result
                 }
                 if (Game.mode === 'local') {
-                    title.textContent = `PLAYER ${winner} WINS`;
+                    title.textContent = `${Game.getPlayerName(winner).toUpperCase()} WINS`;
                     title.className = 'gameover-title victory';
                 } else if (isVictory) {
                     title.textContent = 'VICTORY';
@@ -3739,24 +3881,43 @@
                 const p2Acc = p2Stats.shots > 0 ? Math.round((p2Stats.hits / p2Stats.shots) * 100) : 0;
                 let statsHTML = '';
                 if (Game.mode === 'solo') {
+                    const playerLabel = 'Your';
+                    const enemyLabel = 'Enemy';
+                    const fastestTimes = Persistence.loadFastestTimes();
                     statsHTML = `
-        <div class="gameover-stat-row"><span>Your Shots</span><span>${p1Stats.shots}</span></div>
-        <div class="gameover-stat-row"><span>Your Hits</span><span>${p1Stats.hits}</span></div>
-        <div class="gameover-stat-row"><span>Your Accuracy</span><span>${p1Acc}%</span></div>
+        <div class="gameover-stat-row"><span>${playerLabel} Shots</span><span>${p1Stats.shots}</span></div>
+        <div class="gameover-stat-row"><span>${playerLabel} Hits</span><span>${p1Stats.hits}</span></div>
+        <div class="gameover-stat-row"><span>${playerLabel} Accuracy</span><span>${p1Acc}%</span></div>
         <div class="gameover-stat-row"><span>Ships Sunk</span><span>${p1Stats.shipsSunk}/5</span></div>
         <div class="gameover-stat-row" style="margin-top:8px; border-top:1px solid rgba(0,200,255,0.1); padding-top:8px;">
-          <span>Enemy Shots</span><span>${p2Stats.shots}</span></div>
-        <div class="gameover-stat-row"><span>Enemy Accuracy</span><span>${p2Acc}%</span></div>
+          <span>${enemyLabel} Shots</span><span>${p2Stats.shots}</span></div>
+        <div class="gameover-stat-row"><span>${enemyLabel} Accuracy</span><span>${p2Acc}%</span></div>
         <div class="gameover-stat-row"><span>AI Difficulty</span><span style="text-transform:capitalize;">${Game.difficulty}</span></div>
       `;
                     const rank = Persistence.getRank(Game.playerStats.totalWins);
                     statsHTML += `<div class="gameover-stat-row" style="margin-top:8px; border-top:1px solid rgba(255,204,0,0.2); padding-top:8px;">
         <span>Current Rank</span><span style="color:var(--gold);">${rank.name}</span></div>`;
                     statsHTML += `<div class="gameover-stat-row"><span>Win Streak</span><span>${Game.playerStats.winStreak}</span></div>`;
+                    if (Game.lastBattleDurationMs !== null) {
+                        statsHTML += `<div class="gameover-stat-row"><span>Battle Time</span><span>${this.formatDuration(Game.lastBattleDurationMs)}</span></div>`;
+                    }
+                    const bestTimeText = fastestTimes.length > 0
+                        ? this.formatDuration(fastestTimes[0])
+                        : 'No record yet';
+                    statsHTML += `<div class="gameover-stat-row" style="margin-top:8px; border-top:1px solid rgba(0,200,255,0.1); padding-top:8px;">
+        <span>Fastest Wins</span><span>${bestTimeText}</span></div>`;
+                    if (fastestTimes.length > 0) {
+                        fastestTimes.forEach((timeMs, idx) => {
+                            statsHTML += `<div class="gameover-stat-row"><span>#${idx + 1}</span><span>${this.formatDuration(timeMs)}</span></div>`;
+                        });
+                    }
+                    if (Game.lastFastestEntry && Game.lastFastestEntry.rank) {
+                        statsHTML += `<div class="gameover-stat-row"><span>New Time Rank</span><span>#${Game.lastFastestEntry.rank}</span></div>`;
+                    }
                 } else {
                     statsHTML = `
-        <div class="gameover-stat-row"><span>P1 Shots / Hits</span><span>${p1Stats.shots} / ${p1Stats.hits} (${p1Acc}%)</span></div>
-        <div class="gameover-stat-row"><span>P2 Shots / Hits</span><span>${p2Stats.shots} / ${p2Stats.hits} (${p2Acc}%)</span></div>
+        <div class="gameover-stat-row"><span>${this.escapeHTML(Game.getPlayerName(1))} Shots / Hits</span><span>${p1Stats.shots} / ${p1Stats.hits} (${p1Acc}%)</span></div>
+        <div class="gameover-stat-row"><span>${this.escapeHTML(Game.getPlayerName(2))} Shots / Hits</span><span>${p2Stats.shots} / ${p2Stats.hits} (${p2Acc}%)</span></div>
       `;
                 }
                 statsEl.innerHTML = statsHTML;
