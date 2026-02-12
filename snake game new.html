@@ -17,19 +17,21 @@
         }
 
         :root {
-            --stone-dark: #1a1f1a;
-            --stone-mid: #2a322a;
-            --stone-light: #3d4a3d;
-            --moss-green: #4a6741;
-            --moss-glow: #6b8f5e;
-            --moss-bright: #8ab878;
-            --gold-ancient: #c9a84c;
-            --gold-glow: #e8c84a;
-            --ember-orange: #c47a2a;
-            --text-light: #d4cfc0;
-            --text-dim: #8a8575;
-            --heart-red: #8b3a3a;
-            --heart-glow: #c45050;
+            --abyss-deep: #0a0d1a;
+            --abyss-mid: #111630;
+            --abyss-surface: #1a2040;
+            --glow-teal: #3ecfb2;
+            --glow-teal-dim: #2a9a82;
+            --glow-teal-bright: #6eecd4;
+            --amber-warm: #d4a84c;
+            --amber-glow: #f0c850;
+            --amber-dim: #9a7832;
+            --violet-deep: #2a1a4a;
+            --violet-mid: #3d2868;
+            --text-light: #c8d0e0;
+            --text-dim: #6a7090;
+            --text-muted: #3a4060;
+            --danger-red: #c45050;
         }
 
         html,
@@ -39,7 +41,7 @@
         }
 
         body {
-            background: var(--stone-dark);
+            background: var(--abyss-deep);
             color: var(--text-light);
             font-family: 'Cinzel', serif;
             display: flex;
@@ -50,8 +52,8 @@
             -webkit-tap-highlight-color: transparent
         }
 
-        /* EMBERS */
-        .embers-container {
+        /* MOTES - bioluminescent particles */
+        .motes-container {
             position: fixed;
             inset: 0;
             pointer-events: none;
@@ -59,58 +61,56 @@
             overflow: hidden
         }
 
-        .ember {
+        .mote {
             position: absolute;
-            width: 3px;
-            height: 3px;
             border-radius: 50%;
-            background: var(--ember-orange);
             opacity: 0;
-            animation: drift-ember linear infinite
+            animation: drift-mote linear infinite
         }
 
-        @keyframes drift-ember {
+        @keyframes drift-mote {
             0% {
-                transform: translateY(100vh) translateX(0) scale(1);
+                transform: translateY(110vh) translateX(0) scale(1);
                 opacity: 0
             }
 
-            10% {
-                opacity: .8
+            8% {
+                opacity: .7
             }
 
-            90% {
-                opacity: .3
+            50% {
+                opacity: .4
+            }
+
+            92% {
+                opacity: .2
             }
 
             100% {
-                transform: translateY(-20px) translateX(80px) scale(.2);
+                transform: translateY(-30px) translateX(60px) scale(.15);
                 opacity: 0
             }
+        }
+
+        /* VIGNETTE */
+        .vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(10, 13, 26, .7) 100%)
         }
 
         /* ANIMATIONS */
-        @keyframes title-glow {
+        @keyframes title-breathe {
 
             0%,
             100% {
-                text-shadow: 0 0 10px rgba(201, 168, 76, .3), 0 2px 4px rgba(0, 0, 0, .8)
+                text-shadow: 0 0 12px rgba(62, 207, 178, .25), 0 0 40px rgba(62, 207, 178, .08), 0 2px 4px rgba(0, 0, 0, .9)
             }
 
             50% {
-                text-shadow: 0 0 25px rgba(201, 168, 76, .6), 0 0 50px rgba(201, 168, 76, .2), 0 2px 4px rgba(0, 0, 0, .8)
-            }
-        }
-
-        @keyframes glow-breathe {
-
-            0%,
-            100% {
-                filter: brightness(1) drop-shadow(0 0 4px var(--moss-glow))
-            }
-
-            50% {
-                filter: brightness(1.3) drop-shadow(0 0 12px var(--moss-bright))
+                text-shadow: 0 0 24px rgba(62, 207, 178, .5), 0 0 60px rgba(62, 207, 178, .15), 0 2px 4px rgba(0, 0, 0, .9)
             }
         }
 
@@ -224,15 +224,15 @@
             }
         }
 
-        @keyframes moss-pulse {
+        @keyframes orb-float {
 
             0%,
             100% {
-                opacity: .3
+                transform: translateY(0)
             }
 
             50% {
-                opacity: .6
+                transform: translateY(-3px)
             }
         }
 
@@ -252,7 +252,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1
+            z-index: 2
         }
 
         .screen {
@@ -273,8 +273,8 @@
             font-family: 'Cinzel Decorative', cursive;
             font-size: clamp(2.5rem, 6vw, 4.5rem);
             font-weight: 900;
-            color: var(--gold-ancient);
-            animation: title-glow 3s ease-in-out infinite;
+            color: var(--glow-teal);
+            animation: title-breathe 4s ease-in-out infinite;
             letter-spacing: 6px;
             margin-bottom: 6px;
             text-transform: uppercase;
@@ -291,10 +291,11 @@
         }
 
         .menu-divider {
-            width: 200px;
+            width: 220px;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold-ancient), transparent);
-            margin-bottom: 36px
+            background: linear-gradient(90deg, transparent, var(--glow-teal), transparent);
+            margin-bottom: 36px;
+            box-shadow: 0 0 8px rgba(62, 207, 178, .3)
         }
 
         .menu-buttons {
@@ -304,50 +305,51 @@
             width: 280px
         }
 
-        .btn-stone {
+        .btn-abyss {
             font-family: 'Cinzel', serif;
             font-weight: 700;
             font-size: 1rem;
             letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--text-light);
-            background: radial-gradient(ellipse at 30% 20%, rgba(74, 103, 65, .2), transparent 60%), linear-gradient(180deg, var(--stone-light), var(--stone-mid));
-            border: 2px solid rgba(201, 168, 76, .25);
-            border-radius: 4px;
+            background: linear-gradient(180deg, rgba(26, 32, 64, .9), rgba(17, 22, 48, .95));
+            border: 2px solid rgba(62, 207, 178, .2);
+            border-radius: 6px;
             padding: 14px 20px;
             cursor: pointer;
-            transition: all .25s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .05);
+            transition: all .3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04);
             position: relative;
             overflow: hidden
         }
 
-        .btn-stone::before {
+        .btn-abyss::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, rgba(201, 168, 76, .1), transparent 60%);
+            background: linear-gradient(180deg, rgba(62, 207, 178, .06), transparent 60%);
             opacity: 0;
-            transition: opacity .25s
+            transition: opacity .3s
         }
 
-        .btn-stone:hover {
-            border-color: var(--gold-ancient);
+        .btn-abyss:hover {
+            border-color: var(--glow-teal);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .6), 0 0 15px rgba(201, 168, 76, .15);
-            color: var(--gold-glow)
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .6), 0 0 18px rgba(62, 207, 178, .12);
+            color: var(--glow-teal-bright)
         }
 
-        .btn-stone:hover::before {
+        .btn-abyss:hover::before {
             opacity: 1
         }
 
-        .btn-stone:active {
+        .btn-abyss:active {
             transform: translateY(0)
         }
 
-        .btn-stone.primary {
-            border-color: rgba(201, 168, 76, .5)
+        .btn-abyss.primary {
+            border-color: rgba(62, 207, 178, .4);
+            background: linear-gradient(180deg, rgba(30, 38, 70, .95), rgba(17, 22, 48, .98))
         }
 
         /* MODALS */
@@ -355,7 +357,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(10, 12, 10, .85);
+            background: rgba(8, 10, 20, .88);
             backdrop-filter: blur(6px);
             z-index: 100;
             align-items: center;
@@ -368,15 +370,15 @@
         }
 
         .modal-box {
-            background: radial-gradient(ellipse at 20% 20%, rgba(74, 103, 65, .12), transparent 50%), linear-gradient(160deg, #252d25, #1a1f1a);
-            border: 2px solid rgba(201, 168, 76, .3);
+            background: radial-gradient(ellipse at 20% 20%, rgba(42, 26, 74, .15), transparent 50%), linear-gradient(160deg, #141830, #0d1020);
+            border: 2px solid rgba(62, 207, 178, .2);
             border-radius: 8px;
             padding: 36px 32px;
             max-width: 520px;
             width: 100%;
             max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .03);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .8), 0 0 40px rgba(62, 207, 178, .04), inset 0 1px 0 rgba(255, 255, 255, .03);
             animation: modal-enter .35s ease-out
         }
 
@@ -389,14 +391,14 @@
         }
 
         .modal-box::-webkit-scrollbar-thumb {
-            background: var(--stone-light);
+            background: var(--abyss-surface);
             border-radius: 3px
         }
 
         .modal-title {
             font-family: 'Cinzel Decorative', cursive;
             font-size: 1.6rem;
-            color: var(--gold-ancient);
+            color: var(--glow-teal);
             text-align: center;
             margin-bottom: 8px;
             letter-spacing: 3px
@@ -405,8 +407,9 @@
         .modal-divider {
             width: 100px;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold-ancient), transparent);
-            margin: 0 auto 24px
+            background: linear-gradient(90deg, transparent, var(--glow-teal), transparent);
+            margin: 0 auto 24px;
+            box-shadow: 0 0 6px rgba(62, 207, 178, .3)
         }
 
         .modal-text {
@@ -426,8 +429,8 @@
             letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--text-light);
-            background: linear-gradient(180deg, var(--stone-light), var(--stone-mid));
-            border: 1px solid rgba(201, 168, 76, .3);
+            background: linear-gradient(180deg, var(--abyss-surface), var(--abyss-mid));
+            border: 1px solid rgba(62, 207, 178, .2);
             border-radius: 4px;
             padding: 10px 32px;
             cursor: pointer;
@@ -435,8 +438,8 @@
         }
 
         .modal-close:hover {
-            border-color: var(--gold-ancient);
-            color: var(--gold-glow)
+            border-color: var(--glow-teal);
+            color: var(--glow-teal-bright)
         }
 
         /* TUTORIAL */
@@ -447,9 +450,9 @@
             margin-bottom: 20px;
             text-align: left;
             padding: 14px;
-            background: rgba(42, 50, 42, .5);
+            background: rgba(42, 26, 74, .15);
             border-radius: 6px;
-            border-left: 3px solid var(--gold-ancient)
+            border-left: 3px solid var(--glow-teal)
         }
 
         .tut-icon {
@@ -460,7 +463,7 @@
 
         .tut-content h4 {
             font-family: 'Cinzel', serif;
-            color: var(--gold-ancient);
+            color: var(--glow-teal);
             font-size: .9rem;
             margin-bottom: 4px;
             letter-spacing: 1px
@@ -487,7 +490,7 @@
             display: block;
             font-family: 'Cinzel', serif;
             font-size: .8rem;
-            color: var(--gold-ancient);
+            color: var(--glow-teal);
             letter-spacing: 2px;
             margin-bottom: 6px;
             text-transform: uppercase
@@ -498,8 +501,8 @@
             font-family: 'Cinzel', serif;
             font-size: 1rem;
             color: var(--text-light);
-            background: rgba(26, 31, 26, .8);
-            border: 2px solid var(--stone-light);
+            background: rgba(10, 13, 26, .8);
+            border: 2px solid var(--abyss-surface);
             border-radius: 4px;
             padding: 12px 14px;
             outline: none;
@@ -508,7 +511,8 @@
         }
 
         .name-input:focus {
-            border-color: var(--gold-ancient)
+            border-color: var(--glow-teal);
+            box-shadow: 0 0 8px rgba(62, 207, 178, .15)
         }
 
         .name-input::placeholder {
@@ -550,7 +554,7 @@
             font-family: 'Cinzel Decorative', cursive;
             font-size: 1.4rem;
             color: var(--text-light);
-            text-shadow: 0 0 8px rgba(201, 168, 76, .3)
+            text-shadow: 0 0 8px rgba(62, 207, 178, .25)
         }
 
         .hud-center {
@@ -565,8 +569,8 @@
             font-family: 'Cinzel', serif;
             font-size: .65rem;
             color: var(--text-dim);
-            background: rgba(42, 50, 42, .6);
-            border: 1px solid rgba(201, 168, 76, .2);
+            background: rgba(17, 22, 48, .7);
+            border: 1px solid rgba(62, 207, 178, .15);
             border-radius: 3px;
             padding: 4px 12px;
             cursor: pointer;
@@ -575,15 +579,15 @@
         }
 
         .btn-pause:hover {
-            border-color: var(--gold-ancient);
+            border-color: var(--glow-teal);
             color: var(--text-light)
         }
 
         /* CANVAS */
         #game-canvas {
-            border: 3px solid rgba(201, 168, 76, .25);
+            border: 3px solid rgba(62, 207, 178, .15);
             border-radius: 4px;
-            box-shadow: 0 0 40px rgba(0, 0, 0, .6), inset 0 0 60px rgba(0, 0, 0, .3), 0 0 80px rgba(74, 103, 65, .08)
+            box-shadow: 0 0 40px rgba(0, 0, 0, .6), 0 0 60px rgba(62, 207, 178, .04), inset 0 0 50px rgba(0, 0, 0, .3)
         }
 
         /* OVERLAYS */
@@ -600,18 +604,18 @@
         }
 
         .countdown-overlay {
-            background: rgba(10, 12, 10, .7)
+            background: rgba(8, 10, 20, .7)
         }
 
         .pause-overlay {
-            background: rgba(10, 12, 10, .75);
+            background: rgba(8, 10, 20, .78);
             backdrop-filter: blur(3px);
             z-index: 55;
             gap: 16px
         }
 
         .gameover-overlay {
-            background: rgba(10, 12, 10, .85);
+            background: rgba(8, 10, 20, .88);
             backdrop-filter: blur(4px);
             z-index: 60;
             gap: 12px;
@@ -627,8 +631,8 @@
         .cd-text {
             font-family: 'Cinzel Decorative', cursive;
             font-size: clamp(3rem, 10vw, 6rem);
-            color: var(--gold-ancient);
-            text-shadow: 0 0 30px rgba(201, 168, 76, .5), 0 4px 8px rgba(0, 0, 0, .8);
+            color: var(--glow-teal);
+            text-shadow: 0 0 30px rgba(62, 207, 178, .5), 0 4px 8px rgba(0, 0, 0, .8);
             animation: countdown-pop .5s ease-out
         }
 
@@ -639,15 +643,15 @@
         .pause-title {
             font-family: 'Cinzel Decorative', cursive;
             font-size: 2rem;
-            color: var(--gold-ancient);
+            color: var(--glow-teal);
             letter-spacing: 4px
         }
 
         .go-title {
             font-family: 'Cinzel Decorative', cursive;
             font-size: clamp(1.8rem, 5vw, 3rem);
-            color: var(--gold-ancient);
-            text-shadow: 0 0 20px rgba(201, 168, 76, .4);
+            color: var(--amber-warm);
+            text-shadow: 0 0 20px rgba(212, 168, 76, .4);
             letter-spacing: 4px
         }
 
@@ -661,8 +665,8 @@
         .go-score {
             font-family: 'Cinzel Decorative', cursive;
             font-size: 2.2rem;
-            color: var(--gold-glow);
-            text-shadow: 0 0 12px rgba(201, 168, 76, .5)
+            color: var(--glow-teal);
+            text-shadow: 0 0 12px rgba(62, 207, 178, .4)
         }
 
         .go-stats {
@@ -681,7 +685,7 @@
             justify-content: center
         }
 
-        .go-buttons .btn-stone {
+        .go-buttons .btn-abyss {
             font-size: .85rem;
             padding: 10px 24px
         }
@@ -696,11 +700,11 @@
         .lb-table th {
             font-family: 'Cinzel', serif;
             font-size: .75rem;
-            color: var(--gold-ancient);
+            color: var(--glow-teal);
             letter-spacing: 2px;
             text-transform: uppercase;
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(201, 168, 76, .3);
+            border-bottom: 1px solid rgba(62, 207, 178, .2);
             text-align: left
         }
 
@@ -709,15 +713,15 @@
             font-size: .95rem;
             color: var(--text-dim);
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(42, 50, 42, .5)
+            border-bottom: 1px solid rgba(26, 32, 64, .5)
         }
 
         .lb-table tr:first-child td {
-            color: var(--gold-glow)
+            color: var(--amber-glow)
         }
 
         .lb-rank {
-            color: var(--gold-ancient) !important;
+            color: var(--glow-teal) !important;
             font-weight: bold;
             width: 40px
         }
@@ -740,7 +744,7 @@
                 width: 240px
             }
 
-            .btn-stone {
+            .btn-abyss {
                 padding: 12px 16px;
                 font-size: .85rem
             }
@@ -761,21 +765,20 @@
 </head>
 
 <body>
-    <div class="embers-container" id="embers"></div>
+    <div class="motes-container" id="motes"></div>
+    <div class="vignette"></div>
     <div id="app">
-        <!-- MENU -->
         <div class="screen active" id="menu-screen">
             <div class="menu-title">Ouroboros</div>
             <div class="menu-subtitle">The Eternal Serpent</div>
             <div class="menu-divider"></div>
             <div class="menu-buttons">
-                <button class="btn-stone primary" onclick="launchGame()">⚔ Begin Hunt</button>
-                <button class="btn-stone" onclick="showModal('tutorial')">📜 How to Play</button>
-                <button class="btn-stone" onclick="showModal('leaderboard')">🏆 Hall of Legends</button>
-                <button class="btn-stone" onclick="showModal('archives')">🗿 About</button>
+                <button class="btn-abyss primary" onclick="launchGame()">⚔ Begin Hunt</button>
+                <button class="btn-abyss" onclick="showModal('tutorial')">📜 How to Play</button>
+                <button class="btn-abyss" onclick="showModal('leaderboard')">🏆 Hall of Legends</button>
+                <button class="btn-abyss" onclick="showModal('archives')">🗿 About</button>
             </div>
         </div>
-        <!-- GAME -->
         <div class="screen" id="game-screen">
             <div id="game-wrapper"
                 style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center">
@@ -799,8 +802,8 @@
                 </div>
                 <div class="pause-overlay" id="pause-overlay">
                     <div class="pause-title">Paused</div>
-                    <button class="btn-stone" onclick="togglePause()">▶ Resume</button>
-                    <button class="btn-stone" onclick="quitToMenu()">✖ Quit</button>
+                    <button class="btn-abyss" onclick="togglePause()">▶ Resume</button>
+                    <button class="btn-abyss" onclick="quitToMenu()">✖ Quit</button>
                 </div>
                 <div class="gameover-overlay" id="go-overlay">
                     <div class="go-title" id="go-title">Fallen</div>
@@ -808,8 +811,8 @@
                     <div class="go-score" id="go-score"></div>
                     <div class="go-stats" id="go-stats"></div>
                     <div class="go-buttons">
-                        <button class="btn-stone primary" onclick="restartGame()">⚔ Hunt Again</button>
-                        <button class="btn-stone" onclick="quitToMenu()">🏠 Menu</button>
+                        <button class="btn-abyss primary" onclick="restartGame()">⚔ Hunt Again</button>
+                        <button class="btn-abyss" onclick="quitToMenu()">🏠 Menu</button>
                     </div>
                 </div>
             </div>
@@ -820,11 +823,10 @@
         <div class="modal-box">
             <div class="modal-title">Enter Thy Name</div>
             <div class="modal-divider"></div>
-            <div class="input-group">
-                <label>Thy Name</label>
+            <div class="input-group"><label>Thy Name</label>
                 <input class="name-input" id="input-name" type="text" placeholder="Enter name..." maxlength="16">
             </div>
-            <button class="btn-stone primary" style="width:100%" id="btn-confirm-name">⚔ Begin</button>
+            <button class="btn-abyss primary" style="width:100%" id="btn-confirm-name">⚔ Begin</button>
             <button class="modal-close" onclick="closeModal('name')">Cancel</button>
         </div>
     </div>
@@ -844,15 +846,15 @@
                 <div class="tut-icon">🎯</div>
                 <div class="tut-content">
                     <h4>The Hunt</h4>
-                    <p>Consume the <b>enchanted orbs</b> to grow longer. Each orb grants power and score. Avoid the
-                        ancient walls and thine own tail.</p>
+                    <p>Consume the <b>enchanted orbs</b> that glow in the deep. Each orb grants power and score. Avoid
+                        the ancient walls and thine own tail.</p>
                 </div>
             </div>
             <div class="tut-section">
                 <div class="tut-icon">⚡</div>
                 <div class="tut-content">
                     <h4>The Challenge</h4>
-                    <p>Every <b>5 orbs</b> consumed quickens the serpent. The hunt grows ever more intense.</p>
+                    <p>Every <b>5 orbs</b> consumed quickens the serpent. The abyss grows restless.</p>
                 </div>
             </div>
             <div class="tut-section">
@@ -860,14 +862,15 @@
                 <div class="tut-content">
                     <h4>Ascension</h4>
                     <p>Rise from <b>Hatchling</b> → <b>Serpent</b> → <b>Viper</b> → <b>Cobra</b> → <b>Leviathan</b> →
-                        <b>Ouroboros</b> as thy power grows.</p>
+                        <b>Ouroboros</b> as thy power grows.
+                    </p>
                 </div>
             </div>
             <div class="tut-section">
                 <div class="tut-icon">💾</div>
                 <div class="tut-content">
                     <h4>Legacy</h4>
-                    <p>High scores and lifetime feats are etched in stone. Chase the Hall of Legends.</p>
+                    <p>High scores and lifetime feats are etched in the deep. Chase the Hall of Legends.</p>
                 </div>
             </div>
             <button class="modal-close" onclick="closeModal('tutorial')">Close</button>
@@ -887,12 +890,12 @@
             <div class="modal-divider"></div>
             <div class="modal-text">
                 <p style="margin-bottom:12px"><b>OUROBOROS</b> — the ancient symbol of the serpent devouring its own
-                    tail, reborn as a sacred arcade ritual.</p>
-                <p style="margin-bottom:12px">Guide the eternal serpent through the stone labyrinth, consuming enchanted
-                    orbs to grow in power. How long can you survive the hunt?</p>
+                    tail, reborn as a sacred arcade ritual in the luminous deep.</p>
+                <p style="margin-bottom:12px">Guide the eternal serpent through the abyssal labyrinth, consuming
+                    enchanted orbs to grow in power. How long can you survive the hunt?</p>
                 <p style="margin-bottom:12px">Built with pure HTML5 Canvas, CSS3, Web Audio API, and JavaScript. No
-                    frameworks, no libraries — just raw craft, like the ancients intended.</p>
-                <p style="color:var(--gold-ancient)">Version 1.0 — The Serpent Awakens | Made by: Abdullah Karim</p>
+                    frameworks, no libraries — raw craft forged in the deep.</p>
+                <p style="color:var(--glow-teal)">Version 1.0 — The Serpent Awakens | Made by: Abdullah Karim</p>
             </div>
             <button class="modal-close" onclick="closeModal('archives')">Close</button>
         </div>
@@ -905,7 +908,7 @@
         let score = 0, highScore = 0, totalDistance = 0, totalKills = 0, sessionDist = 0, sessionKills = 0;
         let snakeDir = { x: 1, y: 0 }, nextDir = { x: 1, y: 0 }, snake = [], food = null;
         let gridW, gridH, cellSize, moveTimer = 0, moveInterval = 120, baseInterval = 120;
-        let glitchIntensity = 0, screenPulseAlpha = 0, screenPulseColor = '#c9a84c';
+        let glitchIntensity = 0, screenPulseAlpha = 0, screenPulseColor = '#3ecfb2';
         let trailFade = [], pulsePhase = 0, countdownInterval = null;
         let isMobile = false, touchStartX = 0, touchStartY = 0;
         const RANKS = [{ n: 'Hatchling', m: 0 }, { n: 'Serpent', m: 5 }, { n: 'Viper', m: 15 }, { n: 'Cobra', m: 30 }, { n: 'Leviathan', m: 50 }, { n: 'Ouroboros', m: 80 }];
@@ -921,7 +924,7 @@
             o.type = t || 'sine'; o.frequency.setValueAtTime(f, audioCtx.currentTime);
             g.gain.setValueAtTime(v || .08, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + (d || .15));
-            o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + (d || .15));
+            o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + (d || .15))
         }
         function playSlither() { playTone(80, .06, 'triangle', .03) }
         function playEat() { playTone(520, .1, 'sine', .1); setTimeout(() => playTone(660, .08, 'sine', .07), 80); setTimeout(() => playTone(780, .12, 'sine', .05), 160) }
@@ -930,14 +933,14 @@
             const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++)d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * .2));
             const src = audioCtx.createBufferSource(), g = audioCtx.createGain(); src.buffer = buf;
             g.gain.setValueAtTime(.12, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + .3);
-            src.connect(g); g.connect(audioCtx.destination); src.start();
+            src.connect(g); g.connect(audioCtx.destination); src.start()
         }
         let humOsc = null, humGain = null;
         function startHum() {
             if (!audioCtx || humOsc) return; humOsc = audioCtx.createOscillator(); humGain = audioCtx.createGain();
             humOsc.type = 'sine'; humOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
             humGain.gain.setValueAtTime(.015, audioCtx.currentTime);
-            humOsc.connect(humGain); humGain.connect(audioCtx.destination); humOsc.start();
+            humOsc.connect(humGain); humGain.connect(audioCtx.destination); humOsc.start()
         }
         function updateHum() {
             if (!humOsc || !humGain) return; const s = Math.min(score / 80, 1);
@@ -945,29 +948,29 @@
         }
         function stopHum() { try { if (humOsc) { humOsc.stop(); humOsc.disconnect() } } catch (e) { } humOsc = null; humGain = null }
 
-        // --- Embers ---
-        function createEmbers() {
-            const c = document.getElementById('embers'); c.innerHTML = '';
-            for (let i = 0; i < 30; i++) {
-                const e = document.createElement('div'); e.className = 'ember';
-                e.style.left = Math.random() * 100 + '%'; e.style.animationDuration = (4 + Math.random() * 8) + 's';
-                e.style.animationDelay = Math.random() * 10 + 's'; const sz = 2 + Math.random() * 3;
-                e.style.width = sz + 'px'; e.style.height = sz + 'px';
-                e.style.background = Math.random() > .5 ? '#c47a2a' : '#8ab878'; c.appendChild(e)
+        // --- Motes ---
+        function createMotes() {
+            const c = document.getElementById('motes'); c.innerHTML = '';
+            for (let i = 0; i < 35; i++) {
+                const m = document.createElement('div'); m.className = 'mote';
+                m.style.left = Math.random() * 100 + '%'; m.style.animationDuration = (6 + Math.random() * 12) + 's';
+                m.style.animationDelay = Math.random() * 14 + 's';
+                const sz = 1.5 + Math.random() * 3; m.style.width = sz + 'px'; m.style.height = sz + 'px';
+                const colors = ['#3ecfb2', '#6eecd4', '#d4a84c', '#8a6de8', '#4a90d9'];
+                m.style.background = colors[Math.floor(Math.random() * colors.length)];
+                m.style.boxShadow = `0 0 ${sz * 2}px ${m.style.background}`; c.appendChild(m)
             }
         }
-        createEmbers();
+        createMotes();
 
         function detectMobile() { isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768 }
         detectMobile(); window.addEventListener('resize', detectMobile);
 
-        // --- Screens/Modals ---
         function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active') }
         function showModal(n) { if (n === 'leaderboard') renderLB(); document.getElementById('modal-' + n).classList.add('active') }
         function closeModal(n) { document.getElementById('modal-' + n).classList.remove('active') }
         document.querySelectorAll('.modal-overlay').forEach(ov => { ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('active') }) });
 
-        // --- Leaderboard ---
         function getLB() { try { return JSON.parse(localStorage.getItem('ouroboros_lb')) || [] } catch { return [] } }
         function saveLB(lb) { localStorage.setItem('ouroboros_lb', JSON.stringify(lb)) }
         function addToLB(name, sc) {
@@ -977,7 +980,7 @@
         }
         function renderLB() {
             const lb = getLB(), c = document.getElementById('lb-content');
-            if (!lb.length) { c.innerHTML = '<div class="lb-empty">No legends yet. Be the first to etch thy name in stone.</div>'; return }
+            if (!lb.length) { c.innerHTML = '<div class="lb-empty">No legends yet. Be the first to etch thy name in the deep.</div>'; return }
             const m = ['👑', '🥈', '🥉', '4', '5'];
             let h = '<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Score</th></tr></thead><tbody>';
             lb.forEach((e, i) => { h += `<tr><td class="lb-rank">${m[i] || i + 1}</td><td>${escH(e.name)}</td><td>${e.score}</td></tr>` });
@@ -985,7 +988,6 @@
         }
         function escH(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML }
 
-        // --- Stats ---
         function loadStats() {
             try {
                 const s = JSON.parse(localStorage.getItem('ouroboros_stats')) || {};
@@ -996,7 +998,6 @@
         function saveStats() { localStorage.setItem('ouroboros_stats', JSON.stringify({ d: totalDistance, k: totalKills, h: highScore, n: playerName })) }
         loadStats();
 
-        // --- Launch ---
         function launchGame() {
             initAudio(); showModal('name');
             const inp = document.getElementById('input-name'); inp.value = playerName !== 'Wanderer' ? playerName : '';
@@ -1009,7 +1010,6 @@
         document.getElementById('btn-confirm-name').addEventListener('click', confirmName);
         document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmName() } });
 
-        // --- Canvas ---
         function sizeCanvas() {
             const pad = isMobile ? 10 : 20, hudH = isMobile ? 60 : 70;
             const maxW = Math.min(window.innerWidth - pad * 2, 900), maxH = Math.min(window.innerHeight - hudH - pad * 2, 650);
@@ -1035,7 +1035,8 @@
                 let ok = true; for (const s of snake) if (s.x === x && s.y === y) { ok = false; break }
                 if (ok) v.push({ x, y })
             }
-            food = v[Math.floor(Math.random() * v.length)] || { x: 1, y: 1 }; food.hue = 30 + Math.random() * 40; food.rot = 0; food.pulse = 0
+            food = v[Math.floor(Math.random() * v.length)] || { x: 1, y: 1 };
+            food.hue = 150 + Math.random() * 60; food.rot = 0; food.pulse = 0
         }
 
         function startCountdown() {
@@ -1062,7 +1063,6 @@
             document.getElementById('hud-rank').textContent = getRank(score)
         }
 
-        // --- Input ---
         document.addEventListener('keydown', e => {
             if (gameState === 'playing') {
                 if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && snakeDir.y !== 1) nextDir = { x: 0, y: -1 };
@@ -1071,7 +1071,7 @@
                 else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && snakeDir.x !== -1) nextDir = { x: 1, y: 0 };
                 else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') togglePause();
             } else if (gameState === 'paused' && (e.key === 'Escape' || e.key === 'p' || e.key === 'P')) togglePause();
-            if (gameState === 'playing' || gameState === 'paused') e.preventDefault();
+            if (gameState === 'playing' || gameState === 'paused') e.preventDefault()
         });
         let swipeLock = false;
         document.addEventListener('touchstart', e => {
@@ -1085,8 +1085,7 @@
                 if (Math.abs(dx) > Math.abs(dy)) { if (dx > 0 && snakeDir.x !== -1) nextDir = { x: 1, y: 0 }; else if (dx < 0 && snakeDir.x !== 1) nextDir = { x: -1, y: 0 } }
                 else { if (dy > 0 && snakeDir.y !== -1) nextDir = { x: 0, y: 1 }; else if (dy < 0 && snakeDir.y !== 1) nextDir = { x: 0, y: -1 } }
                 swipeLock = true; touchStartX = t.clientX; touchStartY = t.clientY
-            }
-            e.preventDefault()
+            } e.preventDefault()
         }, { passive: false });
 
         function togglePause() {
@@ -1102,7 +1101,6 @@
         }
         function restartGame() { document.getElementById('go-overlay').classList.remove('active'); initGame() }
 
-        // --- Game Loop ---
         let lastTime = 0;
         function gameLoop(ts) {
             if (gameState !== 'playing') return;
@@ -1122,11 +1120,11 @@
             snake.unshift(head); sessionDist++;
             if (food && head.x === food.x && head.y === food.y) {
                 score++; sessionKills++; playEat();
-                screenPulseAlpha = .25; screenPulseColor = `hsl(${food.hue},80%,50%)`;
+                screenPulseAlpha = .2; screenPulseColor = `hsl(${food.hue},70%,45%)`;
                 trailFade.push({ x: snake[snake.length - 1].x, y: snake[snake.length - 1].y, a: 1, hue: food.hue });
                 spawnFood(); updateHUD();
                 if (score % 5 === 0) { const w = document.getElementById('game-wrapper'); w.classList.add('chromatic'); setTimeout(() => w.classList.remove('chromatic'), 150) }
-            } else { const tail = snake.pop(); trailFade.push({ x: tail.x, y: tail.y, a: .35, hue: 90 }) }
+            } else { const tail = snake.pop(); trailFade.push({ x: tail.x, y: tail.y, a: .3, hue: 165 }) }
             playSlither(); trailFade = trailFade.filter(t => { t.a -= .025; return t.a > 0 })
         }
 
@@ -1147,31 +1145,33 @@
         // --- Drawing ---
         function drawGame() {
             ctx.clearRect(0, 0, CW, CH);
-            // Stone BG
-            const bg = ctx.createLinearGradient(0, 0, CW, CH); bg.addColorStop(0, '#1a1f1a'); bg.addColorStop(.5, '#1e241e'); bg.addColorStop(1, '#1a1f1a');
+            // Abyss BG with violet undertone
+            const bg = ctx.createRadialGradient(CW / 2, CH / 2, 0, CW / 2, CH / 2, Math.max(CW, CH) * .7);
+            bg.addColorStop(0, '#12162a'); bg.addColorStop(.6, '#0d1020'); bg.addColorStop(1, '#080a14');
             ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
             drawGrid(); drawRadar(); drawTrails(); drawFood(); drawSnake(); drawPulse(); drawGlitch()
         }
 
         function drawGrid() {
-            ctx.strokeStyle = 'rgba(74,103,65,.08)'; ctx.lineWidth = .5;
+            ctx.strokeStyle = 'rgba(62,207,178,.04)'; ctx.lineWidth = .5;
             for (let x = 0; x <= gridW; x++) { ctx.beginPath(); ctx.moveTo(x * cellSize, 0); ctx.lineTo(x * cellSize, CH); ctx.stroke() }
             for (let y = 0; y <= gridH; y++) { ctx.beginPath(); ctx.moveTo(0, y * cellSize); ctx.lineTo(CW, y * cellSize); ctx.stroke() }
         }
 
         function drawRadar() {
             const cx = CW / 2, cy = CH / 2, a = pulsePhase % (Math.PI * 2), r = Math.max(CW, CH);
-            ctx.save(); ctx.globalAlpha = .025 + glitchIntensity * .015; ctx.strokeStyle = '#6b8f5e'; ctx.lineWidth = 1;
+            ctx.save(); ctx.globalAlpha = .02 + glitchIntensity * .015; ctx.strokeStyle = '#3ecfb2'; ctx.lineWidth = 1;
             ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a - .3, a); ctx.closePath();
-            const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, 'rgba(106,143,94,.06)'); rg.addColorStop(1, 'rgba(106,143,94,0)');
+            const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            rg.addColorStop(0, 'rgba(62,207,178,.05)'); rg.addColorStop(1, 'rgba(62,207,178,0)');
             ctx.fillStyle = rg; ctx.fill(); ctx.restore()
         }
 
         function drawTrails() {
             for (const t of trailFade) {
                 ctx.globalAlpha = t.a * .4;
-                ctx.fillStyle = `hsla(${t.hue},60%,45%,.3)`; ctx.shadowColor = `hsl(${t.hue},60%,45%)`; ctx.shadowBlur = 6;
+                ctx.fillStyle = `hsla(${t.hue},50%,40%,.3)`; ctx.shadowColor = `hsl(${t.hue},50%,50%)`; ctx.shadowBlur = 6;
                 ctx.fillRect(t.x * cellSize + 2, t.y * cellSize + 2, cellSize - 4, cellSize - 4); ctx.shadowBlur = 0
             } ctx.globalAlpha = 1
         }
@@ -1180,14 +1180,16 @@
             if (!food) return; food.rot += .025; food.pulse += .04;
             const x = food.x * cellSize + cellSize / 2, y = food.y * cellSize + cellSize / 2;
             const r = cellSize * .35 + Math.sin(food.pulse) * (cellSize * .05);
+            // Aura
             ctx.save(); ctx.globalAlpha = .12 + Math.sin(food.pulse) * .06;
-            const ag = ctx.createRadialGradient(x, y, 0, x, y, cellSize * 1.1);
-            ag.addColorStop(0, 'rgba(201,168,76,.5)'); ag.addColorStop(1, 'transparent');
+            const ag = ctx.createRadialGradient(x, y, 0, x, y, cellSize * 1.2);
+            ag.addColorStop(0, 'rgba(212,168,76,.5)'); ag.addColorStop(1, 'transparent');
             ctx.fillStyle = ag; ctx.fillRect(food.x * cellSize - cellSize * .4, food.y * cellSize - cellSize * .4, cellSize * 1.8, cellSize * 1.8); ctx.restore();
-            ctx.save(); ctx.translate(x, y); ctx.rotate(food.rot); ctx.shadowColor = '#c9a84c'; ctx.shadowBlur = 12;
+            // Orb
+            ctx.save(); ctx.translate(x, y); ctx.rotate(food.rot); ctx.shadowColor = '#d4a84c'; ctx.shadowBlur = 12;
             ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i - Math.PI / 2; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) } ctx.closePath();
-            const fg = ctx.createRadialGradient(0, 0, 0, 0, 0, r); fg.addColorStop(0, 'rgba(232,200,74,.9)'); fg.addColorStop(1, 'rgba(201,168,76,.7)');
-            ctx.fillStyle = fg; ctx.fill(); ctx.strokeStyle = '#e8c84a'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0; ctx.restore()
+            const fg = ctx.createRadialGradient(0, 0, 0, 0, 0, r); fg.addColorStop(0, 'rgba(240,200,80,.9)'); fg.addColorStop(1, 'rgba(212,168,76,.6)');
+            ctx.fillStyle = fg; ctx.fill(); ctx.strokeStyle = '#f0c850'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0; ctx.restore()
         }
 
         function drawSnake() {
@@ -1196,9 +1198,10 @@
                 const s = snake[i], t = 1 - i / len;
                 const px = s.x * cellSize, py = s.y * cellSize, ins = Math.max(1, 3 - t * 2);
                 const w = cellSize - ins * 2, h = cellSize - ins * 2;
-                const hue = 100 + i * 1.5, lit = 30 + t * 20, alp = .5 + t * .5;
-                ctx.fillStyle = `hsla(${hue},50%,${lit}%,${alp})`;
-                ctx.shadowColor = `hsl(${hue},50%,${lit + 15}%)`; ctx.shadowBlur = 4 + t * 8;
+                // Teal-to-violet body
+                const hue = 165 - i * 1.2; const sat = 55 + t * 15; const lit = 28 + t * 22; const alp = .5 + t * .5;
+                ctx.fillStyle = `hsla(${hue},${sat}%,${lit}%,${alp})`;
+                ctx.shadowColor = `hsl(${hue},${sat}%,${lit + 15}%)`; ctx.shadowBlur = 4 + t * 8;
                 const cr = Math.min(4, w / 3); ctx.beginPath();
                 ctx.moveTo(px + ins + cr, py + ins); ctx.lineTo(px + ins + w - cr, py + ins);
                 ctx.quadraticCurveTo(px + ins + w, py + ins, px + ins + w, py + ins + cr);
@@ -1206,11 +1209,13 @@
                 ctx.lineTo(px + ins + cr, py + ins + h); ctx.quadraticCurveTo(px + ins, py + ins + h, px + ins, py + ins + h - cr);
                 ctx.lineTo(px + ins, py + ins + cr); ctx.quadraticCurveTo(px + ins, py + ins, px + ins + cr, py + ins);
                 ctx.closePath(); ctx.fill();
-                const pa = Math.sin(pulsePhase * 3 - i * .4) * .12 + .08;
-                ctx.fillStyle = `hsla(90,60%,70%,${pa})`; ctx.fill(); ctx.shadowBlur = 0;
+                // Pulse
+                const pa = Math.sin(pulsePhase * 3 - i * .4) * .1 + .07;
+                ctx.fillStyle = `hsla(170,60%,65%,${pa})`; ctx.fill(); ctx.shadowBlur = 0;
+                // Eyes
                 if (i === 0) {
                     const ex1 = px + cellSize * .3, ex2 = px + cellSize * .7, ey = py + cellSize * .4, es = Math.max(2, cellSize * .1);
-                    ctx.fillStyle = '#e8c84a'; ctx.shadowColor = '#e8c84a'; ctx.shadowBlur = 5;
+                    ctx.fillStyle = '#f0c850'; ctx.shadowColor = '#f0c850'; ctx.shadowBlur = 5;
                     ctx.beginPath(); ctx.arc(ex1 + snakeDir.x * 2, ey + snakeDir.y * 2, es, 0, Math.PI * 2); ctx.fill();
                     ctx.beginPath(); ctx.arc(ex2 + snakeDir.x * 2, ey + snakeDir.y * 2, es, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
                 }
@@ -1226,7 +1231,9 @@
             if (glitchIntensity < .05) return;
             if (Math.random() > 1 - glitchIntensity * .25) {
                 const y = Math.random() * CH, h = 2 + Math.random() * 5;
-                const sh = (Math.random() - .5) * glitchIntensity * 16; const img = ctx.getImageData(0, Math.max(0, y), CW, Math.min(h, CH - y)); ctx.putImageData(img, sh, Math.max(0, y))
+                const sh = (Math.random() - .5) * glitchIntensity * 16;
+                const gy = Math.max(0, Math.floor(y)), gh = Math.min(Math.ceil(h), CH - gy);
+                if (gh > 0) { const img = ctx.getImageData(0, gy, CW, gh); ctx.putImageData(img, sh, gy) }
             }
             if (Math.random() > 1 - glitchIntensity * .12) { ctx.save(); ctx.globalAlpha = glitchIntensity * .1; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(canvas, 2, 0); ctx.restore() }
         }
@@ -1235,4 +1242,4 @@
     </script>
 </body>
 
-</html>
+</html>jk
