@@ -2181,8 +2181,39 @@
                 value: opt.value,
                 text: opt.textContent
             }));
+            bindCurrencySelectTyping('from');
+            bindCurrencySelectTyping('to');
             applyCurrencySearch('from');
             applyCurrencySearch('to');
+        }
+
+        function bindCurrencySelectTyping(which) {
+            const select = document.getElementById(`currency-${which}`);
+            const search = document.getElementById(`currency-${which}-search`);
+            if (!select || !search || select.dataset.searchBound === '1') return;
+            select.dataset.searchBound = '1';
+
+            select.addEventListener('keydown', (event) => {
+                if (event.key === 'Backspace') {
+                    event.preventDefault();
+                    search.value = search.value.slice(0, -1);
+                    applyCurrencySearch(which);
+                    return;
+                }
+
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    search.value = '';
+                    applyCurrencySearch(which);
+                    return;
+                }
+
+                if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                    event.preventDefault();
+                    search.value += event.key;
+                    applyCurrencySearch(which);
+                }
+            });
         }
 
         function applyCurrencySearch(which) {
@@ -2197,7 +2228,7 @@
                 return haystack.includes(query);
             });
 
-            if (currentValue && !filtered.some(item => item.value === currentValue)) {
+            if (!query && currentValue && !filtered.some(item => item.value === currentValue)) {
                 const currentItem = currencyOptionPool.find(item => item.value === currentValue);
                 if (currentItem) filtered.unshift(currentItem);
             }
