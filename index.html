@@ -368,5 +368,46 @@
             </ul>
         </div>
     </div>
+        <script>
+        function updateDateTime() {
+            // Get Qatar time (UTC+3)
+            const qatarTime = new Date().toLocaleString('en-US', {
+                timeZone: 'Asia/Qatar',
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('qatar-time').textContent = qatarTime;
+
+            // Get Qatar date
+            const qatarDate = new Date().toLocaleString('en-US', {
+                timeZone: 'Asia/Qatar'
+            });
+            const dateObj = new Date(qatarDate);
+
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const months = ['january', 'february', 'march', 'april', 'may', 'june',
+                'july', 'august', 'september', 'october', 'november', 'december'];
+
+            const dayName = days[dateObj.getDay()];
+            const dayNum = dateObj.getDate();
+            const monthName = months[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+
+            // Ordinal suffix for day
+            let suffix = 'th';
+            if (dayNum === 1 || dayNum === 21 || dayNum === 31) suffix = 'st';
+            else if (dayNum === 2 || dayNum === 22) suffix = 'nd';
+            else if (dayNum === 3 || dayNum === 23) suffix = 'rd';
+
+            const formattedDate = `${dayName}, ${dayNum}${suffix} of ${monthName} ${year}`;
+            document.getElementById('current-date').textContent = formattedDate;
+        }
+
+        // Update immediately and then every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    </script>
 </body>
 </html>
