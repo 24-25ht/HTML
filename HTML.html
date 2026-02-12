@@ -1,0 +1,443 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Creations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --cr7-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --accent-cyan: #00d9ff;
+            --accent-purple: #b856ff;
+            --accent-pink: #ff00ff;
+            --accent-lime: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a4d 25%, #2d1b4e 50%, #0f1545 75%, #0a0f2c 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 40px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, rgba(200, 150, 255, 0.8), rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 60px 70px, rgba(150, 200, 255, 0.8), rgba(0, 0, 0, 0)),
+                radial-gradient(1px 1px at 50px 50px, rgba(255, 200, 150, 0.6), rgba(0, 0, 0, 0)),
+                radial-gradient(1px 1px at 130px 80px, rgba(150, 255, 200, 0.7), rgba(0, 0, 0, 0)),
+                radial-gradient(2px 2px at 90px 10px, rgba(200, 100, 255, 0.9), rgba(0, 0, 0, 0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: twinkle 5s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 4em;
+            color: #d4af37;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.5),
+                0 0 30px rgba(212, 175, 55, 0.3),
+                0 0 45px rgba(212, 175, 55, 0.2);
+            margin-bottom: 60px;
+            letter-spacing: 3px;
+            animation: titleGlow 3s ease-in-out infinite;
+            font-weight: 900;
+        }
+
+        @keyframes titleGlow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 15px rgba(212, 175, 55, 0.5),
+                    0 0 30px rgba(212, 175, 55, 0.3),
+                    0 0 45px rgba(212, 175, 55, 0.2);
+            }
+
+            50% {
+                text-shadow: 0 0 20px rgba(212, 175, 55, 0.6),
+                    0 0 40px rgba(212, 175, 55, 0.4),
+                    0 0 60px rgba(212, 175, 55, 0.3);
+            }
+        }
+
+        .datetime-display {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px 40px;
+            background: rgba(20, 15, 50, 0.8);
+            border-radius: 20px;
+            border: 2px solid transparent;
+            background-image: linear-gradient(rgba(20, 15, 50, 0.8), rgba(20, 15, 50, 0.8)), var(--cr7-gradient);
+            background-clip: padding-box, border-box;
+            background-origin: padding-box, border-box;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .datetime-display .time {
+            font-size: 3.5em;
+            font-weight: 900;
+            color: #d4af37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .datetime-display .date {
+            font-size: 2em;
+            font-weight: 700;
+            color: #d946a6;
+            text-shadow: 0 0 15px rgba(217, 70, 166, 0.4);
+            letter-spacing: 1px;
+            text-transform: capitalize;
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .category {
+            background: rgba(15, 45, 60, 0.95);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
+                0 0 20px rgba(0, 217, 255, 0.2),
+                0 0 30px rgba(0, 217, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            border: 3px solid rgba(0, 217, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 217, 255, 0.08) 0%, transparent 70%);
+            animation: shimmer 8s infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(30px, 30px) rotate(180deg);
+            }
+        }
+
+        .category:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7),
+                0 0 30px rgba(0, 217, 255, 0.3),
+                0 0 20px rgba(0, 217, 255, 0.2);
+            background: rgba(20, 60, 80, 1);
+            border: 3px solid rgba(0, 217, 255, 0.6);
+        }
+
+        .category h2 {
+            font-size: 2em;
+            color: #d4af37;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category h2 i {
+            color: #d4af37;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
+
+        .links-list {
+            list-style: none;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .links-list li {
+            margin-bottom: 0;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .links-list li:hover {
+            transform: translateY(-3px);
+        }
+
+        .links-list a {
+            text-decoration: none;
+            color: #d4af37;
+            font-size: 1em;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            white-space: nowrap;
+        }
+
+        .links-list a::before {
+            content: '';
+            display: none;
+        }
+
+        .links-list a:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border: 2px solid rgba(212, 175, 55, 0.6);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5),
+                0 0 25px rgba(212, 175, 55, 0.3),
+                0 8px 20px rgba(0, 0, 0, 0.5);
+            transform: scale(1.08);
+            color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+                margin-bottom: 40px;
+            }
+
+            .categories {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .category {
+                padding: 30px;
+            }
+
+            .category h2 {
+                font-size: 1.6em;
+            }
+
+            .links-list a {
+                font-size: 0.95em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1><i class="fas fa-sparkles"></i> HTML Creations <i class="fas fa-sparkles"></i></h1>
+
+        <div class="datetime-display">
+            <div class="time" id="qatar-time">--:--:--</div>
+            <div class="date" id="current-date">Loading...</div>
+        </div>
+        <!-- Applets Category -->
+        <div class="category">
+            <h2><i class="fas fa-tools"></i>Applets</h2>
+            <ul class="links-list">
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Quran.html">Al-Quran</a></li>
+                <li><a href="HTML/Qatar%20Prayers.html">Qatar Prayers</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Random%20Outcome.html">Random
+                        Picker</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/sptyping%20test.html">Typing Test</a>
+                </li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Weather%20v1.1.html">Weather</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/digital%20clogk.html">World Clock</a>
+                </li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Calculator%20By%20A.K.%20V%202.4.html">Calculator</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Games Category -->
+        <div class="category">
+            <h2><i class="fas fa-gamepad"></i>Games</h2>
+            <ul class="links-list">
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Car%20Game.html">Car Game</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/ping%20Pong%20new.html">Ping Pong</a>
+                </li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/chess.html">Chess</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/BattleShip.html">BattleShip</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/snake%20game.html">Snake Game</a>
+                </li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Memory%20Card%20Games/Memory%20Cards%20Game%202/index.html">Memory
+                        Card Game</a></li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/2048%20By%20A.K.%20v%201.1.html">2048</a>
+                </li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Dots%20&%20Boxes%20Games.html">Dots
+                        & Boxes</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/4%20in%20a%20row.html">4 In a Row</a>
+                </li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Tic%20Tac%20Toe%20By%20A.K.%201.1.html">Tic
+                        Tac Toe</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/whack%20a%20mole.html">Whack a
+                        Mole</a></li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/reactin%20inf.html">Reaction Test</a>
+                </li>
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/simon_fruit.html">Simon</a></li>
+            </ul>
+        </div>
+
+        <!-- Guessing Category -->
+        <div class="category">
+            <h2><i class="fas fa-bullseye"></i>Guessing</h2>
+            <ul class="links-list">
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/guess%20the%20num.html">Guess The
+                        Number</a></li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Hangman%20Game/index.html">Hangman</a>
+                </li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/guess%20the%20word%20game%20by%20a.k..html">Guess
+                        The Word</a></li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/word%20scramble%20By%20A.K..html">Word
+                        Scramble</a></li>
+            </ul>
+        </div>
+
+        <!-- Quizzes Category -->
+        <div class="category">
+            <h2><i class="fas fa-brain"></i>Quizzes</h2>
+            <ul class="links-list">
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Prophet%20(S.)%20quiz.html">Prophet
+                        Childhood Quiz</a></li>
+                <li><a href="HTML/June Chalenge and Extras/Quiz By A.K..html">Coding Quiz</a></li>
+                <li><a
+                        href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Eid%20Al-Adha%20Quiz%20By%20A.K.%20v%201.1.html">Eid
+                        Al-Adha Quiz</a></li>
+            </ul>
+        </div>
+
+        <!-- Pages Category -->
+        <div class="category">
+            <h2><i class="fas fa-file"></i>Pages</h2>
+            <ul class="links-list">
+                <li><a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipie%20pages.html">Recipe
+                        Pages</a></li>
+            </ul>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        function updateDateTime() {
+            // Get Qatar time (UTC+3)
+            const qatarTime = new Date().toLocaleString('en-US', {
+                timeZone: 'Asia/Qatar',
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('qatar-time').textContent = qatarTime;
+
+            // Get Qatar date
+            const qatarDate = new Date().toLocaleString('en-US', {
+                timeZone: 'Asia/Qatar'
+            });
+            const dateObj = new Date(qatarDate);
+
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const months = ['january', 'february', 'march', 'april', 'may', 'june',
+                'july', 'august', 'september', 'october', 'november', 'december'];
+
+            const dayName = days[dateObj.getDay()];
+            const dayNum = dateObj.getDate();
+            const monthName = months[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+
+            // Ordinal suffix for day
+            let suffix = 'th';
+            if (dayNum === 1 || dayNum === 21 || dayNum === 31) suffix = 'st';
+            else if (dayNum === 2 || dayNum === 22) suffix = 'nd';
+            else if (dayNum === 3 || dayNum === 23) suffix = 'rd';
+
+            const formattedDate = `${dayName}, ${dayNum}${suffix} of ${monthName} ${year}`;
+            document.getElementById('current-date').textContent = formattedDate;
+        }
+
+        // Update immediately and then every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    </script>
+</body>
+
+</html>
