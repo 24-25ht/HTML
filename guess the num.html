@@ -1,84 +1,251 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Guess The Number</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@300;500;700;900&display=swap"
+      rel="stylesheet"
+    />
     <style>
-          button {
-            background-color: #02735E;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 30px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-            position: relative;
-            left: 630px;
-            bottom: -110px;
-            align-content: space-between;
-            display: block;
-      
-     }
+      :root {
+        --ink: #082032;
+        --card: rgba(255, 255, 255, 0.9);
+        --line: rgba(8, 32, 50, 0.15);
+        --easy: #0ea5a4;
+        --medium: #f59e0b;
+        --hard: #e11d48;
+        --shadow: 0 24px 60px rgba(8, 32, 50, 0.35);
+      }
 
-        button:hover {
-            background-color: #038C3E;
-            font-family: Arial;;
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Outfit", sans-serif;
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        padding: clamp(1rem, 2.5vw, 2rem);
+        background:
+          linear-gradient(120deg, rgba(10, 46, 79, 0.8), rgba(6, 85, 77, 0.72)),
+          url("wallpaperflare.com_wallpaper.png") center / cover fixed;
+      }
+
+      .shell {
+        width: min(980px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 2rem;
+        overflow: hidden;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.88));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero {
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .badge {
+        width: fit-content;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(14, 165, 164, 0.1);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Bungee", cursive;
+        font-size: clamp(2rem, 5vw, 3rem);
+        line-height: 1.05;
+        letter-spacing: 0.03em;
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: clamp(1rem, 2.2vw, 1.2rem);
+        font-weight: 500;
+        max-width: 52ch;
+      }
+
+      .levels {
+        padding: clamp(1.25rem, 3vw, 2rem);
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        border: 1px solid var(--line);
+        border-radius: 1.25rem;
+        padding: 1.1rem;
+        background: var(--card);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        animation: reveal 0.7s ease both;
+      }
+
+      .card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+
+      .card:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 35px rgba(8, 32, 50, 0.2);
+      }
+
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.9rem;
+      }
+
+      .title {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 900;
+      }
+
+      .chip {
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.28rem 0.58rem;
+        border-radius: 999px;
+        border: 1px solid transparent;
+      }
+
+      .meta {
+        margin: 0;
+        line-height: 1.45;
+        font-size: 0.95rem;
+      }
+
+      .easy {
+        border-top: 6px solid var(--easy);
+      }
+
+      .easy .chip {
+        color: #0f766e;
+        background: rgba(14, 165, 164, 0.15);
+        border-color: rgba(14, 165, 164, 0.25);
+      }
+
+      .medium {
+        border-top: 6px solid var(--medium);
+      }
+
+      .medium .chip {
+        color: #b45309;
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.25);
+      }
+
+      .hard {
+        border-top: 6px solid var(--hard);
+      }
+
+      .hard .chip {
+        color: #be123c;
+        background: rgba(225, 29, 72, 0.15);
+        border-color: rgba(225, 29, 72, 0.25);
+      }
+
+      .footer {
+        border-top: 1px solid var(--line);
+        padding: 1rem 1.5rem 1.3rem;
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
         }
-        
-        body {
-          background: url(file:///C:/Users/nowgo/OneDrive/Pictures/wallpaperflare.com_wallpaper.png);
-	        color: #ffffff;
-	        font-family: Arial;
-	        text-align: center;
-	        justify-content: center;
-     }  
-      
-.preparation {
-    width: 330px;
-    height: 110px;
-    margin-top: 2rem;
-    padding: 1.55rem 1.75rem 1.15rem;
-    background-color: #A2A62D;
-    border-radius: .6rem;
-    position: absolute;
-    left: 505px;
-    top: 215px;
-    z-index: -1;
-    }
 
-.h1 {
-	color: #ffffff;
-	background-color: #034159;
-	width: 150px;
-	border-radius: 5px;
-	text-align: center;
-	justify-content: center;
-	position: relative;
-	left: 600px;
-}
-.a {
- background-color: #025951;
- width: 350px;
- height: 40px;
-  position: relative;
-  left: 500px; 
-  border-radius: 5px; 
-}
-         
-     </style>
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 860px) {
+        .levels {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
-      <h1 class=h1>Levels</h1>
+    <main class="shell">
+      <section class="hero">
+        <span class="badge">A.K. Challenge</span>
+        <h1>Guess The Number</h1>
+        <p class="subtitle">
+          Pick your difficulty and jump in. Higher levels are more punishing, so choose your lane and break your best streak.
+        </p>
+      </section>
 
-      <p class=a>Choose a Level To Play From The Ones Listed Below<p>
-      
-      <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Guess%20the%20number%20By%20A.K.%20html%20ver.%20V%202.4%20................%20LV.%20Easy.html">
-        <button class="button">Easy</button>
-      </a>
-      <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Guess%20the%20number%20By%20A.K.%20html%20ver.%20V%202.4%20................%20LV.%20Medium.html">
-        <button class="button">Medium</button>
-      </a>
-      <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Guess%20the%20number%20By%20A.K.%20html%20ver.%20V%202.4%20................%20LV.%20Hard.html">
-        <button class="button">Hard</button>
-      </a>
+      <section class="levels">
+        <a
+          class="card easy"
+          href="June Chalenge and Extras/Guess the number By A.K. html ver. V 2.4 ................ LV. Easy.html"
+        >
+          <div class="head">
+            <h2 class="title">Easy</h2>
+            <span class="chip">Warmup</span>
+          </div>
+          <p class="meta">Best for fast rounds and getting into rhythm.</p>
+        </a>
+
+        <a
+          class="card medium"
+          href="June Chalenge and Extras/Guess the number By A.K. html ver. V 2.4 ................ LV. Medium.html"
+        >
+          <div class="head">
+            <h2 class="title">Medium</h2>
+            <span class="chip">Main Event</span>
+          </div>
+          <p class="meta">Balanced difficulty with enough pressure to stay sharp.</p>
+        </a>
+
+        <a
+          class="card hard"
+          href="June Chalenge and Extras/Guess the number By A.K. html ver. V 2.4 ................ LV. Hard.html"
+        >
+          <div class="head">
+            <h2 class="title">Hard</h2>
+            <span class="chip">No Mercy</span>
+          </div>
+          <p class="meta">For high-risk runs when you want the toughest mode.</p>
+        </a>
+      </section>
+
+      <section class="footer">Tip: start on Medium if Easy is too predictable.</section>
+    </main>
+  </body>
+</html>
