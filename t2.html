@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER — Precision Redefined</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #050816;
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+            user-select: none
+        }
+
+        :root {
+            --cy: #00f0ff;
+            --pk: #ff0066;
+            --gd: #ffaa00;
+            --gn: #00ff88;
+            --pp: #aa00ff;
+            --card: rgba(10, 15, 40, .75);
+            --bdr: rgba(255, 255, 255, .08)
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, .03)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, .2);
+            border-radius: 3px
+        }
+
+        #bgC {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none
+        }
+
+        .S {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .5s, transform .5s;
+            transform: translateY(18px);
+            padding: 20px
+        }
+
+        .S.A {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0)
+        }
+
+        #splash .lt {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            letter-spacing: .3em;
+            background: linear-gradient(135deg, var(--cy), var(--pp), var(--pk));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gw 2s ease-in-out infinite alternate
+        }
+
+        #splash .tg {
+            font-size: clamp(.85rem, 2.5vw, 1.3rem);
+            letter-spacing: .5em;
+            color: rgba(255, 255, 255, .35);
+            margin-top: 14px;
+            font-weight: 300;
+            animation: fu 1s ease .5s both
+        }
+
+        #splash .lb {
+            width: 180px;
+            height: 2px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 2px;
+            margin-top: 36px;
+            overflow: hidden;
+            animation: fu 1s ease .8s both
+        }
+
+        #splash .lf {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--cy), var(--pp));
+            border-radius: 2px;
+            animation: lbar 2.2s ease .9s forwards
+        }
+
+        @keyframes gw {
+            0% {
+                filter: brightness(1) drop-shadow(0 0 20px rgba(0, 240, 255, .2))
+            }
+
+            100% {
+                filter: brightness(1.15) drop-shadow(0 0 40px rgba(170, 0, 255, .25))
+            }
+        }
+
+        @keyframes fu {
+            from {
+                opacity: 0;
+                transform: translateY(16px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes lbar {
+            to {
+                width: 100%
+            }
+        }
+
+        #menu .ml {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.8rem, 5vw, 3.2rem);
+            font-weight: 900;
+            letter-spacing: .2em;
+            background: linear-gradient(135deg, var(--cy), var(--pk));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px
+        }
+
+        #menu .ms {
+            font-size: .8rem;
+            letter-spacing: .4em;
+            color: rgba(255, 255, 255, .3);
+            margin-bottom: 32px;
+            text-transform: uppercase
+        }
+
+        .mg {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            width: 100%;
+            max-width: 660px;
+            margin-bottom: 28px
+        }
+
+        .mc {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 16px;
+            padding: 26px 22px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all .35s;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center
+        }
+
+        .mc::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cy), transparent);
+            opacity: 0;
+            transition: opacity .35s
+        }
+
+        .mc:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 240, 255, .2);
+            box-shadow: 0 8px 30px rgba(0, 240, 255, .08)
+        }
+
+        .mc:hover::before {
+            opacity: 1
+        }
+
+        .mc .ci {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            display: block
+        }
+
+        .ci.dt {
+            color: var(--pk)
+        }
+
+        .ci.mt {
+            color: var(--cy)
+        }
+
+        .mc h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: .04em
+        }
+
+        .mc p {
+            font-size: .88rem;
+            color: rgba(255, 255, 255, .45);
+            line-height: 1.5
+        }
+
+        .mc .ct {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .65rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-weight: 600
+        }
+
+        .t2p {
+            background: rgba(255, 0, 102, .12);
+            color: var(--pk);
+            border: 1px solid rgba(255, 0, 102, .25)
+        }
+
+        .t1p {
+            background: rgba(0, 240, 255, .08);
+            color: var(--cy);
+            border: 1px solid rgba(0, 240, 255, .18)
+        }
+
+        .bb {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .bg {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: rgba(255, 255, 255, .55);
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: .92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s;
+            letter-spacing: .06em
+        }
+
+        .bg:hover {
+            border-color: rgba(0, 240, 255, .35);
+            color: var(--cy);
+            box-shadow: 0 0 18px rgba(0, 240, 255, .08)
+        }
+
+        .bg i {
+            margin-right: 7px
+        }
+
+        .mo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 8, 22, .88);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .4s;
+            padding: 20px
+        }
+
+        .mo.A {
+            opacity: 1;
+            pointer-events: all
+        }
+
+        .mb {
+            background: linear-gradient(145deg, rgba(10, 15, 40, .96), rgba(15, 10, 35, .96));
+            border: 1px solid rgba(255, 255, 255, .07);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 540px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(16px);
+            transition: transform .4s;
+            position: relative;
+            text-align: center
+        }
+
+        .mo.A .mb {
+            transform: translateY(0)
+        }
+
+        .mb h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+            background: linear-gradient(90deg, var(--cy), var(--pp));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .mb h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .95rem;
+            margin: 18px 0 8px;
+            color: var(--cy)
+        }
+
+        .mb p {
+            color: rgba(255, 255, 255, .55);
+            line-height: 1.7;
+            font-size: .92rem;
+            margin-bottom: 10px
+        }
+
+        .cb {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, .35);
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: color .3s
+        }
+
+        .cb:hover {
+            color: #fff
+        }
+
+        .tb {
+            background: rgba(0, 240, 255, .04);
+            border: 1px solid rgba(0, 240, 255, .12);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 10px 0
+        }
+
+        .tb i {
+            color: var(--cy);
+            margin-right: 7px
+        }
+
+        #dartSetup .sc {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 460px;
+            width: 100%;
+            backdrop-filter: blur(10px)
+        }
+
+        #dartSetup h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            text-align: center;
+            margin-bottom: 24px;
+            background: linear-gradient(90deg, var(--pk), var(--gd));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .ig {
+            margin-bottom: 18px
+        }
+
+        .ig label {
+            display: block;
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .45);
+            margin-bottom: 5px;
+            letter-spacing: .1em;
+            text-transform: uppercase
+        }
+
+        .ig input {
+            width: 100%;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 10px;
+            padding: 11px 15px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: border-color .3s;
+            outline: none
+        }
+
+        .ig input:focus {
+            border-color: var(--cy)
+        }
+
+        .ig input::placeholder {
+            color: rgba(255, 255, 255, .18)
+        }
+
+        .rs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px
+        }
+
+        .rb {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, .45);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s;
+            text-align: center
+        }
+
+        .rb.a,
+        .rb:hover {
+            border-color: var(--cy);
+            color: var(--cy);
+            background: rgba(0, 240, 255, .06)
+        }
+
+        .bp {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--cy), var(--pp));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: .95rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .bp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(0, 240, 255, .25)
+        }
+
+        #dartGame {
+            padding: 8px;
+            justify-content: flex-start;
+            padding-top: 8px
+        }
+
+        .dh {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 840px;
+            margin-bottom: 6px;
+            gap: 8px
+        }
+
+        .pp {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 12px;
+            transition: all .4s;
+            min-width: 0
+        }
+
+        .pp.ap {
+            border-color: var(--cy);
+            box-shadow: 0 0 18px rgba(0, 240, 255, .12)
+        }
+
+        .pp.ap.p2 {
+            border-color: var(--pk);
+            box-shadow: 0 0 18px rgba(255, 0, 102, .12)
+        }
+
+        .pp .pn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .pp .ps {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-top: 1px;
+            transition: all .2s
+        }
+
+        .pp.p1 .ps {
+            color: var(--cy)
+        }
+
+        .pp.p2 .ps {
+            color: var(--pk)
+        }
+
+        .ri {
+            text-align: center;
+            padding: 6px 14px;
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 12px;
+            min-width: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center
+        }
+
+        .ri .rl {
+            font-size: .62rem;
+            color: rgba(255, 255, 255, .35);
+            text-transform: uppercase;
+            letter-spacing: .12em
+        }
+
+        .ri .rv {
+            font-family: 'Orbitron', sans-serif;
+            font-size: .95rem;
+            font-weight: 700
+        }
+
+        .dr {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-top: 5px
+        }
+
+        .dr .dd {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--gd);
+            transition: all .3s
+        }
+
+        .dr .dd.u {
+            background: rgba(255, 255, 255, .08);
+            transform: scale(.7)
+        }
+
+        .da {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+            max-width: 840px
+        }
+
+        #dC {
+            border-radius: 14px;
+            cursor: crosshair;
+            max-width: 100%
+        }
+
+        .df {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 840px;
+            margin-top: 6px;
+            min-height: 36px
+        }
+
+        .dm {
+            font-size: .95rem;
+            color: rgba(255, 255, 255, .55);
+            text-align: center
+        }
+
+        .sp {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            animation: pi .3s ease
+        }
+
+        @keyframes pi {
+            0% {
+                transform: scale(.5);
+                opacity: 0
+            }
+
+            70% {
+                transform: scale(1.12)
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .sa {
+            animation: sf .3s ease
+        }
+
+        @keyframes sf {
+            0% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.18);
+                filter: brightness(1.5)
+            }
+
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        .rc {
+            background: var(--card);
+            border: 1px solid var(--bdr);
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(10px)
+        }
+
+        .rc .wi {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            animation: bo 1s ease infinite
+        }
+
+        @keyframes bo {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-8px)
+            }
+        }
+
+        .rc .wn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--gd), var(--pk));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px
+        }
+
+        .rc .wl {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .35);
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            margin-bottom: 22px
+        }
+
+        .scm {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 22px
+        }
+
+        .scm .sb {
+            flex: 1;
+            padding: 14px;
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--bdr);
+            border-radius: 12px
+        }
+
+        .sb .sn {
+            font-size: .75rem;
+            color: rgba(255, 255, 255, .35);
+            margin-bottom: 3px
+        }
+
+        .sb .sv {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700
+        }
+
+        .sb.wb {
+            border-color: var(--gd);
+            box-shadow: 0 0 14px rgba(255, 170, 0, .08)
+        }
+
+        .rbs {
+            display: flex;
+            gap: 10px
+        }
+
+        .rbs button {
+            flex: 1
+        }
+
+        .bs {
+            padding: 12px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: .92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .bs:hover {
+            border-color: rgba(255, 255, 255, .25);
+            background: rgba(255, 255, 255, .07)
+        }
+
+        .bp2 {
+            font-family: 'Rajdhani', sans-serif !important;
+            font-weight: 700 !important;
+            letter-spacing: 0 !important
+        }
+
+        #motionGame {
+            padding: 0;
+            justify-content: flex-start
+        }
+
+        .mh {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            width: 100%;
+            padding: 10px 20px;
+            background: rgba(5, 8, 22, .82);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--bdr);
+            z-index: 5
+        }
+
+        .mh .mi {
+            text-align: center
+        }
+
+        .mh .mll {
+            font-size: .6rem;
+            color: rgba(255, 255, 255, .3);
+            text-transform: uppercase;
+            letter-spacing: .12em
+        }
+
+        .mh .mv {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700
+        }
+
+        .mv.c {
+            color: var(--cy)
+        }
+
+        .mv.g {
+            color: var(--gn)
+        }
+
+        .mv.o {
+            color: var(--gd)
+        }
+
+        .mcw {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            cursor: none;
+            overflow: hidden
+        }
+
+        #mC {
+            width: 100%;
+            height: 100%;
+            display: block
+        }
+
+        .mst {
+            display: flex;
+            gap: 14px;
+            margin: 18px 0
+        }
+
+        .mst .msb {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--bdr);
+            border-radius: 12px
+        }
+
+        .msb .msl {
+            font-size: .7rem;
+            color: rgba(255, 255, 255, .35);
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: .08em
+        }
+
+        .msb .msv {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700
+        }
+
+        .bk {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 10px;
+            padding: 7px 14px;
+            color: rgba(255, 255, 255, .4);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: .82rem;
+            cursor: pointer;
+            transition: all .3s;
+            z-index: 10
+        }
+
+        .bk:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, .25)
+        }
+
+        .bk i {
+            margin-right: 5px
+        }
+
+        #confC {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 200
+        }
+
+        @keyframes cf {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0
+            }
+        }
+
+        @media(max-width:600px) {
+            .mg {
+                grid-template-columns: 1fr
+            }
+
+            .dh {
+                flex-wrap: wrap
+            }
+
+            .scm,
+            .mst {
+                flex-direction: column
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bgC"></canvas>
+
+    <div id="splash" class="S A">
+        <div class="lt">AETHER</div>
+        <div class="tg">PRECISION REDEFINED</div>
+        <div class="tg">PHANTOM PARALLAX: STRIKE</div>
+        <div class="lb">
+            <div class="lf"></div>
+        </div>
+    </div>
+
+    <div id="menu" class="S">
+        <div class="ml">AETHER</div>
+        <div class="ms">Precision Redefined</div>
+        <div class="mg">
+            <div class="mc" onclick="goSetup()">
+                <i class="fa-solid fa-bullseye ci dt"></i>
+                <h3>Dart Duel</h3>
+                <p>Challenge a friend in a precision dart showdown. Aim steady, time the wobble, claim victory.</p>
+                <span class="ct t2p"><i class="fa-solid fa-user-group"></i> 2 Players</span>
+            </div>
+            <div class="mc" onclick="goMotion()">
+                <i class="fa-solid fa-satellite-dish ci mt"></i>
+                <h3>Motion Tracker</h3>
+                <p>Lock onto a speeding orb and hold your focus. It accelerates — can you keep up?</p>
+                <span class="ct t1p"><i class="fa-solid fa-user"></i> Solo</span>
+            </div>
+        </div>
+        <div class="bb">
+            <button class="bg" onclick="oM('tutM')"><i class="fa-solid fa-graduation-cap"></i>Tutorial</button>
+            <button class="bg" onclick="oM('abtM')"><i class="fa-solid fa-atom"></i>About</button>
+        </div>
+    </div>
+
+    <div id="tutM" class="mo">
+        <div class="mb">
+            <button class="cb" onclick="cM('tutM')"><i class="fa-solid fa-xmark"></i></button>
+            <h2><i class="fa-solid fa-graduation-cap"></i> Training Manual</h2>
+            <h3><i class="fa-solid fa-bullseye"></i> Dart Duel</h3>
+            <p>Two players take turns on a regulation dartboard. Each throws <strong>3 darts per round</strong>. A
+                crosshair wobbles over the board — time your click when it aligns with your target. Doubles &amp;
+                triples multiply your segment score. After all rounds, the highest total wins.</p>
+            <div class="tb"><i class="fa-solid fa-lightbulb"></i><strong>Pro Tip:</strong> Aim for the triple-20 (top)
+                for massive points. The wobble follows a pattern — learn it!</div>
+            <h3><i class="fa-solid fa-satellite-dish"></i> Motion Tracker</h3>
+            <p>A glowing orb drifts and accelerates across the arena for 30 seconds. Move your cursor to overlap it and
+                <strong>hold steady</strong>. Closer to center = more points per tick. Build combos by staying locked on
+                — the multiplier climbs!
+            </p>
+            <div class="tb"><i class="fa-solid fa-lightbulb"></i><strong>Pro Tip:</strong> Anticipate the orb's curves.
+                Smooth mouse movements beat jerky corrections.</div>
+            <h3><i class="fa-solid fa-keyboard"></i> Controls</h3>
+            <p><strong>Mouse</strong> — Aim &amp; interact &nbsp;|&nbsp; <strong>Click</strong> — Throw darts
+                &nbsp;|&nbsp; <strong>ESC</strong> — Return to menu</p>
+        </div>
+    </div>
+
+    <div id="abtM" class="mo">
+        <div class="mb">
+            <button class="cb" onclick="cM('abtM')"><i class="fa-solid fa-xmark"></i></button>
+            <h2><i class="fa-solid fa-atom"></i> About AETHER</h2>
+            <p style="font-size:1.05rem;color:rgba(255,255,255,.6);margin-bottom:14px"><em>"Forged in the cosmic void
+                    for those who seek perfection."</em></p>
+            <p><strong>AETHER</strong> is a precision arena crafted for rivalry, focus, and mastery. Whether you're
+                dueling a friend on the dartboard or chasing a phantom orb across space, every mode pushes your aim to
+                its limits.</p>
+            <p><strong>Version:</strong> 1.5 &nbsp;|&nbsp; <strong>Engine:</strong> HTML5 Canvas &amp; Web Audio
+                &nbsp;|&nbsp; <strong>Made By:</strong>Abdullah Karim &nbsp;|&nbsp; <strong>Modes:</strong> Dart
+                Duel (2P), Motion Tracker (Solo)</p>
+            <p style="margin-top:14px;color:rgba(255,255,255,.25);font-size:.78rem">Made with <i
+                    class="fa-solid fa-heart" style="color:var(--pk)"></i> for precision enthusiasts</p>
+        </div>
+    </div>
+
+    <div id="dartSetup" class="S">
+        <button class="bk" onclick="go('menu')"><i class="fa-solid fa-arrow-left"></i>Back</button>
+        <div class="sc">
+            <h2><i class="fa-solid fa-bullseye"></i> Dart Duel</h2>
+            <div class="ig"><label><i class="fa-solid fa-diamond" style="color:var(--cy)"></i> Player 1</label><input
+                    id="n1" placeholder="Name..." maxlength="14"></div>
+            <div class="ig"><label><i class="fa-solid fa-diamond" style="color:var(--pk)"></i> Player 2</label><input
+                    id="n2" placeholder="Name..." maxlength="14"></div>
+            <div class="ig"><label>Rounds</label>
+                <div class="rs">
+                    <div class="rb" data-r="3" onclick="sR(this)">3</div>
+                    <div class="rb a" data-r="5" onclick="sR(this)">5</div>
+                    <div class="rb" data-r="7" onclick="sR(this)">7</div>
+                </div>
+            </div>
+            <button class="bp" onclick="startDart()"><i class="fa-solid fa-play"></i> BEGIN DUEL</button>
+        </div>
+    </div>
+
+    <div id="dartGame" class="S">
+        <button class="bk" onclick="quitDart()"><i class="fa-solid fa-arrow-left"></i>Quit</button>
+        <div class="dh">
+            <div class="pp p1" id="pp1">
+                <div class="pn" id="dn1">Player 1</div>
+                <div class="ps" id="ds1">0</div>
+            </div>
+            <div class="ri">
+                <div class="rl">Round</div>
+                <div class="rv" id="drd">1 / 5</div>
+                <div class="rl" style="margin-top:4px">Darts</div>
+                <div class="dr" id="ddr">
+                    <div class="dd"></div>
+                    <div class="dd"></div>
+                    <div class="dd"></div>
+                </div>
+            </div>
+            <div class="pp p2" id="pp2">
+                <div class="pn" id="dn2">Player 2</div>
+                <div class="ps" id="ds2">0</div>
+            </div>
+        </div>
+        <div class="da"><canvas id="dC"></canvas></div>
+        <div class="df">
+            <div class="dm" id="dmg"></div>
+        </div>
+    </div>
+
+    <div id="dartResult" class="S">
+        <div class="rc">
+            <div class="wi" id="rwi">🏆</div>
+            <div class="wn" id="rwn">Player 1</div>
+            <div class="wl" id="rwl">CHAMPION</div>
+            <div class="scm">
+                <div class="sb" id="rs1">
+                    <div class="sn">P1</div>
+                    <div class="sv">0</div>
+                </div>
+                <div class="sb" id="rs2">
+                    <div class="sn">P2</div>
+                    <div class="sv">0</div>
+                </div>
+            </div>
+            <div class="rbs">
+                <button class="bs" onclick="go('dartSetup')"><i class="fa-solid fa-rotate"></i> Rematch</button>
+                <button class="bp bp2" onclick="go('menu')"><i class="fa-solid fa-house"></i> Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="motionGame" class="S">
+        <button class="bk" onclick="quitMT()" style="z-index:10"><i class="fa-solid fa-arrow-left"></i>Quit</button>
+        <div class="mh">
+            <div class="mi">
+                <div class="mll">Score</div>
+                <div class="mv c" id="mts">0</div>
+            </div>
+            <div class="mi">
+                <div class="mll">Time</div>
+                <div class="mv g" id="mtt">30</div>
+            </div>
+            <div class="mi">
+                <div class="mll">Combo</div>
+                <div class="mv o" id="mtc">0</div>
+            </div>
+        </div>
+        <div class="mcw"><canvas id="mC"></canvas></div>
+    </div>
+
+    <div id="motionResult" class="S">
+        <div class="rc">
+            <div class="wi">🌀</div>
+            <div class="wn" id="mfs">0</div>
+            <div class="wl" id="mfl">POINTS EARNED</div>
+            <div class="mst">
+                <div class="msb">
+                    <div class="msl">Accuracy</div>
+                    <div class="msv" id="mfa" style="color:var(--cy)">0%</div>
+                </div>
+                <div class="msb">
+                    <div class="msl">Best Combo</div>
+                    <div class="msv" id="mfc" style="color:var(--gd)">0</div>
+                </div>
+            </div>
+            <div class="rbs">
+                <button class="bs" onclick="goMotion()"><i class="fa-solid fa-rotate"></i> Retry</button>
+                <button class="bp bp2" onclick="go('menu')"><i class="fa-solid fa-house"></i> Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confC"></div>
+
+    <script>
+        /* === AUDIO === */
+        const AC = window.AudioContext || window.webkitAudioContext; let ax;
+        function ia() { if (!ax) ax = new AC() }
+        function snd(t) {
+            ia(); const n = ax.currentTime, g = ax.createGain(); g.connect(ax.destination);
+            if (t === 'cl') { const o = ax.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(900, n); o.frequency.exponentialRampToValueAtTime(450, n + .07); g.gain.setValueAtTime(.12, n); g.gain.exponentialRampToValueAtTime(.001, n + .07); o.connect(g); o.start(n); o.stop(n + .07) }
+            else if (t === 'tw') { const b = ax.createBuffer(1, ax.sampleRate * .12, ax.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++)d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); const s = ax.createBufferSource(); s.buffer = b; g.gain.setValueAtTime(.18, n); s.connect(g); s.start(n) }
+            else if (t === 'ht') { const o = ax.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(1200, n); o.frequency.exponentialRampToValueAtTime(600, n + .1); g.gain.setValueAtTime(.1, n); g.gain.exponentialRampToValueAtTime(.001, n + .12); o.connect(g); o.start(n); o.stop(n + .12) }
+            else if (t === 'sc') { [660, 880, 1100].forEach((f, i) => { const o = ax.createOscillator(), g2 = ax.createGain(); o.type = 'sine'; o.frequency.value = f; g2.gain.setValueAtTime(.07, n + i * .1); g2.gain.exponentialRampToValueAtTime(.001, n + i * .1 + .18); o.connect(g2); g2.connect(ax.destination); o.start(n + i * .1); o.stop(n + i * .1 + .18) }) }
+            else if (t === 'wn') { [523, 659, 784, 1047].forEach((f, i) => { const o = ax.createOscillator(), g2 = ax.createGain(); o.type = 'triangle'; o.frequency.value = f; g2.gain.setValueAtTime(.09, n + i * .14); g2.gain.exponentialRampToValueAtTime(.001, n + i * .14 + .35); o.connect(g2); g2.connect(ax.destination); o.start(n + i * .14); o.stop(n + i * .14 + .35) }) }
+        }
+
+        /* === SCREENS === */
+        function go(id) { document.querySelectorAll('.S').forEach(s => s.classList.remove('A')); document.getElementById(id).classList.add('A') }
+        function oM(id) { document.getElementById(id).classList.add('A') }
+        function cM(id) { document.getElementById(id).classList.remove('A') }
+        document.querySelectorAll('.mo').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('A') }));
+        setTimeout(() => go('menu'), 3200);
+
+        /* === BACKGROUND === */
+        !function () {
+            const c = document.getElementById('bgC'), x = c.getContext('2d'); let w, h, st = [];
+            function rs() { w = c.width = innerWidth; h = c.height = innerHeight }
+            addEventListener('resize', rs); rs();
+            for (let i = 0; i < 180; i++)st.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.4 + .3, sp: Math.random() * .25 + .04, a: Math.random() * .7 + .2, p: Math.random() * 6.28 });
+            !function d(t) {
+                x.clearRect(0, 0, w, h);
+                const g = x.createRadialGradient(w * .3, h * .4, 0, w * .3, h * .4, w * .6); g.addColorStop(0, 'rgba(30,0,60,.12)'); g.addColorStop(1, 'transparent'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+                const g2 = x.createRadialGradient(w * .75, h * .55, 0, w * .75, h * .55, w * .45); g2.addColorStop(0, 'rgba(0,40,60,.1)'); g2.addColorStop(1, 'transparent'); x.fillStyle = g2; x.fillRect(0, 0, w, h);
+                st.forEach(s => { s.y -= s.sp; if (s.y < -4) { s.y = h + 4; s.x = Math.random() * w } const a = s.a * (.6 + .4 * Math.sin(t * .001 + s.p)); x.beginPath(); x.arc(s.x, s.y, s.r, 0, 6.28); x.fillStyle = `rgba(200,220,255,${a})`; x.fill() });
+                requestAnimationFrame(d)
+            }(0)
+        }();
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { cM('tutM'); cM('abtM'); if (document.getElementById('dartGame').classList.contains('A')) quitDart(); if (document.getElementById('motionGame').classList.contains('A')) quitMT() } });
+
+        /* ========== DART DUEL ========== */
+        const SEG = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+        let D = { tr: 5, cr: 1, cp: 0, dt: 0, pl: [{ n: 'P1', s: 0, rs: [] }, { n: 'P2', s: 0, rs: [] }], ts: 0, td: [], ph: 'idle', mx: 0, my: 0, wt: 0, cx: 0, cy: 0, R: 0, cw: 0, ch: 0, anim: false, lts: null, raf: 0 };
+
+        function sR(el) { document.querySelectorAll('.rb').forEach(b => b.classList.remove('a')); el.classList.add('a') }
+        function goSetup() { snd('cl'); go('dartSetup') }
+
+        function startDart() {
+            snd('cl');
+            const p1 = document.getElementById('n1').value.trim() || 'Player 1';
+            const p2 = document.getElementById('n2').value.trim() || 'Player 2';
+            const r = parseInt(document.querySelector('.rb.a').dataset.r);
+            D = { tr: r, cr: 1, cp: 0, dt: 0, pl: [{ n: p1, s: 0, rs: [] }, { n: p2, s: 0, rs: [] }], ts: 0, td: [], ph: 'play', mx: 0, my: 0, wt: 0, cx: 0, cy: 0, R: 0, cw: 0, ch: 0, anim: false, lts: null, raf: 0 };
+            document.getElementById('dn1').textContent = p1;
+            document.getElementById('dn2').textContent = p2;
+            go('dartGame');
+            requestAnimationFrame(() => requestAnimationFrame(() => { initDC(); updDUI(); dLoop() }))
+        }
+
+        function quitDart() { D.ph = 'end'; cancelAnimationFrame(D.raf); go('menu') }
+
+        function initDC() {
+            const cv = document.getElementById('dC'), ar = document.querySelector('.da');
+            const sz = Math.min(ar.clientWidth - 16, ar.clientHeight - 16, 520);
+            cv.width = sz; cv.height = sz; D.cw = sz; D.ch = sz; D.cx = sz / 2; D.cy = sz / 2; D.R = sz / 2 - 28;
+            cv.onmousemove = e => { const r = cv.getBoundingClientRect(); D.mx = (e.clientX - r.left) / r.width * sz; D.my = (e.clientY - r.top) / r.height * sz };
+            cv.onclick = () => { if (D.ph !== 'play' || D.anim || D.dt >= 3) return; ia(); throwD() }
+        }
+
+        function throwD() {
+            const t = D.wt;
+            const wx = Math.cos(t * 2.5) * 15 + Math.sin(t * 1.7) * 9;
+            const wy = Math.sin(t * 3.0) * 15 + Math.cos(t * 2.1) * 9;
+            const jx = (Math.random() - .5) * 8, jy = (Math.random() - .5) * 8;
+            const tx = D.mx + wx + jx, ty = D.my + wy + jy;
+            snd('tw');
+            const sc = calcS(tx, ty);
+            D.anim = true;
+            const dart = { x: tx, y: ty, pts: sc.p, lbl: sc.l, sc: 0, al: 0 };
+            D.td.push(dart);
+            const st = performance.now();
+            !function a(now) {
+                const el = (now - st) / 180;
+                dart.sc = Math.min(1, el * 1.5); dart.al = Math.min(1, el * 2);
+                if (el < 1) { requestAnimationFrame(a) } else {
+                    dart.sc = 1; dart.al = 1; D.anim = false; D.dt++; D.ts += sc.p; D.pl[D.cp].s += sc.p; D.lts = sc;
+                    setTimeout(() => snd('ht'), 40);
+                    if (sc.p >= 40) setTimeout(() => snd('sc'), 120);
+                    updDUI();
+                    if (D.dt >= 3) setTimeout(endTurn, 900)
+                }
+            }(performance.now())
+        }
+
+        function calcS(x, y) {
+            const dx = x - D.cx, dy = y - D.cy, d = Math.sqrt(dx * dx + dy * dy), R = D.R;
+            const rBE = R * .038, rBU = R * .095, rIS = R * .585, rTR = R * .63, rOS = R * .955, rDB = R;
+            if (d > R * 1.06) return { p: 0, l: 'Miss' };
+            if (d <= rBE) return { p: 50, l: 'BULLSEYE!' };
+            if (d <= rBU) return { p: 25, l: 'Bull 25' };
+            let a = Math.atan2(dy, dx) + Math.PI / 2; if (a < 0) a += Math.PI * 2; a += Math.PI / 20; if (a >= Math.PI * 2) a -= Math.PI * 2;
+            const si = Math.floor(a / (Math.PI / 10)) % 20, sv = SEG[si];
+            if (d <= rIS) return { p: sv, l: '' + sv };
+            if (d <= rTR) return { p: sv * 3, l: 'T' + sv };
+            if (d <= rOS) return { p: sv, l: '' + sv };
+            if (d <= rDB * 1.06) return { p: sv * 2, l: 'D' + sv };
+            return { p: 0, l: 'Miss' }
+        }
+
+        function endTurn() {
+            D.pl[D.cp].rs.push(D.ts); D.ts = 0; D.dt = 0; D.lts = null; D.td = [];
+            if (D.cp === 0) {
+                D.anim = true;
+                const mg = document.getElementById('dmg');
+                mg.innerHTML = `<span style="color:var(--pk);font-size:1.1rem"><i class="fa-solid fa-hand-point-right"></i> Pass to <strong>${D.pl[1].n}</strong></span>`;
+                setTimeout(() => { D.cp = 1; D.anim = false; updDUI() }, 1400)
+            } else {
+                D.anim = true;
+                const s0 = D.pl[0].s, s1 = D.pl[1].s;
+                const mg = document.getElementById('dmg');
+                const ld = s0 > s1 ? D.pl[0].n : s1 > s0 ? D.pl[1].n : 'Tied';
+                mg.innerHTML = `<span style="color:var(--gd);font-size:1rem"><i class="fa-solid fa-flag-checkered"></i> Round ${D.cr} done — ${ld === 'Tied' ? "It's tied!" : ld + ' leads!'}</span>`;
+                D.cr++;
+                if (D.cr > D.tr) { setTimeout(showDR, 1600); return }
+                setTimeout(() => { D.cp = 0; D.anim = false; updDUI() }, 1800)
+            }
+        }
+
+        function updDUI() {
+            const e1 = document.getElementById('ds1'), e2 = document.getElementById('ds2');
+            const os1 = e1.textContent, os2 = e2.textContent;
+            e1.textContent = D.pl[0].s; e2.textContent = D.pl[1].s;
+            if (e1.textContent !== os1) { e1.classList.remove('sa'); void e1.offsetWidth; e1.classList.add('sa') }
+            if (e2.textContent !== os2) { e2.classList.remove('sa'); void e2.offsetWidth; e2.classList.add('sa') }
+            document.getElementById('drd').textContent = Math.min(D.cr, D.tr) + ' / ' + D.tr;
+            document.getElementById('pp1').classList.toggle('ap', D.cp === 0);
+            document.getElementById('pp2').classList.toggle('ap', D.cp === 1);
+            const dd = document.getElementById('ddr'); dd.innerHTML = '';
+            for (let i = 0; i < 3; i++) { const d = document.createElement('div'); d.className = 'dd' + (i < D.dt ? ' u' : ''); dd.appendChild(d) }
+            const mg = document.getElementById('dmg');
+            if (D.lts) {
+                const s = D.lts; const col = s.p >= 40 ? 'var(--gd)' : s.p > 0 ? 'var(--cy)' : 'rgba(255,255,255,.25)';
+                mg.innerHTML = `<span class="sp" style="color:${col}">${s.l} — ${s.p} pts</span>`
+            } else if (!D.anim) {
+                mg.innerHTML = `<span style="color:rgba(255,255,255,.35)"><i class="fa-solid fa-crosshairs"></i> ${D.pl[D.cp].n}'s throw</span>`
+            }
+        }
+
+        function showDR() {
+            const p0 = D.pl[0], p1 = D.pl[1];
+            let w = p0.s > p1.s ? p0 : p1.s > p0.s ? p1 : null;
+            document.getElementById('rwi').textContent = w ? '🏆' : '🤝';
+            document.getElementById('rwn').textContent = w ? w.n : "It's a Tie!";
+            document.getElementById('rwl').textContent = w ? 'CHAMPION' : 'WELL MATCHED';
+            const s1 = document.getElementById('rs1'), s2 = document.getElementById('rs2');
+            s1.querySelector('.sn').textContent = p0.n; s1.querySelector('.sv').textContent = p0.s;
+            s2.querySelector('.sn').textContent = p1.n; s2.querySelector('.sv').textContent = p1.s;
+            s1.className = 'sb' + (p0 === w ? ' wb' : ''); s2.className = 'sb' + (p1 === w ? ' wb' : '');
+            D.ph = 'end'; go('dartResult'); snd('wn'); confetti()
+        }
+
+        function dLoop() {
+            if (D.ph === 'end') return;
+            const cv = document.getElementById('dC'); if (!cv) return;
+            const x = cv.getContext('2d'); D.wt += .016;
+            x.clearRect(0, 0, D.cw, D.ch);
+            drawBoard(x); drawDarts(x);
+            if (D.ph === 'play' && D.dt < 3 && !D.anim) drawXH(x);
+            D.raf = requestAnimationFrame(dLoop)
+        }
+
+        function drawBoard(x) {
+            const cx = D.cx, cy = D.cy, R = D.R;
+            const rBE = R * .038, rBU = R * .095, rIS = R * .585, rTR = R * .63, rOS = R * .955, rDB = R;
+            // surround
+            x.beginPath(); x.arc(cx, cy, R + 10, 0, 6.28); x.fillStyle = '#080810'; x.fill();
+            x.strokeStyle = 'rgba(0,240,255,.1)'; x.lineWidth = 1.5; x.stroke();
+            // segments
+            for (let i = 0; i < 20; i++) {
+                const a1 = -Math.PI / 2 - Math.PI / 20 + i * Math.PI / 10, a2 = a1 + Math.PI / 10;
+                const ev = i % 2 === 0;
+                dSeg(x, cx, cy, rOS, rDB, a1, a2, ev ? '#b71c1c' : '#1b5e20');
+                dSeg(x, cx, cy, rTR, rOS, a1, a2, ev ? '#0c0c16' : '#e8dcc0');
+                dSeg(x, cx, cy, rIS, rTR, a1, a2, ev ? '#b71c1c' : '#1b5e20');
+                dSeg(x, cx, cy, rBU, rIS, a1, a2, ev ? '#0c0c16' : '#e8dcc0');
+            }
+            // bull / bullseye
+            x.beginPath(); x.arc(cx, cy, rBU, 0, 6.28); x.fillStyle = '#1b5e20'; x.fill();
+            x.beginPath(); x.arc(cx, cy, rBE, 0, 6.28); x.fillStyle = '#b71c1c'; x.fill();
+            // wires
+            x.strokeStyle = 'rgba(170,170,170,.4)'; x.lineWidth = .7;
+            for (let i = 0; i < 20; i++) { const a = -Math.PI / 2 - Math.PI / 20 + i * Math.PI / 10; x.beginPath(); x.moveTo(cx + Math.cos(a) * rBU, cy + Math.sin(a) * rBU); x.lineTo(cx + Math.cos(a) * rDB, cy + Math.sin(a) * rDB); x.stroke() }
+            [rBE, rBU, rIS, rTR, rOS, rDB].forEach(r => { x.beginPath(); x.arc(cx, cy, r, 0, 6.28); x.stroke() });
+            // numbers
+            x.font = `bold ${Math.max(10, R * .065)}px Orbitron,sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+            for (let i = 0; i < 20; i++) { const a = -Math.PI / 2 + i * Math.PI / 10, nr = R + 20; x.fillStyle = 'rgba(255,255,255,.85)'; x.fillText(SEG[i] + '', cx + Math.cos(a) * nr, cy + Math.sin(a) * nr) }
+        }
+
+        function dSeg(x, cx, cy, r1, r2, a1, a2, c) { x.beginPath(); x.arc(cx, cy, r2, a1, a2); x.arc(cx, cy, r1, a2, a1, true); x.closePath(); x.fillStyle = c; x.fill() }
+
+        function drawDarts(x) {
+            D.td.forEach(d => {
+                const s = d.sc || 1, a = d.al || 1;
+                x.beginPath(); x.arc(d.x + 1.5, d.y + 1.5, 4.5 * s, 0, 6.28); x.fillStyle = `rgba(0,0,0,${.25 * a})`; x.fill();
+                x.beginPath(); x.arc(d.x, d.y, 4 * s, 0, 6.28);
+                const col = D.cp === 0 ? `rgba(0,220,255,${a})` : `rgba(255,80,140,${a})`;
+                x.fillStyle = col; x.fill(); x.lineWidth = 1.2; x.strokeStyle = `rgba(255,255,255,${a * .6})`; x.stroke();
+                x.beginPath(); x.arc(d.x, d.y, 1.5 * s, 0, 6.28); x.fillStyle = `rgba(255,255,255,${a})`; x.fill()
+            })
+        }
+
+        function drawXH(x) {
+            const t = D.wt;
+            const wx = Math.cos(t * 2.5) * 15 + Math.sin(t * 1.7) * 9;
+            const wy = Math.sin(t * 3.0) * 15 + Math.cos(t * 2.1) * 9;
+            const px = D.mx + wx, py = D.my + wy;
+            const col = D.cp === 0 ? '0,240,255' : '255,80,140';
+            // outer ring
+            x.beginPath(); x.arc(px, py, 13, 0, 6.28); x.strokeStyle = `rgba(${col},.55)`; x.lineWidth = 1.3; x.stroke();
+            // cross
+            x.beginPath(); x.moveTo(px - 10, py); x.lineTo(px - 4, py); x.moveTo(px + 4, py); x.lineTo(px + 10, py);
+            x.moveTo(px, py - 10); x.lineTo(px, py - 4); x.moveTo(px, py + 4); x.lineTo(px, py + 10);
+            x.strokeStyle = `rgba(${col},.75)`; x.lineWidth = 1; x.stroke();
+            // center dot
+            x.beginPath(); x.arc(px, py, 1.5, 0, 6.28); x.fillStyle = `rgba(${col},.85)`; x.fill();
+            // pulse
+            const ps = (Math.sin(t * 5.5) * .5 + .5) * 8 + 15;
+            x.beginPath(); x.arc(px, py, ps, 0, 6.28); x.strokeStyle = `rgba(${col},${.08 + Math.sin(t * 5.5) * .06})`; x.lineWidth = 1; x.stroke()
+        }
+
+        /* ========== MOTION TRACKER ========== */
+        let M = { on: false, sc: 0, tm: 30, tt: 30, acc: 0, co: 0, bc: 0, tkt: 0, tkt2: 0, ox: 0, oy: 0, oR: 20, ovx: 0, ovy: 0, osp: 2, tx: 0, ty: 0, mx: 0, my: 0, cw: 0, ch: 0, lt: 0, trail: [], pts: [], cd: 3, phase: 'cd', raf: 0 };
+
+        function goMotion() { snd('cl'); go('motionGame'); requestAnimationFrame(() => requestAnimationFrame(initMT)) }
+        function quitMT() { M.on = false; cancelAnimationFrame(M.raf); go('menu') }
+
+        function initMT() {
+            const cv = document.getElementById('mC'), wr = document.querySelector('.mcw');
+            cv.width = wr.clientWidth; cv.height = wr.clientHeight;
+            M = {
+                on: true, sc: 0, tm: 30, tt: 30, acc: 0, co: 0, bc: 0, tkt: 0, tkt2: 0, ox: cv.width / 2, oy: cv.height / 2, oR: 20, ovx: 0, ovy: 0, osp: 2,
+                tx: Math.random() * cv.width * .6 + cv.width * .2, ty: Math.random() * cv.height * .6 + cv.height * .2,
+                mx: cv.width / 2, my: cv.height / 2, cw: cv.width, ch: cv.height, lt: performance.now(), trail: [], pts: [], cd: 3, phase: 'cd', raf: 0
+            };
+            cv.onmousemove = e => { const r = cv.getBoundingClientRect(); M.mx = (e.clientX - r.left) / r.width * cv.width; M.my = (e.clientY - r.top) / r.height * cv.height };
+            cv.ontouchmove = e => { e.preventDefault(); const t = e.touches[0], r = cv.getBoundingClientRect(); M.mx = (t.clientX - r.left) / r.width * cv.width; M.my = (t.clientY - r.top) / r.height * cv.height };
+            document.getElementById('mts').textContent = '0';
+            document.getElementById('mtt').textContent = '30';
+            document.getElementById('mtc').textContent = '0';
+            mLoop()
+        }
+
+        function mLoop() {
+            if (!M.on) { return }
+            const now = performance.now(), dt = (now - M.lt) / 1000; M.lt = now;
+            const cv = document.getElementById('mC'), x = cv.getContext('2d');
+
+            if (M.phase === 'cd') {
+                M.cd -= dt;
+                x.clearRect(0, 0, M.cw, M.ch);
+                // grid
+                x.strokeStyle = 'rgba(0,240,255,.03)'; x.lineWidth = 1;
+                for (let i = 0; i < M.cw; i += 40) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, M.ch); x.stroke() }
+                for (let i = 0; i < M.ch; i += 40) { x.beginPath(); x.moveTo(0, i); x.lineTo(M.cw, i); x.stroke() }
+                // countdown number
+                const num = Math.ceil(M.cd);
+                const scale = 1 + (M.cd % 1) * .3;
+                x.save(); x.translate(M.cw / 2, M.ch / 2); x.scale(scale, scale);
+                x.font = 'bold 80px Orbitron,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+                x.fillStyle = `rgba(0,240,255,${.3 + .7 * (M.cd % 1)})`;
+                x.fillText(num <= 0 ? 'GO!' : num + '', 0, 0);
+                x.restore();
+                if (M.cd <= 0) { M.phase = 'play' }
+                M.raf = requestAnimationFrame(mLoop); return
+            }
+
+            // === PLAY ===
+            M.tm -= dt; if (M.tm <= 0) { M.tm = 0; M.on = false; showMR(); return }
+            const prog = 1 - M.tm / M.tt; M.osp = 2 + prog * 4.5;
+            // steer orb
+            let dx = M.tx - M.ox, dy = M.ty - M.oy, dd = Math.sqrt(dx * dx + dy * dy);
+            if (dd < 25) { M.tx = Math.random() * M.cw * .7 + M.cw * .15; M.ty = Math.random() * M.ch * .7 + M.ch * .15; dx = M.tx - M.ox; dy = M.ty - M.oy; dd = Math.sqrt(dx * dx + dy * dy) || 1 }
+            const ac = .08 * M.osp; M.ovx += (dx / dd) * ac; M.ovy += (dy / dd) * ac; M.ovx *= .97; M.ovy *= .97;
+            const sp = Math.sqrt(M.ovx * M.ovx + M.ovy * M.ovy), ms = M.osp * 3.2;
+            if (sp > ms) { M.ovx *= ms / sp; M.ovy *= ms / sp }
+            M.ox += M.ovx; M.oy += M.ovy;
+            if (M.ox < M.oR) { M.ox = M.oR; M.ovx *= -.8 } if (M.ox > M.cw - M.oR) { M.ox = M.cw - M.oR; M.ovx *= -.8 }
+            if (M.oy < M.oR) { M.oy = M.oR; M.ovy *= -.8 } if (M.oy > M.ch - M.oR) { M.oy = M.ch - M.oR; M.ovy *= -.8 }
+            // tracking
+            const tdx = M.mx - M.ox, tdy = M.my - M.oy, td = Math.sqrt(tdx * tdx + tdy * tdy);
+            const tk = td < M.oR + 28;
+            M.tkt2++;
+            if (tk) {
+                M.tkt++; const pr = Math.max(0, 1 - td / (M.oR + 28)); const pts = Math.round(pr * 12 * (1 + M.co * .08)); M.sc += pts; M.co++; if (M.co > M.bc) M.bc = M.co;
+                if (Math.random() < .35) M.pts.push({ x: M.ox + (Math.random() - .5) * 18, y: M.oy + (Math.random() - .5) * 18, vx: (Math.random() - .5) * 2.5, vy: (Math.random() - .5) * 2.5, l: 1, s: Math.random() * 2.5 + 1 })
+            }
+            else { M.co = 0 }
+            M.acc = M.tkt2 > 0 ? Math.round(M.tkt / M.tkt2 * 100) : 0;
+            M.trail.push({ x: M.ox, y: M.oy, a: 1 }); if (M.trail.length > 28) M.trail.shift(); M.trail.forEach(t => t.a *= .91);
+            M.pts.forEach(p => { p.x += p.vx; p.y += p.vy; p.l -= .025 }); M.pts = M.pts.filter(p => p.l > 0);
+            // HUD
+            document.getElementById('mts').textContent = M.sc;
+            document.getElementById('mtt').textContent = Math.ceil(M.tm);
+            document.getElementById('mtc').textContent = M.co;
+            // DRAW
+            x.clearRect(0, 0, M.cw, M.ch);
+            x.strokeStyle = 'rgba(0,240,255,.025)'; x.lineWidth = 1;
+            for (let i = 0; i < M.cw; i += 40) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, M.ch); x.stroke() }
+            for (let i = 0; i < M.ch; i += 40) { x.beginPath(); x.moveTo(0, i); x.lineTo(M.cw, i); x.stroke() }
+            // trail
+            M.trail.forEach(t => { x.beginPath(); x.arc(t.x, t.y, M.oR * .55 * t.a, 0, 6.28); x.fillStyle = `rgba(0,240,255,${t.a * .08})`; x.fill() });
+            // particles
+            M.pts.forEach(p => { x.beginPath(); x.arc(p.x, p.y, p.s * p.l, 0, 6.28); x.fillStyle = `rgba(0,255,136,${p.l * .7})`; x.fill() });
+            // glow
+            const gc = tk ? '0,255,136' : '0,240,255', gi = tk ? .35 : .12;
+            const gr = x.createRadialGradient(M.ox, M.oy, 0, M.ox, M.oy, M.oR * 3);
+            gr.addColorStop(0, `rgba(${gc},${gi})`); gr.addColorStop(1, 'transparent');
+            x.fillStyle = gr; x.fillRect(M.ox - M.oR * 3, M.oy - M.oR * 3, M.oR * 6, M.oR * 6);
+            // orb
+            x.beginPath(); x.arc(M.ox, M.oy, M.oR, 0, 6.28);
+            const og = x.createRadialGradient(M.ox - 4, M.oy - 4, 0, M.ox, M.oy, M.oR);
+            og.addColorStop(0, tk ? 'rgba(0,255,180,.85)' : 'rgba(0,200,255,.85)');
+            og.addColorStop(1, tk ? 'rgba(0,160,100,.5)' : 'rgba(0,80,180,.5)');
+            x.fillStyle = og; x.fill();
+            x.strokeStyle = tk ? 'rgba(0,255,136,.7)' : 'rgba(0,240,255,.4)'; x.lineWidth = 2; x.stroke();
+            x.beginPath(); x.arc(M.ox, M.oy, M.oR * .38, 0, 6.28); x.fillStyle = `rgba(255,255,255,${tk ? .45 : .25})`; x.fill();
+            // cursor
+            x.beginPath(); x.arc(M.mx, M.my, 24, 0, 6.28); x.setLineDash([4, 4]); x.strokeStyle = 'rgba(255,255,255,.25)'; x.lineWidth = 1; x.stroke(); x.setLineDash([]);
+            x.beginPath(); x.moveTo(M.mx - 7, M.my); x.lineTo(M.mx + 7, M.my); x.moveTo(M.mx, M.my - 7); x.lineTo(M.mx, M.my + 7);
+            x.strokeStyle = 'rgba(255,255,255,.4)'; x.stroke();
+            x.beginPath(); x.arc(M.mx, M.my, 2, 0, 6.28); x.fillStyle = 'rgba(255,255,255,.6)'; x.fill();
+            // line
+            if (tk) { x.beginPath(); x.moveTo(M.mx, M.my); x.lineTo(M.ox, M.oy); x.strokeStyle = 'rgba(0,255,136,.15)'; x.lineWidth = 1; x.stroke() }
+            // combo
+            if (M.co > 8) { x.font = `bold ${14 + Math.min(M.co * .4, 16)}px Orbitron,sans-serif`; x.textAlign = 'center'; x.fillStyle = `rgba(255,170,0,${Math.min(1, M.co * .04)})`; x.fillText(`COMBO ×${M.co}`, M.cw / 2, M.ch - 26) }
+            // timer bar
+            const bw = M.cw * .6, bx = (M.cw - bw) / 2, by = M.ch - 8;
+            x.fillStyle = 'rgba(255,255,255,.04)'; x.fillRect(bx, by, bw, 4);
+            x.fillStyle = M.tm > 10 ? 'rgba(0,255,136,.5)' : M.tm > 5 ? 'rgba(255,170,0,.6)' : 'rgba(255,0,102,.6)';
+            x.fillRect(bx, by, bw * (M.tm / M.tt), 4);
+
+            M.raf = requestAnimationFrame(mLoop)
+        }
+
+        function showMR() {
+            const r = M.sc < 500 ? 'Keep Practicing' : M.sc < 1500 ? 'Focused' : M.sc < 3000 ? 'Locked On' : M.sc < 5000 ? 'Predator' : 'INHUMAN';
+            document.getElementById('mfs').textContent = M.sc;
+            document.getElementById('mfl').textContent = r.toUpperCase();
+            document.getElementById('mfa').textContent = M.acc + '%';
+            document.getElementById('mfc').textContent = M.bc;
+            go('motionResult'); snd('sc')
+        }
+
+        /* === CONFETTI === */
+        function confetti() {
+            const c = document.getElementById('confC'); c.innerHTML = '';
+            const cols = ['#00f0ff', '#ff0066', '#ffaa00', '#00ff88', '#aa00ff', '#fff'];
+            for (let i = 0; i < 70; i++) {
+                const p = document.createElement('div'); const s = Math.random() * 7 + 3;
+                p.style.cssText = `position:absolute;width:${s}px;height:${s * .5}px;background:${cols[i % 6]};border-radius:1px;left:${Math.random() * 100}%;top:-16px;opacity:${Math.random() * .7 + .3};animation:cf ${Math.random() * 2 + 2}s ease-in ${Math.random() * .4}s forwards;transform:rotate(${Math.random() * 360}deg)`;
+                c.appendChild(p)
+            }
+            setTimeout(() => c.innerHTML = '', 4500)
+        }
+
+        /* === RESIZE === */
+        addEventListener('resize', () => {
+            if (document.getElementById('dartGame').classList.contains('A')) initDC();
+            if (document.getElementById('motionGame').classList.contains('A')) {
+                const cv = document.getElementById('mC'), wr = document.querySelector('.mcw');
+                cv.width = wr.clientWidth; cv.height = wr.clientHeight; M.cw = cv.width; M.ch = cv.height
+            }
+        });
+    </script>
+</body>
+
+</html>

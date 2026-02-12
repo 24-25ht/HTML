@@ -1,0 +1,263 @@
+<!DOCTYPE html>  
+<html lang="en">  
+
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Whack a reaction</title>  
+    <style>  
+        body {  
+            background-color: #f8f8f8;  
+            /* Light grey background */  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            justify-content: center;  
+            font-family: 'Arial', sans-serif;  
+            /* Modern font */  
+            min-height: 100vh;  
+            /* Ensure full height */  
+            margin: 0;  
+        }  
+
+        .game-info {  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            margin: 20px;  
+            color: #333;  
+            /* Dark text for readability */  
+        }  
+
+        #level {  
+            font-size: 1.2em;  
+            /* Slightly larger level text */  
+            margin-bottom: 10px;  
+        }  
+
+        #score {  
+            font-size: 1.5em;  
+            /* Larger score */  
+        }  
+
+        #timer {  
+            font-size: 1.2em;  
+            /* Slightly larger timer */  
+        }  
+
+        button {  
+            padding: 12px 24px;  
+            /* Increased padding */  
+            font-size: 18px;  
+            /* Larger font size */  
+            cursor: pointer;  
+            border: none;  
+            border-radius: 5px;  
+            margin-bottom: 20px;  
+            background-color: #4CAF50;  
+            /* Green */  
+            color: white;  
+            transition: background-color 0.3s ease;  
+            /* Smooth transition */  
+        }  
+
+        button:hover {  
+            background-color: #367c39;  
+            /* Darker green on hover */  
+        }  
+
+        button:disabled {  
+            background-color: #cccccc;  
+            /* Grey when disabled */  
+            color: #666666;  
+            cursor: not-allowed;  
+        }  
+
+        .game-container {  
+            background-color: #e6f7ff;  
+            /* Light blue container */  
+            display: grid;  
+            grid-template-columns: repeat(3, 160px);  
+            gap: 15px;  
+            /* Increased gap */  
+            border: 2px solid #d9d9d9;  
+            padding: 20px;  
+            border-radius: 10px;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+            /* Subtle shadow */  
+        }  
+
+        .hole {  
+            height: 150px;  
+            background: #a3d4ff;  
+            /* Lighter blue holes */  
+            border: 5px solid #8cb3d9;  
+            /* Darker blue border */  
+            cursor: pointer;  
+            border-radius: 50%;  
+            /* Circular holes */  
+            transition: background-color 0.3s ease;  
+            /* Smooth transition */  
+        }  
+
+        .hole:hover {  
+            background-color: #8cb3d9;  
+            /* Darker blue on hover */  
+        }  
+
+        .mole {  
+            background-size: 150px;  
+            background-color: #2bd609;
+        }  
+
+        @media only screen and (max-width: 600px) {  
+            .game-container {  
+                width: 90%;  
+                gap: 10px;  
+                padding: 10px;  
+                grid-template-columns: repeat(3, 30%);  
+            }  
+
+            .hole {  
+                height: 80px;  
+                width: 80px;  
+                border-radius: 50%;  
+            }  
+
+            .mole {  
+                background-size: 80px;  
+            }  
+        }  
+    </style>  
+</head>  
+
+<body>  
+    <div class="game-info">  
+        <div id="level">Level 1</div> <!-- Added level indicator -->  
+        <div id="score">Score: 0</div>  
+        <div id="timer">Time: 60s</div>  
+    </div>  
+    <button id="startButton">Start Game</button>  
+    <button id="endButton" disabled>End Game</button>  
+    <div class="game-container">  
+        <div class="hole" id="hole1"></div>  
+        <div class="hole" id="hole2"></div>  
+        <div class="hole" id="hole3"></div>  
+        <div class="hole" id="hole4"></div>  
+        <div class="hole" id="hole5"></div>  
+        <div class="hole" id="hole6"></div>  
+        <div class="hole" id="hole7"></div>  
+        <div class="hole" id="hole8"></div>  
+        <div class="hole" id="hole9"></div>  
+    </div>  
+    <script>  
+        document.addEventListener(
+            "DOMContentLoaded", function () {
+            const holes =
+                document.querySelectorAll(".hole");
+            const startButton =
+                document.getElementById("startButton");
+            const endButton =
+                document.getElementById("endButton");
+            const scoreDisplay =
+                document.getElementById("score");
+            const timerDisplay =
+                document.getElementById("timer");
+            const levelDisplay =
+                document.getElementById("level"); // Get the level display
+
+            let timer;
+            let score = 0;
+            let countdown;
+            let moleInterval;
+            let currentLevel = 1; // Track the current level
+
+            // Set the initial state to game over
+            let gameOver = true;
+            let gameCompleted = false; // Track if a game has been completed 
+
+            function comeout() {
+                holes.forEach(hole => {
+                hole.classList.remove('mole');
+                hole.removeEventListener(
+                    'click', handleMoleClick);
+                });
+
+                let random = holes[Math.floor(Math.random() * 9)];
+
+                random.classList.add('mole');
+                random.addEventListener('click', handleMoleClick);
+            }
+
+            function handleMoleClick() {
+                if (!gameOver) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                }
+                this.classList.remove('mole');
+            }
+
+            function startGame() {
+                if (!gameOver) {
+                // Prevent starting the game again if it's already in progress
+                return;
+                }
+
+                gameOver = false;
+                score = 0;
+                scoreDisplay.textContent = `Score: ${score}`;
+                timer = 60;
+                timerDisplay.textContent = `Time: ${timer}s`;
+
+                startButton.disabled = true;
+                endButton.disabled = false;
+
+                countdown = setInterval(() => {
+                timer--;
+                timerDisplay.textContent = `Time: ${timer}s`;
+
+                if (timer <= 0) {
+                    clearInterval(countdown);
+                    gameOver = true;
+                    // Set gameCompleted to true when a game finishes
+                    gameCompleted = true;
+                    alert(`Game Over!\nYour final score: ${score}`);
+                    startButton.disabled = false;
+                    endButton.disabled = true;
+
+                    // Update level display after game completion
+                    if (gameCompleted) {
+                    currentLevel++;
+                    levelDisplay.textContent = "Level " + currentLevel;
+                    }
+                }
+                }, 1000);
+
+                moleInterval = setInterval(() => {
+                if (!gameOver) comeout();
+                }, 1000);
+
+                console.log("Game started");
+            }
+
+            function endGame() {
+                clearInterval(countdown);
+                clearInterval(moleInterval);
+                gameOver = true;
+                alert(`Game Ended!\nYour final score: ${score}`);
+                score = 0;
+                timer = 60;
+                scoreDisplay.textContent = `Score: ${score}`;
+                timerDisplay.textContent = `Time: ${timer}s`;
+                startButton.disabled = false;
+                endButton.disabled = true;
+            }
+
+            startButton.addEventListener("click", startGame);
+            endButton.addEventListener("click", endGame);
+            });
+         
+</script>
+</body>  
+
+</html>  

@@ -1,0 +1,344 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>2048 Game with Leaderboard</title>  
+  <style>  
+    body {  
+      font-family: Arial, sans-serif;  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+      flex-direction: column;  
+      margin: 20px;  
+      background-color: #faf8ef;  
+    }  
+
+    #game-container {  
+      display: flex;  
+      align-items: center;  
+      justify-content: center;  
+    }  
+
+    #leaderboard {  
+      background-color: #8f7a66;  
+      padding: 10px;  
+      border: 1px solid #ddd;  
+      border-radius: 5px;  
+      width: 200px;  
+      margin: 20px auto;   /* Center the leaderboard */
+    }  
+
+    #leaderboard h2 {  
+      margin-top: 0;  
+      color: #fff;  
+      text-align: center;  
+    }  
+
+    #leaderboard-list {  
+      padding: 0;  
+      list-style-type: decimal;  
+      margin: 0;  
+      text-align: center;  
+    }  
+    .player {  
+      width: 100px;  
+      height: 30px;  
+      border: 0px solid #000;  
+      margin-bottom: 5px;  
+      text-align: center;  
+    }  
+    h1 {  
+      color: #776e65;  
+      position: relative;  
+      top: -40px;  
+    }  
+    .scoreboard {  
+      margin: 20px auto;  
+      text-align: center;  
+    }  
+    .score-container {  
+      display: inline-block;  
+      background: #bbada0;  
+      padding: 10px;  
+      border-radius: 5px;  
+      color: #fff;  
+      margin-right: 20px;  
+    }  
+    .grid {  
+      display: grid;  
+      grid-template-columns: repeat(4, 1fr);  
+      grid-gap: 10px;  
+      width: 600px;  
+      margin: 0 auto;  
+    }  
+    .cell {  
+      background-color: #ccc;  
+      border-radius: 5px;  
+      font-size: 24px;  
+      font-weight: bold;  
+      display: flex;  
+      justify-content: center;  
+      align-items: center;  
+      height: 80px;  
+      position: relative;  
+    }  
+    .button {  
+      background-color: #8f7a66;  
+      color: #f9f6f2;  
+      padding: 10px 20px;  
+      border: none;  
+      border-radius: 3px;  
+      font-size: 18px;  
+      cursor: pointer;  
+      vertical-align: middle;  
+    }  
+  </style>  
+</head>  
+<body>  
+
+  <h1></h1><h1 style="font-size:40px;">2048</h1>  
+
+  <div id="leaderboard">  
+    <h2>Leaderboard</h2>  
+    <ol id="leaderboard-list"></ol>
+    <!-- if need to clear leaderboard data paste this below :
+     '<button id="clear-leaderboard" class="button">Clear Leaderboard</button> or if it is already there paste Clear Leaderboard as name' -->  
+     <button id="clear-leaderboard" class="button"> </button>
+  </div>  
+
+  <div id="game-container">  
+    <div id="game-grid"></div>  
+  </div>  
+
+  <div class="scoreboard">  
+    <div class="score-container">Score: <span id="score">0</span></div>  
+    <button id="play-again-button" class="button">Play Again</button>  
+  </div>  
+  
+  <div class="grid">  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(238, 228, 218);">2</div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(238, 228, 218);">2</div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+    <div class="cell" style="background-color: rgb(204, 204, 204);"></div>  
+  </div>  
+
+  <script>  
+    const grid = document.querySelector('.grid');  
+    const cells = grid.querySelectorAll('.cell');  
+    const leaderboardList = document.getElementById('leaderboard-list');  
+
+    let gameState = [  
+      [0, 0, 0, 0],  
+      [0, 0, 0, 0],  
+      [0, 0, 0, 0],  
+      [0, 0, 0, 0]  
+    ];  
+
+    let score = 0; // Global score variable  
+    let playerName = prompt("Enter your name:") || "Player"; // Ask for the player's name  
+
+    // Load leaderboard from localStorage  
+    const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];  
+
+    function updateLeaderboard() {  
+      // Sort leaderboard by score (descending)  
+      leaderboard.sort((a, b) => b.score - a.score);  
+      leaderboardList.innerHTML = '';  
+      leaderboard.forEach(player => {  
+        const li = document.createElement('li');  
+        li.textContent = `${player.name}: ${player.score}`;  
+        leaderboardList.appendChild(li);  
+      });  
+    }  
+
+    function updateGrid() {  
+      for (let i = 0; i < 4; i++) {  
+        for (let j = 0; j < 4; j++) {  
+          const cell = cells[i * 4 + j];  
+          const value = gameState[i][j];  
+          cell.textContent = value !== 0 ? value : '';  
+          cell.style.backgroundColor = getBackgroundColor(value);  
+        }  
+      }  
+    }  
+
+    function getBackgroundColor(value) {  
+      switch (value) {  
+        case 2: return '#eee4da';  
+        case 4: return '#ede0c8';  
+        case 8: return '#f2b179';  
+        case 16: return '#f59563';  
+        case 32: return '#f67c5f';  
+        case 64: return '#f65e3b';  
+        case 128: return '#edcf72';  
+        case 256: return '#edcc61';  
+        case 512: return '#edc850';  
+        case 1024: return '#edc53f';  
+        case 2048: return '#edc22e';  
+        default: return '#ccc';  
+      }  
+    }  
+
+    function addRandomTile() {  
+      const emptyCells = [];  
+      for (let i = 0; i < 4; i++) {  
+        for (let j = 0; j < 4; j++) {  
+          if (gameState[i][j] === 0) {  
+            emptyCells.push({ row: i, col: j });  
+          }  
+        }  
+      }  
+      if (emptyCells.length > 0) {  
+        const { row, col } = emptyCells[Math.floor(Math.random() * emptyCells.length)];  
+        gameState[row][col] = Math.random() < 0.9 ? 2 : 4;  
+      }  
+    }  
+
+    function moveLeft() {  
+      for (let i = 0; i < 4; i++) {  
+        let row = gameState[i];  
+        row = slide(row);  
+        row = combine(row);  
+        row = slide(row);  
+        gameState[i] = row;  
+      }  
+    }  
+
+    function moveRight() {  
+      for (let i = 0; i < 4; i++) {  
+        let row = gameState[i];  
+        row.reverse();  
+        row = slide(row);  
+        row = combine(row);  
+        row = slide(row);  
+        row.reverse();  
+        gameState[i] = row;  
+      }  
+    }  
+
+    function moveUp() {  
+      for (let j = 0; j < 4; j++) {  
+        let column = [gameState[0][j], gameState[1][j], gameState[2][j], gameState[3][j]];  
+        column = slide(column);  
+        column = combine(column);  
+        column = slide(column);  
+        gameState[0][j] = column[0];  
+        gameState[1][j] = column[1];  
+        gameState[2][j] = column[2];  
+        gameState[3][j] = column[3];  
+      }  
+    }  
+
+    function moveDown() {  
+      for (let j = 0; j < 4; j++) {  
+        let column = [gameState[0][j], gameState[1][j], gameState[2][j], gameState[3][j]];  
+        column.reverse();  
+        column = slide(column);  
+        column = combine(column);  
+        column = slide(column);  
+        column.reverse();  
+        gameState[0][j] = column[0];  
+        gameState[1][j] = column[1];  
+        gameState[2][j] = column[2];  
+        gameState[3][j] = column[3];  
+      }  
+    }  
+
+    function slide(row) {  
+      const newRow = row.filter(val => val !== 0);  
+      while (newRow.length < 4) {  
+        newRow.push(0);  
+      }  
+      return newRow;  
+    }  
+
+    function combine(row) {  
+      for (let i = 0; i < 3; i++) {  
+        if (row[i] !== 0 && row[i] === row[i + 1]) {  
+          updateScore(row[i] * 2); // Update score when tiles combine  
+          row[i] *= 2;  
+          row[i + 1] = 0;  
+        }  
+      }  
+      return row;  
+    }  
+
+    function updateScore(newScore) {  
+      score += newScore;  
+      document.getElementById('score').textContent = score;  
+    }  
+
+    function handleKeyDown(event) {  
+      switch (event.keyCode) {  
+        case 37: moveLeft();  break;  
+        case 38: moveUp();    break;  
+        case 39: moveRight(); break;  
+        case 40: moveDown();  break;  
+      }  
+      addRandomTile();  
+      updateGrid();  
+    }  
+
+    function resetGame() {  
+      gameState = [  
+        [0, 0, 0, 0],  
+        [0, 0, 0, 0],  
+        [0, 0, 0, 0],  
+        [0, 0, 0, 0]  
+      ];  
+      score = 0; // Reset score  
+      updateScore(0); // Update scoreboard display  
+      addRandomTile();  
+      addRandomTile();  
+      updateGrid();  
+    }  
+
+    function saveScore() {  
+      // Check if the player already exists in the leaderboard, and if so, override the old score.
+      const existingIndex = leaderboard.findIndex(player => player.name === playerName);
+      if(existingIndex !== -1) {
+        leaderboard[existingIndex].score = score;
+      } else {
+        leaderboard.push({ name: playerName, score: score });
+      }
+      localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+      updateLeaderboard();
+    }  
+
+    function clearLeaderboard() {
+      localStorage.removeItem("leaderboard");
+      leaderboard.length = 0; // empty the leaderboard array
+      updateLeaderboard();
+    }
+
+    document.getElementById('play-again-button').addEventListener('click', () => {  
+      saveScore(); // Save the score before resetting  
+      resetGame();  
+    });  
+    document.getElementById('clear-leaderboard').addEventListener('click', clearLeaderboard);
+    document.addEventListener('keydown', handleKeyDown);  
+
+    // Start the game  
+    addRandomTile();  
+    addRandomTile();  
+    updateGrid();  
+    updateLeaderboard(); // Load the leaderboard on game start  
+
+  </script>  
+
+</body>  
+</html>

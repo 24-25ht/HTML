@@ -1,0 +1,218 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Reaction Time Game</title>  
+    <style>  
+        /* General Reset */  
+        * {  
+            margin: 0;  
+            padding: 0;  
+            box-sizing: border-box;  
+            font-family: 'Arial', sans-serif;  
+        }  
+
+        body {  
+            background: #f4f4f9; /* Light gray background */  
+            color: #333; /* Dark text for contrast */  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            justify-content: center;  
+            min-height: 100vh;  
+            text-align: center;  
+        }  
+
+        h1 {  
+            font-size: 2.5rem;  
+            color: #444; /* Neutral dark gray */  
+            margin-bottom: 20px;  
+        }  
+
+        #box {  
+            width: 200px;  
+            height: 200px;  
+            background-color: #e74c3c; /* Soft red */  
+            margin: 30px auto;  
+            border: none;  
+            border-radius: 10px;  
+            cursor: pointer;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */  
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;  
+        }  
+
+        #box.green {  
+            background-color: #27ae60; /* Soft green */  
+        }  
+
+        #message {  
+            font-size: 1.2rem;  
+            color: #555; /* Medium gray */  
+            margin-bottom: 20px;  
+        }  
+
+        button {  
+            background: #3498db; /* Soft blue */  
+            border: none;  
+            color: white;  
+            padding: 12px 24px;  
+            font-size: 1rem;  
+            font-weight: bold;  
+            text-transform: uppercase;  
+            border-radius: 5px;  
+            cursor: pointer;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */  
+            transition: all 0.3s ease;  
+        }  
+
+        button:hover {  
+            background: #2980b9; /* Slightly darker blue */  
+        }  
+
+        #reactionTime, #averageTime {  
+            font-weight: bold;  
+            color: #27ae60; /* Soft green */  
+        }  
+
+        #levelDisplay {  
+            font-size: 1.3rem;  
+            margin-bottom: 15px;  
+            color: #444; /* Neutral dark gray */  
+        }  
+
+        #reactionTimes {  
+            margin-bottom: 10px;  
+            color: #555; /* Medium gray */  
+        }  
+
+        .container {  
+            background: white; /* Clean white container */  
+            padding: 20px;  
+            border-radius: 10px;  
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */  
+            width: 90%;  
+            max-width: 500px;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <div class="container">  
+        <h1>Reaction Time Game</h1>  
+        <div id="levelDisplay">Level: <span id="currentLevel">1</span> / 5</div>  
+        <div id="box"></div>  
+        <p id="message">Wait for the color to change!</p>  
+        <button id="startButton">Start</button>  
+        <p>Your reaction time: <span id="reactionTime"></span> ms</p>  
+        <p id="reactionTimes">Reaction Times: </p>  
+        <p>Average Reaction Time: <span id="averageTime"></span> ms</p>  
+    </div>  
+
+    <script>  
+        const box = document.getElementById('box');  
+        const message = document.getElementById('message');  
+        const startButton = document.getElementById('startButton');  
+        const reactionTimeDisplay = document.getElementById('reactionTime');  
+        const levelDisplay = document.getElementById('currentLevel');  
+        const reactionTimesDisplay = document.getElementById('reactionTimes');  
+        const averageTimeDisplay = document.getElementById('averageTime');  
+        const levelContainer = document.getElementById('levelDisplay');  
+
+        let startTime, reactionTime;  
+        let timeout;  
+        let level = 0; // Start at 0 to hide level display initially  
+        const maxLevels = 5; // Correctly set the maximum number of levels  
+        let reactionTimes = [];  
+        let gameReady = false;  
+
+        // Hide level display initially  
+        levelContainer.style.display = 'none';  
+
+        function getRandomDelay() {  
+            return Math.random() * 3000 + 1000;  
+        }  
+
+        function changeToGreen() {  
+            box.classList.add('green');  
+            startTime = Date.now();  
+            message.textContent = 'Click now!';  
+            gameReady = true;  
+        }  
+
+        function delayAndChange() {  
+            gameReady = false;  
+            timeout = setTimeout(changeToGreen, getRandomDelay());  
+        }  
+
+        function clickedTooEarly() {  
+            clearTimeout(timeout);  
+            box.classList.remove('green');  
+            message.textContent = 'Too early! Wait for green.';  
+            reactionTimes.push("Too Early");  
+            updateReactionTimesDisplay();  
+            // Do not increment the level; restart the current level  
+            startRound();  
+        }  
+
+        function startRound() {  
+            box.classList.remove('green');  
+            message.textContent = 'Wait for the color to change!';  
+            delayAndChange();  
+        }  
+
+        function nextLevel() {  
+            if (level >= maxLevels) {  
+                // End the game if the maximum level is reached  
+                message.textContent = "Game Over! Average Time: " + calculateAverage() + " ms";  
+                startButton.textContent = "Start New Game";  
+                startButton.disabled = false;  
+                levelContainer.style.display = 'none'; // Hide level display after game ends  
+            } else {  
+                level++; // Increment the level only if it's less than maxLevels  
+                levelDisplay.textContent = level;  
+                startRound();  
+            }  
+        }  
+
+        function calculateAverage() {  
+            let validTimes = reactionTimes.filter(time => typeof time === 'number');  
+            if (validTimes.length === 0) return "N/A";  
+
+            const sum = validTimes.reduce((a, b) => a + b, 0);  
+            return (sum / validTimes.length).toFixed(2);  
+        }  
+
+        function updateReactionTimesDisplay() {  
+            reactionTimesDisplay.textContent = "Reaction Times: " + reactionTimes.join(", ");  
+            averageTimeDisplay.textContent = calculateAverage();  
+        }  
+
+        box.addEventListener('click', function() {  
+            if (!gameReady) {  
+                clickedTooEarly();  
+            } else {  
+                reactionTime = Date.now() - startTime;  
+                reactionTimeDisplay.textContent = reactionTime;  
+                reactionTimes.push(reactionTime);  
+                updateReactionTimesDisplay();  
+
+                nextLevel();  
+                box.classList.remove('green');  
+                gameReady = false;  
+            }  
+        });  
+
+        startButton.addEventListener('click', function() {  
+            level = 1; // Start at level 1 when the game begins  
+            reactionTimes = [];  
+            levelDisplay.textContent = level;  
+            reactionTimesDisplay.textContent = "Reaction Times: ";  
+            averageTimeDisplay.textContent = "";  
+            startButton.disabled = true;  
+            startButton.textContent = "Starting...";  
+            levelContainer.style.display = 'block'; // Show level display when game starts  
+            startRound();  
+        });  
+    </script>  
+</body>  
+</html>

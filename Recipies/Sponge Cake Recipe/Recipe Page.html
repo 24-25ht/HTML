@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Video.js CSS -->
+<link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
+
+<!-- Video.js JS -->
+<script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="./Recipe Page_files/css2" rel="stylesheet">
+  <link href="./Recipe Page_files/css2(1)" rel="stylesheet">
+  <link rel="stylesheet" href="./Recipe Page_files/style.css">
+  <title>Sponge Cake Recipe Page</title>
+
+</head>
+
+<body>
+  <section class="container">
+    <!-- HEADER IMAGE & VIDEO -->
+    <div class="video-wrapper">
+      <img
+        src="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipies/Sponge%20Cake%20Recipe/Recipe%20Page_files/ss.webp"
+        alt="Cake photo"
+        class="video-preview"
+        onclick="switchToVideo()" />
+      
+      <video id="video" class="hidden-video" controls>
+        <source src="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipies/Sponge%20Cake%20Recipe/Recipe%20Page_files/SpongeCakeRecipe.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <script>
+      function switchToVideo() {
+        const img = document.querySelector('.video-preview');
+        const vid = document.getElementById('video');
+        img.style.display = 'none';
+        vid.style.display = 'block';
+        vid.play();
+      }
+    </script>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <h1 class="content-title">Simple Sponge Cake Recipe</h1>
+      <p class="water">
+        This Sponge cake recipe is the perfect  Sponge cake. Light and fluffy, moist and full of flavor, Serve this sponge sheet cake with fresh berries and whipped cream for a summer treat.
+      </p>
+
+      <!-- PREPARATION TIME -->
+      <article class="preparation">
+        <h2>Preparation time</h2>
+        <ul>
+          <li><p><strong>Total</strong>: Approximately 45 minutes</p></li>
+          <li><p><strong>Preparation</strong>: 15 minutes</p></li>
+          <li><p><strong>Cooking</strong>: 30 minutes</p></li>
+        </ul>
+      </article>
+
+      <!-- INGREDIENTS -->
+      <article class="ingredients">
+        <h2>Ingredients</h2>
+        <ul>
+          <li><p>4 large eggs</p></li>
+          <li><p>2 cups white sugar</p></li>
+          <li><p>2 cups all-purpose flour</p></li>
+          <li><p>2 teaspoons baking powder</p></li>
+          <li><p>½ teaspoon salt</p></li>
+          <li><p>1 cup milk</p></li>
+          <li><p>¼ cup unsalted butter, cut into pieces</p></li>
+          <li><p>2 teaspoons vanilla extract</p></li>
+        </ul>
+      </article>
+      <hr>
+
+      <!-- INSTRUCTIONS -->
+      <article class="instructions">
+        <h2>Instructions</h2>
+        <ol>
+          <li>
+            <h4>1.</h4>
+            <div>
+              <p>
+                <strong>Pre-heat the oven</strong>: Preheat the oven to 350 degrees F (175 degrees C). Grease and flour a 9x13-inch square Baking pan.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>2.</h4>
+            <div>
+              <p>
+                <strong>Make the batter</strong>: Beat eggs in a stand mixer fitted with the whisk attachment on high speed until thick and lemon-colored, about 3 minutes. Gradually add sugar, beating until mixture is thick, about 5 minutes. Fold flour, baking powder, and salt into the batter by hand.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>3.</h4>
+            <div>
+              <p>
+                <strong>Heat the milk</strong>: Microwave or boil milk in a bowl until it begins to bubble, about 1 minute. Add butter and stir until melted. Stir in vanilla.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>4.</h4>
+            <div>
+              <p>
+                <strong>Pour the batter</strong>: Pour hot milk mixture into the batter; blend on low speed until well combined and smooth. Pour into the prepared pan.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>5.</h4>
+            <div>
+              <p>
+                <strong>Bake</strong>: Bake in the preheated oven until a toothpick inserted in the center comes out clean, 25 to 30 minutes.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>6.</h4>
+            <div>
+              <p>
+                <strong>Chill (Optional)</strong>: Remove from the oven and cool completely.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>7.</h4>
+            <div>
+              <p>
+                <strong>Add frosting (Optional)</strong>: Buy or make frosting and add al layer on top.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </article>
+      <hr>
+
+      <!-- NUTRITION TABLE -->
+      <article class="nutrition">
+        <h2>Nutrition</h2>
+        <p>The table below shows nutritional values per serving without the additional fillings.</p>
+        <div class="row">
+          <div class="col-1"><p>Calories</p></div>
+          <div class="col-2"><h4>275kcal</h4></div>
+        </div>
+        <div class="row">
+          <div class="col-1"><p>Carbs</p></div>
+          <div class="col-2"><h4>51g</h4></div>
+        </div>
+        <div class="row">
+          <div class="col-1"><p>Protein</p></div>
+          <div class="col-2"><h4>5g</h4></div>
+        </div>
+        <div class="row">
+          <div class="col-1"><p>Fat</p></div>
+          <div class="col-2"><h4>6g</h4></div>
+        </div>
+      </article>
+    </main>
+
+  <a class="nutrition-button" href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipies/Sponge%20Cake%20Recipe/Recipe%20Page_files/index%20(3).html">Full Nutrition Values</a>
+  </section>
+</body>
+</html>

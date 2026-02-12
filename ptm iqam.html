@@ -1,0 +1,236 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">   
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.min.js"></script>  
+    <script src="https://cdn.rawgit.com/xsoh/moment-hijri/master/moment-hijri.js"></script>  
+    <title>Prayer Times App</title>  
+    <style>  
+        body {  
+            font-family: 'Arial', sans-serif;  
+            background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);  
+            margin: 0;  
+            padding: 0;  
+        }  
+
+        header {  
+            background: linear-gradient(135deg, #3498db, #2c82c9);  
+            color: white;  
+            padding: 30px;  
+            text-align: center;  
+            border-bottom: 5px solid #2980b9;  
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  
+        }  
+
+        header h1 {  
+            margin: 0;  
+            font-size: 36px;  
+            letter-spacing: 1px;  
+        }  
+
+        header p {  
+            margin: 5px 0 0;  
+            font-size: 16px;  
+            font-weight: 300;  
+        }  
+
+        main {  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            padding: 40px;  
+            min-height: calc(100vh - 80px);  
+        }  
+
+        #prayer-times {  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            width: 100%;  
+            max-width: 500px;  
+        }  
+
+        .prayer-time {  
+            background: white;  
+            padding: 20px;  
+            border-radius: 10px;  
+            margin: 15px 0;  
+            width: 100%;  
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);  
+            transition: transform 0.2s;  
+        }  
+
+        .prayer-time:hover {  
+            transform: translateY(-5px);  
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);  
+        }  
+
+        .prayer-time label {  
+            font-weight: bold;  
+            margin-right: 15px;  
+            font-size: 24px;  
+            color: #34495e;  
+        }  
+
+        .time-inputs {  
+            display: flex;  
+            justify-content: space-between;  
+            margin-top: 10px;  
+        }  
+
+        .time-group {  
+            display: flex;  
+            flex-direction: column;  
+        }  
+
+        .time-label {  
+            font-size: 14px;  
+            color: #666;  
+            margin-bottom: 5px;  
+        }  
+
+        input[type="time"], input[type="text"] {  
+            width: 120px;  
+            padding: 5px;  
+            border: 2px solid #3498db;  
+            border-radius: 5px;  
+            margin-bottom: 10px;  
+            font-size: 16px;  
+            color: #34495e;  
+        }  
+
+        @media (max-width: 600px) {  
+            header h1 {  
+                font-size: 28px;  
+            }  
+
+            header p {  
+                font-size: 14px;  
+            }  
+
+            .prayer-time label {  
+                font-size: 20px;  
+            }  
+
+            .time-inputs input[type="time"], .time-inputs input[type="text"] {  
+                font-size: 14px;  
+            }   
+        }  
+    </style>  
+</head>  
+<body>  
+    <header>  
+        <h1>Prayer Times</h1>  
+        <div style="display: flex; justify-content: space-between; width: 100%;">  
+            <div id="qatar-clock"></div>  
+            <div id="hijri-date"></div>  
+        </div>  
+        <p>Doha, Qatar</p>  
+    </header>    
+    <main>  
+        <div id="prayer-times"></div>  
+    </main>  
+    <script>  
+        async function fetchPrayerTimes() {  
+            const today = new Date();  
+            const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;  
+            try {  
+                const response = await fetch(`https://api.aladhan.com/v1/timingsByCity/${formattedDate}?city=Doha&country=QA&x7xapikey=e6d99427bb9c623a0e9ce54f7bf2bf95&method=3&shafaq=general&tune=0%2C-1%2C0%2C0%2C1%2C3%2C1%2C20%2C0&midnightMode=1&timezonestring=UTC&calendarMethod=UAQ`);  
+                if (!response.ok) throw new Error('Network response was not ok');  
+                const data = await response.json();  
+                displayPrayerTimes(data.data.timings);  
+            } catch (error) {  
+                console.error('Error fetching prayer times:', error);  
+                document.getElementById('prayer-times').innerHTML = '<p>Error fetching prayer times. Please try again later.</p>';  
+            }  
+        }  
+
+        function displayPrayerTimes(timings) {  
+            const prayerTimesElement = document.getElementById('prayer-times');  
+            prayerTimesElement.innerHTML = '';  
+
+            const prayerNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Sunset', 'Isha', 'Midnight'];  
+            const iqamahDefaults = {  
+                'Fajr': '+25 Minutes',
+                'Sunrise': '+6 Minutes',
+                'Dhuhr': '+20 Minutes',
+                'Asr': '+25 Minutes',
+                'Maghrib': '+10 Minutes',
+                'Sunset': '+6 Minutes',
+                'Isha': '+20 Minutes',
+                'Midnight': 'N/A ',
+            };  
+
+            prayerNames.forEach(prayer => {  
+                const prayerDiv = document.createElement('div');  
+                prayerDiv.classList.add('prayer-time');  
+
+                const label = document.createElement('label');  
+                label.textContent = prayer;  
+
+                const adhanInput = document.createElement('input');  
+                adhanInput.type = 'time';  
+                adhanInput.value = convertToTimeInputFormat(timings[prayer] || "00:00");  
+
+                const timeInput = document.createElement('input');  
+                timeInput.type = 'text';  
+                timeInput.value = (prayer === 'Midnight')  ? "" : (iqamahDefaults[prayer] || "N/A");  
+
+                const timeInputsContainer = document.createElement('div');  
+                timeInputsContainer.classList.add('time-inputs');  
+
+                const startLabel = document.createElement('div');  
+                startLabel.classList.add('time-label');  
+                startLabel.innerText = (prayer === 'Sunrise' || prayer === 'Sunset')? 'Start' : (prayer === 'Midnight') ? 'Time' : 'Adhan';  
+
+                const endLabel = document.createElement('div');  
+                endLabel.classList.add('time-label');  
+                endLabel.innerText = (prayer === 'Sunrise' || prayer === 'Sunset') ? 'End' : (prayer === 'Midnight') ? 'Time' : 'Iqamah';  
+
+                const adhanGroup = document.createElement('div');  
+                adhanGroup.classList.add('time-group');  
+                adhanGroup.appendChild(startLabel);  
+                adhanGroup.appendChild(adhanInput);  
+
+                const iqamahGroup = document.createElement('div');  
+                iqamahGroup.classList.add('time-group');  
+                iqamahGroup.appendChild(endLabel);  
+                iqamahGroup.appendChild(timeInput);  
+
+                timeInputsContainer.appendChild(adhanGroup);  
+                timeInputsContainer.appendChild(iqamahGroup);  
+
+                prayerDiv.appendChild(label);  
+                prayerDiv.appendChild(timeInputsContainer);  
+                prayerTimesElement.appendChild(prayerDiv);  
+            });  
+        }  
+
+        function convertToTimeInputFormat(time) {  
+            return time ? time.substring(0, 5) : "00:00";  
+        }  
+
+        // Displaying Hijri Date  
+        moment.locale('en'); // Set the locale to English  
+        const currentHijriDate = moment().format("iMMMM iDD, iYYYY"); // Format in Hijri  
+        document.getElementById('hijri-date').innerText = currentHijriDate;  
+
+        // Initial call to display the clock immediately  
+        function updateClocks() {  
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };  
+            const qatarTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Qatar", ...options });  
+            const qatarClockElement = document.getElementById("qatar-clock");  
+
+            if (qatarClockElement) {  
+                qatarClockElement.innerText = `${qatarTime}`;  
+            } else {  
+                console.error('Element with id "qatar-clock" not found');  
+            }  
+        }  
+
+        updateClocks();  
+        fetchPrayerTimes();  
+    </script>  
+</body>  
+</html>

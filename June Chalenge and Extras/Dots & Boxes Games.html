@@ -1,0 +1,368 @@
+<!-- saved from url=(0053)file:///C:/Users/camp/Downloads/Dots%20&%20Boxes.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+
+
+  
+    <script src="./Dots &amp; Boxes Games_files/stopExecutionOnTimeout-2c7831bb44f98c1391d6a4ffda0e1fd302503391ca806e7fcc7b9b87197aec26.js.download"></script>
+
+
+  <title>Dots &amp; Boxes Game</title>
+  
+  
+  
+  
+<style>
+/* General Styles */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#game {
+  min-width: 370px;   /* Ensures 5x5 board is aligned */
+  max-width: 95vw;    /* Prevents overflow on very large boards */
+  margin: 0 auto;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center header and board */
+}
+
+#header {
+  width: 100%;
+  background-color: #6200ea;
+  color: #ffffff;
+  padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#board {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  /* Remove overflow and max-height so page scrolls instead */
+}
+
+.row {
+  display: flex;
+}
+
+.dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  background-color: #333;
+}
+
+.box {
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.horizContainer, .vertContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.horizContainer {
+  height: 10px;
+  width: 40px;
+  cursor: pointer;
+}
+
+.vertContainer {
+  width: 10px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.horizContainer:hover, .vertContainer:hover {
+  background-color: #ddd; /* Hover effect */
+}
+
+/* Buttons styling */
+button {
+  border: none;
+  outline: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 4px;
+  color: white;
+  background-color: #6200ea;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #7b1fa2; /* Darker shade for hover effect */
+}
+
+</style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+</head>
+
+<body translate="no">
+  <!-- 
+Take turns filling in the lines between the points.  
+If a player completes a box, he/she gets a point and another turn. 
+Get the most points to win! 
+-->
+
+<div id="root"><div data-reactroot="" id="game"><div id="header"><h1 id="welcome">Dots &amp; Boxes </h1><p id="score"><!-- react-text: 5 --> Red:<!-- /react-text --><!-- react-text: 6 -->0<!-- /react-text --><!-- react-text: 7 --> Blue:<!-- /react-text --><!-- react-text: 8 -->0<!-- /react-text --><!-- react-text: 9 --> <!-- /react-text --></p><!-- react-text: 10 -->Board size :<!-- /react-text --><button id="small"> 5x5 </button><button id="medium"> 8x8 </button><button id="large"> 11x11 </button><p id="winner"><!-- react-text: 15 --> <!-- /react-text --><!-- react-text: 16 --><!-- /react-text --><!-- react-text: 17 --> <!-- /react-text --></p></div><div id="board"><div id="game-board"><div class="row"><div class="dot" id="dot0,0"></div><div class="horizContainer" data-coord="0,0,0" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot0,1"></div><div class="horizContainer" data-coord="0,0,1" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot0,2"></div><div class="horizContainer" data-coord="0,0,2" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot0,3"></div><div class="horizContainer" data-coord="0,0,3" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot0,4"></div><div class="horizContainer" data-coord="0,0,4" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot0,5"></div></div><div class="row"><div class="vertContainer" data-coord="1,0,0" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box0,0" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,1,0" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box0,1" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,2,0" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box0,2" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,3,0" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box0,3" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,4,0" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box0,4" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,5,0" style="background-color: rgb(255, 255, 255);"></div></div><div class="row"><div class="dot" id="dot1,0"></div><div class="horizContainer" data-coord="0,1,0" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot1,1"></div><div class="horizContainer" data-coord="0,1,1" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot1,2"></div><div class="horizContainer" data-coord="0,1,2" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot1,3"></div><div class="horizContainer" data-coord="0,1,3" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot1,4"></div><div class="horizContainer" data-coord="0,1,4" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot1,5"></div></div><div class="row"><div class="vertContainer" data-coord="1,0,1" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box1,0" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,1,1" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box1,1" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,2,1" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box1,2" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,3,1" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box1,3" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,4,1" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box1,4" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,5,1" style="background-color: rgb(255, 255, 255);"></div></div><div class="row"><div class="dot" id="dot2,0"></div><div class="horizContainer" data-coord="0,2,0" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot2,1"></div><div class="horizContainer" data-coord="0,2,1" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot2,2"></div><div class="horizContainer" data-coord="0,2,2" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot2,3"></div><div class="horizContainer" data-coord="0,2,3" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot2,4"></div><div class="horizContainer" data-coord="0,2,4" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot2,5"></div></div><div class="row"><div class="vertContainer" data-coord="1,0,2" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box2,0" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,1,2" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box2,1" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,2,2" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box2,2" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,3,2" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box2,3" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,4,2" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box2,4" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,5,2" style="background-color: rgb(255, 255, 255);"></div></div><div class="row"><div class="dot" id="dot3,0"></div><div class="horizContainer" data-coord="0,3,0" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot3,1"></div><div class="horizContainer" data-coord="0,3,1" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot3,2"></div><div class="horizContainer" data-coord="0,3,2" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot3,3"></div><div class="horizContainer" data-coord="0,3,3" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot3,4"></div><div class="horizContainer" data-coord="0,3,4" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot3,5"></div></div><div class="row"><div class="vertContainer" data-coord="1,0,3" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box3,0" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,1,3" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box3,1" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,2,3" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box3,2" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,3,3" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box3,3" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,4,3" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box3,4" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,5,3" style="background-color: rgb(255, 255, 255);"></div></div><div class="row"><div class="dot" id="dot4,0"></div><div class="horizContainer" data-coord="0,4,0" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot4,1"></div><div class="horizContainer" data-coord="0,4,1" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot4,2"></div><div class="horizContainer" data-coord="0,4,2" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot4,3"></div><div class="horizContainer" data-coord="0,4,3" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot4,4"></div><div class="horizContainer" data-coord="0,4,4" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot4,5"></div></div><div class="row"><div class="vertContainer" data-coord="1,0,4" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box4,0" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,1,4" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box4,1" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,2,4" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box4,2" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,3,4" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box4,3" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,4,4" style="background-color: rgb(255, 255, 255);"></div><div class="box" id="box4,4" style="background-color: rgb(255, 255, 255);"></div><div class="vertContainer" data-coord="1,5,4" style="background-color: rgb(255, 255, 255);"></div></div><div class="row"><div class="dot" id="dot5,0"></div><div class="horizContainer" data-coord="0,5,0" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot5,1"></div><div class="horizContainer" data-coord="0,5,1" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot5,2"></div><div class="horizContainer" data-coord="0,5,2" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot5,3"></div><div class="horizContainer" data-coord="0,5,3" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot5,4"></div><div class="horizContainer" data-coord="0,5,4" style="background-color: rgb(255, 255, 255);"></div><div class="dot" id="dot5,5"></div></div></div></div></div></div>
+  <script src="./Dots &amp; Boxes Games_files/react.min.js.download"></script>
+<script src="./Dots &amp; Boxes Games_files/react-dom.min.js.download"></script>
+      <script id="rendered-js">
+function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}class App extends React.Component {
+
+  constructor(props) {
+    super(props);_defineProperty(this, "initialBoard",
+
+
+
+    size => {
+      let state = { boardSize: size,
+        numRed: 0,
+        numBlue: 0,
+        turn: "red",
+        winMessage: "",
+        lineCoordinates: {},
+        boxColors: {} };
+
+      for (let i = 0; i < 2; i++) {if (window.CP.shouldStopExecution(7)) break;if (window.CP.shouldStopExecution(0)) break;
+        for (let j = 0; j < state.boardSize + 1; j++) {if (window.CP.shouldStopExecution(8)) break;if (window.CP.shouldStopExecution(1)) break;
+          for (let k = 0; k < state.boardSize; k++) {if (window.CP.shouldStopExecution(9)) break;if (window.CP.shouldStopExecution(2)) break;
+            state.lineCoordinates[i + "," + j + "," + k] = 0;
+          }window.CP.exitedLoop(9);window.CP.exitedLoop(2);
+        }window.CP.exitedLoop(8);window.CP.exitedLoop(1);
+      }window.CP.exitedLoop(7);window.CP.exitedLoop(0);
+      for (let i = 0; i < state.boardSize; i++) {if (window.CP.shouldStopExecution(10)) break;if (window.CP.shouldStopExecution(3)) break;
+        for (let j = 0; j < state.boardSize; j++) {if (window.CP.shouldStopExecution(11)) break;if (window.CP.shouldStopExecution(4)) break;
+          state.boxColors[i + "," + j] = "rgb(255,255,255)";
+        }window.CP.exitedLoop(11);window.CP.exitedLoop(4);
+      }window.CP.exitedLoop(10);window.CP.exitedLoop(3);
+      return state;
+    });_defineProperty(this, "fillLine",
+
+    event => {
+      var currentCoord = event.target.dataset.coord;
+      if (this.state.lineCoordinates[currentCoord] === 0) {
+        //event.target.style.backgroundColor =  this.state.turn
+        let newState = this.state.lineCoordinates;
+        newState[currentCoord] = this.state.turn === "red" ? 1 : -1;
+        this.setState(prevState => ({
+          lineCoordinates: newState }));
+
+
+        var splitCoord = currentCoord.split(',');
+        var i = splitCoord[0];
+        var j = splitCoord[1];
+        var k = splitCoord[2];
+
+        let newBoxColors = this.state.boxColors;
+
+        var madeSquare = 0;
+
+        if (i === "0") {
+          if (this.checkSquare(j, k) === 4) {
+            madeSquare = 1;
+            newBoxColors[j + ',' + k] = this.state.turn === "red" ? "rgba(255,0,0,0.5)" : "rgba(0,0,255,0.5)";
+            this.setState(prevState => ({
+              numRed: prevState.turn === "red" ? prevState.numRed + 1 : prevState.numRed,
+              numBlue: prevState.turn === "blue" ? prevState.numBlue + 1 : prevState.numBlue,
+              boxColors: newBoxColors }));
+
+          }
+          if (this.checkSquare(parseFloat(j) - 1, k) === 4) {
+            madeSquare = 1;
+            newBoxColors[parseFloat(j) - 1 + ',' + k] = this.state.turn === "red" ? "rgba(255,0,0,0.5)" : "rgba(0,0,255,0.5)";
+            this.setState(prevState => ({
+              numRed: prevState.turn === "red" ? prevState.numRed + 1 : prevState.numRed,
+              numBlue: prevState.turn === "blue" ? prevState.numBlue + 1 : prevState.numBlue,
+              boxColors: newBoxColors }));
+
+          }
+        } else {
+          if (this.checkSquare(k, j) === 4) {
+            madeSquare = 1;
+            newBoxColors[k + ',' + j] = this.state.turn === "red" ? "rgba(255,0,0,0.5)" : "rgba(0,0,255,0.5)";
+            this.setState(prevState => ({
+              numRed: prevState.turn === "red" ? prevState.numRed + 1 : prevState.numRed,
+              numBlue: prevState.turn === "blue" ? prevState.numBlue + 1 : prevState.numBlue,
+              boxColors: newBoxColors }));
+
+          }
+          if (this.checkSquare(k, parseFloat(j) - 1) === 4) {
+            madeSquare = 1;
+            newBoxColors[k + ',' + (parseFloat(j) - 1)] = this.state.turn === "red" ? "rgba(255,0,0,0.5)" : "rgba(0,0,255,0.5)";
+            this.setState(prevState => ({
+              numRed: prevState.turn === "red" ? prevState.numRed + 1 : prevState.numRed,
+              numBlue: prevState.turn === "blue" ? prevState.numBlue + 1 : prevState.numBlue,
+              boxColors: newBoxColors }));
+
+          }
+        }
+        if (madeSquare === 0) {
+          this.setState(prevState => ({
+            turn: prevState.turn === "red" ? "blue" : "red" }));
+
+        } else {
+          this.checkGameOver();
+        }
+      }
+    });_defineProperty(this, "checkSquare",
+
+    (j, k) => {
+      var checker1 = Math.abs(this.state.lineCoordinates['0,' + j + ',' + k]);
+      var checker2 = Math.abs(parseFloat(j) + 1 > this.state.boardSize ? 0 : this.state.lineCoordinates['0,' + (parseFloat(j) + 1) + ',' + k]);
+      var checker3 = Math.abs(this.state.lineCoordinates['1,' + k + ',' + j]);
+      var checker4 = Math.abs(parseFloat(k) + 1 > this.state.boardSize ? 0 : this.state.lineCoordinates['1,' + (parseFloat(k) + 1) + ',' + j]);
+      return checker1 + checker2 + checker3 + checker4;
+    });_defineProperty(this, "checkGameOver",
+
+    () => {
+      this.setState(prevState => ({
+        winMessage: prevState.numRed + prevState.numBlue == prevState.boardSize ** 2 ? this.makeWinMessage(prevState) : "" }));
+
+    });_defineProperty(this, "makeWinMessage",
+
+    state => {
+      var winMessage;
+      if (state.numRed > state.numBlue) {
+        winMessage = "Red wins! Select a board size to start a new game.";
+      } else if (state.numRed < state.numBlue) {
+        winMessage = "Blue wins! Select a board size to start a new game.";
+      } else {
+        winMessage = "Draw! Select a board size to start a new game.";
+      }
+      return winMessage;
+    });_defineProperty(this, "changeBoardSize",
+
+    event => {
+      if (window.confirm('Are you sure you would like to start a new game?')) {
+        var newState;
+        if (event.target.id === "small") {
+          newState = this.initialBoard(5);
+        } else if (event.target.id === "medium") {
+          newState = this.initialBoard(8);
+        } else if (event.target.id === "large") {
+          newState = this.initialBoard(11);
+        }
+        this.setState(prevState => newState);
+      }
+    });_defineProperty(this, "selectColor",
+
+    int => {
+      if (int === 0) {
+        return "rgb(255,255,255)";
+      } else if (int === 1) {
+        return "rgb(255,0,0)";
+      } else if (int === -1) {
+        return "rgb(0,0,255)";
+      }
+    });_defineProperty(this, "tint",
+
+    event => {
+      var currentCoord = event.target.dataset.coord;
+      if (this.state.lineCoordinates[currentCoord] === 0) {
+        if (this.state.turn === "red") {
+          event.target.style.backgroundColor = "rgba(255,0,0,0.5)";
+        } else {
+          event.target.style.backgroundColor = "rgba(0,0,255,0.5)";
+        }
+      }
+    });_defineProperty(this, "untint",
+
+    event => {
+      var currentCoord = event.target.dataset.coord;
+      if (this.state.lineCoordinates[currentCoord] === 0) {
+        event.target.style.backgroundColor = "rgb(255,255,255)";
+      }
+    });_defineProperty(this, "makeBoard",
+
+    boardSize => {
+      var cols = [];
+      for (let i = 0; i <= 2 * boardSize; i++) {if (window.CP.shouldStopExecution(12)) break;if (window.CP.shouldStopExecution(5)) break;
+        var row = [];
+        for (let j = 0; j <= 2 * boardSize; j++) {if (window.CP.shouldStopExecution(13)) break;if (window.CP.shouldStopExecution(6)) break;
+          if (i % 2 === 0) {
+            if (j % 2 === 0) {
+              row.push(React.createElement("div",
+              { className: "dot", id: "dot" + Math.floor(i / 2) + "," + Math.floor(j / 2) },
+              ""));
+            } else {
+              row.push(React.createElement("div",
+              { className: "horizContainer", "data-coord": "0," + Math.floor(i / 2) + "," + Math.floor(j / 2),
+                onClick: this.fillLine, style: { backgroundColor: this.selectColor(this.state.lineCoordinates["0," + Math.floor(i / 2) + "," + Math.floor(j / 2)]) },
+                onMouseEnter: this.tint, onMouseLeave: this.untint },
+              ""));
+            }
+          } else {
+            if (j % 2 === 0) {
+              row.push(React.createElement("div",
+              { className: "vertContainer", "data-coord": "1," + Math.floor(j / 2) + "," + Math.floor(i / 2),
+                onClick: this.fillLine, style: { backgroundColor: this.selectColor(this.state.lineCoordinates["1," + Math.floor(j / 2) + "," + Math.floor(i / 2)]) },
+                onMouseEnter: this.tint, onMouseLeave: this.untint },
+              ""));
+            } else {
+              row.push(React.createElement("div",
+              { className: "box", id: "box" + Math.floor(i / 2) + ',' + Math.floor(j / 2), style: { backgroundColor: this.state.boxColors[Math.floor(i / 2) + ',' + Math.floor(j / 2)] } },
+              ""));
+
+            }
+          }
+        }window.CP.exitedLoop(13);window.CP.exitedLoop(6);
+        cols.push(React.createElement("div", { className: "row" }, row));
+      }window.CP.exitedLoop(12);window.CP.exitedLoop(5);
+
+      return React.createElement("div", { id: "game-board" }, cols);
+    });this.state = this.initialBoard(5);}
+
+  render() {
+    return /*#__PURE__*/(
+      React.createElement("div", { id: "game" }, /*#__PURE__*/
+      React.createElement("div", { id: "header" }, /*#__PURE__*/
+      React.createElement("h1", { id: "welcome" }, "Dots & Boxes "), /*#__PURE__*/
+      React.createElement("p", { id: "score" }, " Red:", this.state.numRed, " Blue:", this.state.numBlue, " "), "Board size :", /*#__PURE__*/
+
+      React.createElement("button", { id: "small", onClick: this.changeBoardSize }, " 5x5 "), /*#__PURE__*/
+      React.createElement("button", { id: "medium", onClick: this.changeBoardSize }, " 8x8 "), /*#__PURE__*/
+      React.createElement("button", { id: "large", onClick: this.changeBoardSize }, " 11x11 "), /*#__PURE__*/
+      React.createElement("p", { id: "winner" }, " ", this.state.winMessage, " ")), /*#__PURE__*/
+
+      React.createElement("div", { id: "board" },
+      this.makeBoard(this.state.boardSize))));
+
+
+
+  }}
+
+
+ReactDOM.render( /*#__PURE__*/React.createElement(App, null), document.getElementById('root'));
+
+    </script>
+
+  
+
+
+
+</body></html>

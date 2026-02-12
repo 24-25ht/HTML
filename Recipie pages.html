@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Pages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: url('file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/restaurant-mural-wallpaper_23-2148703851.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Space between buttons */
+        }
+        button {
+            background: linear-gradient(135deg, #8B5E3C, #FFD580);
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            width: 250px;
+            margin: 0 auto;
+            box-shadow: none; /* No glow by default */
+            transition: 
+                transform 0.2s cubic-bezier(.4,0,.2,1),
+                box-shadow 0.3s cubic-bezier(.4,0,.2,1),
+                background 0.5s cubic-bezier(.4,0,.2,1);
+        }
+        button:hover {
+            transform: scale(1.07);
+            background: linear-gradient(135deg, #FFD580 0%, #8B5E3C 100%);
+            box-shadow:
+                0 0 40px 12px #FFD580, /* Gold glow */
+                0 0 40px 12px #8B5E3C inset; /* Brown inner glow */
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(120deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.2) 100%);
+            transform: skewX(-25deg);
+            transition: left 0.5s cubic-bezier(.4,0,.2,1);
+            pointer-events: none;
+        }
+        button:hover::before {
+            left: 120%;
+        }
+        /* Remove the old ripple effect */
+        button::after,
+        button:hover::after {
+            display: none;
+        }
+        .button-container a {
+            text-decoration: none;
+            position: relative;
+            z-index: 1; /* Ensure button text is above the pseudo-element */
+        }
+    </style>
+</head>
+<body>
+    <h1>Recipe Pages</h1>
+    <div class="button-container">
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipies/White Cake Recipe/Recipe%20Page.html">
+            <button>White Cake Recipe</button>
+        </a>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipies/Sponge%20Cake%20Recipe/Recipe%20Page.html">
+            <button>Sponge Cake Recipe</button>
+        </a>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Recipies/Ice%20Cream%20Cake/Recipe%20Page.html">
+            <button>Ice Cream Cake Recipe</button>
+        </a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONOLITH PONG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700;900&family=MedievalSharp&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --stone-dark: #1a1f1a;
+            --stone-mid: #2a322a;
+            --stone-light: #3d4a3d;
+            --moss-green: #4a6741;
+            --moss-glow: #6b8f5e;
+            --moss-bright: #8ab878;
+            --gold-ancient: #c9a84c;
+            --gold-glow: #e8c84a;
+            --ember-orange: #c47a2a;
+            --text-light: #d4cfc0;
+            --text-dim: #8a8575;
+            --heart-red: #8b3a3a;
+            --heart-glow: #c45050;
+        }
+
+        body {
+            background: var(--stone-dark);
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* ===== BACKGROUND EMBERS ===== */
+        .embers-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .ember {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--ember-orange);
+            opacity: 0;
+            animation: drift-ember linear infinite;
+        }
+
+        @keyframes drift-ember {
+            0% {
+                transform: translateY(100vh) translateX(0) scale(1);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.8;
+            }
+
+            90% {
+                opacity: 0.3;
+            }
+
+            100% {
+                transform: translateY(-20px) translateX(80px) scale(0.2);
+                opacity: 0;
+            }
+        }
+
+        /* ===== MOSS PULSE ===== */
+        @keyframes moss-pulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        @keyframes glow-breathe {
+
+            0%,
+            100% {
+                filter: brightness(1) drop-shadow(0 0 4px var(--moss-glow));
+            }
+
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 12px var(--moss-bright));
+            }
+        }
+
+        @keyframes title-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px rgba(201, 168, 76, 0.3), 0 2px 4px rgba(0, 0, 0, 0.8);
+            }
+
+            50% {
+                text-shadow: 0 0 25px rgba(201, 168, 76, 0.6), 0 0 50px rgba(201, 168, 76, 0.2), 0 2px 4px rgba(0, 0, 0, 0.8);
+            }
+        }
+
+        @keyframes screen-shake {
+
+            0%,
+            100% {
+                transform: translate(0);
+            }
+
+            10% {
+                transform: translate(-8px, 4px);
+            }
+
+            20% {
+                transform: translate(6px, -6px);
+            }
+
+            30% {
+                transform: translate(-4px, 2px);
+            }
+
+            40% {
+                transform: translate(4px, -2px);
+            }
+
+            50% {
+                transform: translate(-2px, 4px);
+            }
+
+            60% {
+                transform: translate(2px, -2px);
+            }
+
+            70% {
+                transform: translate(-1px, 1px);
+            }
+        }
+
+        @keyframes heart-crack {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+                filter: none;
+            }
+
+            30% {
+                transform: scale(1.3);
+                filter: brightness(2);
+            }
+
+            100% {
+                transform: scale(0.5);
+                opacity: 0;
+                filter: grayscale(1) brightness(0.3);
+            }
+        }
+
+        @keyframes countdown-pop {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            80% {
+                transform: scale(0.95);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes countdown-fade {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes orb-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px 2px rgba(201, 168, 76, 0.4), inset 0 0 6px rgba(201, 168, 76, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 18px 6px rgba(201, 168, 76, 0.7), inset 0 0 10px rgba(201, 168, 76, 0.4);
+            }
+        }
+
+        @keyframes modal-enter {
+            from {
+                opacity: 0;
+                transform: scale(0.85) translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .shake {
+            animation: screen-shake 0.4s ease-out;
+        }
+
+        /* ===== STONE TEXTURE MIXIN ===== */
+        .stone-texture {
+            background:
+                radial-gradient(ellipse at 20% 30%, rgba(74, 103, 65, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(74, 103, 65, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(61, 74, 61, 0.3) 0%, transparent 70%),
+                linear-gradient(135deg, var(--stone-dark) 0%, var(--stone-mid) 50%, var(--stone-dark) 100%);
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        #app {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        /* ===== SCREEN MANAGEMENT ===== */
+        .screen {
+            display: none;
+            position: absolute;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* ===== MAIN MENU ===== */
+        #menu-screen {
+            gap: 0;
+        }
+
+        .menu-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            color: var(--gold-ancient);
+            animation: title-glow 3s ease-in-out infinite;
+            letter-spacing: 6px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        .menu-subtitle {
+            font-family: 'MedievalSharp', cursive;
+            font-size: clamp(0.75rem, 2vw, 1rem);
+            color: var(--text-dim);
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .menu-divider {
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold-ancient), transparent);
+            margin-bottom: 36px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 280px;
+        }
+
+        .btn-stone {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(74, 103, 65, 0.2) 0%, transparent 60%),
+                linear-gradient(180deg, var(--stone-light) 0%, var(--stone-mid) 100%);
+            border: 2px solid rgba(201, 168, 76, 0.25);
+            border-radius: 4px;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-stone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(201, 168, 76, 0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
+        .btn-stone:hover {
+            border-color: var(--gold-ancient);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(201, 168, 76, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            color: var(--gold-glow);
+        }
+
+        .btn-stone:hover::before {
+            opacity: 1;
+        }
+
+        .btn-stone:active {
+            transform: translateY(0);
+        }
+
+        .btn-stone.primary {
+            border-color: rgba(201, 168, 76, 0.5);
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(201, 168, 76, 0.1) 0%, transparent 60%),
+                linear-gradient(180deg, var(--stone-light) 0%, var(--stone-mid) 100%);
+        }
+
+        /* ===== MODAL OVERLAY ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 12, 10, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(74, 103, 65, 0.12) 0%, transparent 50%),
+                linear-gradient(160deg, #252d25 0%, #1a1f1a 100%);
+            border: 2px solid rgba(201, 168, 76, 0.3);
+            border-radius: 8px;
+            padding: 36px 32px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            animation: modal-enter 0.35s ease-out;
+        }
+
+        .modal-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-box::-webkit-scrollbar-thumb {
+            background: var(--stone-light);
+            border-radius: 3px;
+        }
+
+        .modal-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.6rem;
+            color: var(--gold-ancient);
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
+        }
+
+        .modal-divider {
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold-ancient), transparent);
+            margin: 0 auto 24px;
+        }
+
+        .modal-text {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        .modal-close {
+            display: block;
+            margin: 24px auto 0;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            background: linear-gradient(180deg, var(--stone-light) 0%, var(--stone-mid) 100%);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            border-radius: 4px;
+            padding: 10px 32px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            border-color: var(--gold-ancient);
+            color: var(--gold-glow);
+        }
+
+        /* ===== TUTORIAL SECTIONS ===== */
+        .tutorial-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+            padding: 14px;
+            background: rgba(42, 50, 42, 0.5);
+            border-radius: 6px;
+            border-left: 3px solid var(--gold-ancient);
+        }
+
+        .tutorial-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tutorial-content h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-ancient);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .tutorial-content p {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* ===== NAME INPUT MODAL ===== */
+        .name-input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .name-input-group label {
+            display: block;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            color: var(--gold-ancient);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .name-input {
+            width: 100%;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            color: var(--text-light);
+            background: rgba(26, 31, 26, 0.8);
+            border: 2px solid var(--stone-light);
+            border-radius: 4px;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            letter-spacing: 1px;
+        }
+
+        .name-input:focus {
+            border-color: var(--gold-ancient);
+        }
+
+        .name-input::placeholder {
+            color: var(--text-dim);
+            opacity: 0.5;
+        }
+
+        .difficulty-hint {
+            margin-top: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .btn-start-game {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* ===== LEADERBOARD ===== */
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+        }
+
+        .lb-table th {
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            color: var(--gold-ancient);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+            text-align: left;
+        }
+
+        .lb-table td {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(42, 50, 42, 0.5);
+        }
+
+        .lb-table tr:first-child td {
+            color: var(--gold-glow);
+        }
+
+        .lb-rank {
+            color: var(--gold-ancient) !important;
+            font-weight: bold;
+            width: 40px;
+        }
+
+        .lb-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-dim);
+            font-family: 'MedievalSharp', cursive;
+            font-style: italic;
+        }
+
+        /* ===== GAME SCREEN ===== */
+        #game-screen {
+            padding: 0;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* HUD */
+        .game-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 24px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hud-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
+        }
+
+        .hud-player.right {
+            align-items: center;
+        }
+
+        .hud-name {
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            color: var(--gold-ancient);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hud-hearts {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hud-hearts.gain {
+            animation: heart-gain 0.8s ease-out;
+        }
+
+        .hud-heart {
+            font-size: 1.3rem;
+            transition: all 0.3s;
+            filter: drop-shadow(0 0 3px rgba(196, 80, 80, 0.4));
+        }
+
+        .hud-heart.lost {
+            animation: heart-crack 0.5s ease-out forwards;
+        }
+
+        .hud-score {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            text-shadow: 0 0 8px rgba(201, 168, 76, 0.3);
+        }
+
+        .hud-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .hud-vs {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+        }
+
+        .btn-pause {
+            margin-top: 6px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            background: rgba(42, 50, 42, 0.6);
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            border-radius: 3px;
+            padding: 4px 12px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            pointer-events: auto;
+        }
+
+        .btn-pause:hover {
+            border-color: var(--gold-ancient);
+            color: var(--text-light);
+        }
+
+        /* CANVAS */
+        #game-canvas {
+            border: 3px solid rgba(201, 168, 76, 0.25);
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.3), 0 0 80px rgba(74, 103, 65, 0.08);
+        }
+
+        /* ===== COUNTDOWN OVERLAY ===== */
+        .countdown-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 12, 10, 0.7);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .countdown-overlay.active {
+            display: flex;
+        }
+
+        .countdown-text {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: var(--gold-ancient);
+            text-shadow: 0 0 30px rgba(201, 168, 76, 0.5), 0 4px 8px rgba(0, 0, 0, 0.8);
+            animation: countdown-pop 0.5s ease-out;
+        }
+
+        .countdown-text.fade {
+            animation: countdown-fade 0.4s ease-out forwards;
+        }
+
+        /* ===== GAME OVER OVERLAY ===== */
+        .gameover-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 12, 10, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .gameover-overlay.active {
+            display: flex;
+        }
+
+        .gameover-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            color: var(--gold-ancient);
+            text-shadow: 0 0 20px rgba(201, 168, 76, 0.4);
+            letter-spacing: 4px;
+        }
+
+        .gameover-subtitle {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .gameover-score {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2.2rem;
+            color: var(--gold-glow);
+            text-shadow: 0 0 12px rgba(201, 168, 76, 0.5);
+        }
+
+        .gameover-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .gameover-buttons .btn-stone {
+            font-size: 0.8rem;
+            padding: 10px 24px;
+        }
+
+        /* ===== PAUSE OVERLAY ===== */
+        .pause-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 12, 10, 0.75);
+            backdrop-filter: blur(3px);
+            z-index: 55;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pause-overlay.active {
+            display: flex;
+        }
+
+        .pause-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 2rem;
+            color: var(--gold-ancient);
+            letter-spacing: 4px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .menu-title {
+                letter-spacing: 3px;
+            }
+
+            .menu-buttons {
+                width: 240px;
+            }
+
+            .btn-stone {
+                padding: 12px 16px;
+                font-size: 0.85rem;
+            }
+
+            .modal-box {
+                padding: 24px 20px;
+            }
+
+            .game-hud {
+                padding: 10px 12px;
+            }
+
+            .hud-name {
+                font-size: 0.65rem;
+            }
+
+            .hud-heart {
+                font-size: 1rem;
+            }
+
+            .hud-score {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="embers-container" id="embers"></div>
+    <div id="app">
+        <!-- ===== MAIN MENU ===== -->
+        <div class="screen active" id="menu-screen">
+            <div class="menu-title">Monolith</div>
+            <div class="menu-subtitle">Pong</div>
+            <div class="menu-divider"></div>
+            <div class="menu-buttons">
+                <button class="btn-stone primary" onclick="startMode('single')">⚔ Single Player</button>
+                <button class="btn-stone primary" onclick="startMode('dual')">🛡 Dual Player</button>
+                <button class="btn-stone" onclick="showModal('leaderboard')">🏆 Leaderboard</button>
+                <button class="btn-stone" onclick="showModal('tutorial')">📜 Tutorial</button>
+                <button class="btn-stone" onclick="showModal('about')">🗿 About</button>
+            </div>
+        </div>
+        <!-- ===== GAME SCREEN ===== -->
+        <div class="screen" id="game-screen">
+            <div id="game-wrapper">
+                <div class="game-hud">
+                    <div class="hud-player left">
+                        <div class="hud-name" id="hud-p1-name">Player 1</div>
+                        <div class="hud-hearts" id="hud-p1-hearts"></div>
+                        <div class="hud-score" id="hud-p1-score">0</div>
+                    </div>
+                    <div class="hud-center">
+                        <div class="hud-vs">— VS —</div>
+                        <button class="btn-pause" onclick="togglePause()">⏸ PAUSE</button>
+                    </div>
+                    <div class="hud-player right">
+                        <div class="hud-name" id="hud-p2-name">Golem</div>
+                        <div class="hud-hearts" id="hud-p2-hearts"></div>
+                        <div class="hud-score" id="hud-p2-score">0</div>
+                    </div>
+                </div>
+                <canvas id="game-canvas"></canvas>
+                <div class="countdown-overlay" id="countdown-overlay">
+                    <div class="countdown-text" id="countdown-text">3</div>
+                </div>
+                <div class="pause-overlay" id="pause-overlay">
+                    <div class="pause-title">Paused</div>
+                    <button class="btn-stone" onclick="togglePause()">▶ Resume</button>
+                    <button class="btn-stone" onclick="quitToMenu()">✖ Quit</button>
+                </div>
+                <div class="gameover-overlay" id="gameover-overlay">
+                    <div class="gameover-title" id="gameover-title">Victory</div>
+                    <div class="gameover-subtitle" id="gameover-subtitle"></div>
+                    <div class="gameover-score" id="gameover-score"></div>
+                    <div class="gameover-buttons">
+                        <button class="btn-stone primary" onclick="restartGame()">⚔ Play Again</button>
+                        <button class="btn-stone" onclick="quitToMenu()">🏠 Menu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ===== MODALS ===== -->
+    <!-- NAME INPUT -->
+    <div class="modal-overlay" id="modal-name">
+        <div class="modal-box">
+            <div class="modal-title">Enter Thy Name</div>
+            <div class="modal-divider"></div>
+            <div id="name-fields"></div>
+            <div id="start-buttons">
+                <button class="btn-stone primary btn-start-game" onclick="confirmNames('standard')">⚔ Begin
+                    Battle (Classic)</button>
+            </div>
+            <button class="modal-close" onclick="closeModal('name')">Cancel</button>
+        </div>
+    </div>
+    <!-- TUTORIAL -->
+    <div class="modal-overlay" id="modal-tutorial">
+        <div class="modal-box">
+            <div class="modal-title">📜 How to Play</div>
+            <div class="modal-divider"></div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">🎮</div>
+                <div class="tutorial-content">
+                    <h4>Controls</h4>
+                    <p><b>Single Player:</b> Move your paddle with the <b>Mouse</b> or <b>W/S</b> keys.<br>
+                        <b>Dual Player:</b> P1 uses <b>W/S</b>, P2 uses <b>↑/↓ Arrow</b> keys.
+                    </p>
+                </div>
+            </div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">❤️</div>
+                <div class="tutorial-content">
+                    <h4>Heart System</h4>
+                    <p>Each player starts with <b>3 Hearts</b>. When the ball passes your paddle, you lose a heart. Lose
+                        all hearts and the match is over!</p>
+                </div>
+            </div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">🛡</div>
+                <div class="tutorial-content">
+                    <h4>Single Player: Classic</h4>
+                    <p>Choose <b>Single Player</b> → <b>Begin Battle</b>. Pick your difficulty and defeat the Golem by
+                        taking all <b>3 Hearts</b>.</p>
+                </div>
+            </div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">∞</div>
+                <div class="tutorial-content">
+                    <h4>Endless Mode</h4>
+                    <p>Choose <b>∞ Endless</b> from the name screen in Single Player. You start with <b>5 Hearts</b> and
+                        the Golem has <b>infinite hearts</b>. Every <b>5 points</b> you score grants <b>+1 Heart</b>.
+                        Survive as long as you can and chase a high score!</p>
+                </div>
+            </div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">⚔</div>
+                <div class="tutorial-content">
+                    <h4>Dual Player</h4>
+                    <p>Select <b>Dual Player</b> on the main menu. Player 1 uses <b>W/S</b> and Player 2 uses
+                        <b>↑/↓</b>.
+                        First to drain the other player’s hearts wins.
+                    </p>
+                </div>
+            </div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">🎯</div>
+                <div class="tutorial-content">
+                    <h4>Scoring & Speed</h4>
+                    <p>Score points each time the ball passes your opponent. The ball <b>speeds up</b> over time, making
+                        rallies increasingly intense!</p>
+                </div>
+            </div>
+            <div class="tutorial-section">
+                <div class="tutorial-icon">💡</div>
+                <div class="tutorial-content">
+                    <h4>Pro Tip: Paddle Spin</h4>
+                    <p>Move your paddle <b>while hitting the ball</b> to add spin! The ball's angle changes based on
+                        your paddle's momentum — master this to outwit your foe.</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeModal('tutorial')">Close</button>
+        </div>
+    </div>
+    <!-- ABOUT -->
+    <div class="modal-overlay" id="modal-about">
+        <div class="modal-box">
+            <div class="modal-title">🗿 About</div>
+            <div class="modal-divider"></div>
+            <div class="modal-text">
+                <p style="margin-bottom:12px;"><b>MONOLITH PONG</b> is an ancient-temple-themed reimagining of the
+                    classic Pong game.</p>
+                <p style="margin-bottom:12px;">Two stone guardians face off across a sacred slab, volleying an enchanted
+                    orb in an eternal contest of reflexes and honor.</p>
+                <p style="margin-bottom:12px;">Built with pure HTML5 Canvas, CSS3, and JavaScript. No frameworks, no
+                    libraries — just raw craft, like the ancients intended.</p>
+                <p style="color:var(--gold-ancient);">Version 2.5 — The Monolith Awakens | Made by: Abdullah Karim</p>
+            </div>
+            <button class="modal-close" onclick="closeModal('about')">Close</button>
+        </div>
+    </div>
+    <!-- LEADERBOARD -->
+    <div class="modal-overlay" id="modal-leaderboard">
+        <div class="modal-box">
+            <div class="modal-title">🏆 Hall of Legends</div>
+            <div class="modal-divider"></div>
+            <div class="modal-text" style="margin-bottom:10px;">
+                High scores are recorded from <b>∞ Endless</b> mode only.
+            </div>
+            <div id="leaderboard-content"></div>
+            <button class="modal-close" onclick="closeModal('leaderboard')">Close</button>
+        </div>
+    </div>
+    <script>
+        // ==========================================
+        //   MONOLITH PONG — GAME ENGINE
+        // ==========================================
+        // --- State ---
+        let gameMode = null; // 'single' | 'dual'
+        let gameState = 'menu'; // 'menu' | 'countdown' | 'playing' | 'paused' | 'gameover'
+        let animFrameId = null;
+        let p1Name = 'Player 1', p2Name = 'Golem';
+        // --- Canvas ---
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let CW, CH;
+        // --- Game Objects ---
+        let ball, paddle1, paddle2;
+        let p1Lives, p2Lives, p1Score, p2Score;
+        let ballBaseSpeed, speedRamp, rallyCount;
+        let aiReactionOffset, aiSpeed, aiDifficulty;
+        let aiThinkCooldown, aiErrorOffset, aiLastDir;
+        let aiLevel = 'medium';
+        let aiConfig = null;
+        let gameVariant = 'standard'; // 'standard' | 'endless'
+        let nextHeartAt = 0;
+        // --- Input ---
+        const keys = {};
+        let mouseY = null;
+        let mouseActive = false;
+        // --- Stone Noise Cache ---
+        let noisePatterns = [];
+        function generateNoisePatterns() {
+            noisePatterns = [];
+            for (let i = 0; i < 80; i++) {
+                noisePatterns.push({
+                    x: Math.random(),
+                    y: Math.random(),
+                    s: Math.random() * 30 + 5,
+                    ratio: 0.4 + Math.random() * 0.4,
+                    rot: Math.random() * Math.PI,
+                    color: Math.random() > 0.5 ? '#4a6741' : '#3d4a3d'
+                });
+            }
+        }
+        generateNoisePatterns();
+        // --- Sound Engine (Web Audio API) ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function playTone(freq, duration, type, vol) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol || 0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration || 0.15));
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + (duration || 0.15));
+        }
+        function playHit() { playTone(320, 0.08, 'triangle', 0.1); }
+        function playWall() { playTone(220, 0.06, 'sine', 0.06); }
+        function playScore() { playTone(150, 0.3, 'sawtooth', 0.07); }
+        function playCountdownBeep() { playTone(500, 0.12, 'sine', 0.08); }
+        function playBeginBeep() { playTone(700, 0.25, 'sine', 0.1); }
+        // --- Embers ---
+        function createEmbers() {
+            const cont = document.getElementById('embers');
+            cont.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const e = document.createElement('div');
+                e.className = 'ember';
+                e.style.left = Math.random() * 100 + '%';
+                e.style.animationDuration = (4 + Math.random() * 8) + 's';
+                e.style.animationDelay = Math.random() * 10 + 's';
+                e.style.width = (2 + Math.random() * 3) + 'px';
+                e.style.height = e.style.width;
+                e.style.background = Math.random() > 0.5 ? '#c47a2a' : '#8ab878';
+                e.style.opacity = 0;
+                cont.appendChild(e);
+            }
+        }
+        createEmbers();
+        // --- Screen Management ---
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        // --- Modals ---
+        function showModal(name) {
+            if (name === 'leaderboard') renderLeaderboard();
+            document.getElementById('modal-' + name).classList.add('active');
+        }
+        function closeModal(name) {
+            document.getElementById('modal-' + name).classList.remove('active');
+        }
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(ov => {
+            ov.addEventListener('click', e => {
+                if (e.target === ov) ov.classList.remove('active');
+            });
+        });
+        // --- Leaderboard ---
+        function getLeaderboard() {
+            try {
+                return JSON.parse(localStorage.getItem('monolith_pong_lb')) || [];
+            } catch { return []; }
+        }
+        // One-time leaderboard reset (Feb 10, 2026)
+        if (!localStorage.getItem('monolith_pong_lb_cleared_2026_02_10')) {
+            localStorage.removeItem('monolith_pong_lb');
+            localStorage.setItem('monolith_pong_lb_cleared_2026_02_10', '1');
+        }
+        function saveLeaderboard(lb) {
+            localStorage.setItem('monolith_pong_lb', JSON.stringify(lb));
+        }
+        function addToLeaderboard(name, score) {
+            if (gameVariant !== 'endless') return;
+            let lb = getLeaderboard();
+            const existingIndex = lb.findIndex(e => e.name.toLowerCase() === name.toLowerCase());
+
+            if (existingIndex !== -1) {
+                // If person exists, only update if new score is higher
+                if (score > lb[existingIndex].score) {
+                    lb[existingIndex] = { name, score, date: Date.now() };
+                } else {
+                    return; // Don't add a lower or equal score for the same person
+                }
+            } else {
+                lb.push({ name, score, date: Date.now() });
+            }
+
+            lb.sort((a, b) => b.score - a.score);
+            lb = lb.slice(0, 5);
+            saveLeaderboard(lb);
+        }
+        function renderLeaderboard() {
+            const lb = getLeaderboard();
+            const cont = document.getElementById('leaderboard-content');
+            if (lb.length === 0) {
+                cont.innerHTML = '<div class="lb-empty">No legends yet. Be the first to etch your name in stone.</div>';
+                return;
+            }
+            const medals = ['👑', '🥈', '🥉', '4', '5'];
+            let html = '<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Score</th></tr></thead><tbody>';
+            lb.forEach((entry, i) => {
+                html += `<tr><td class="lb-rank">${medals[i] || i + 1}</td><td>${escHtml(entry.name)}</td><td>${entry.score}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            cont.innerHTML = html;
+        }
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+        // --- Mode Selection ---
+        function startMode(mode) {
+            initAudio();
+            gameMode = mode;
+            const fields = document.getElementById('name-fields');
+            if (mode === 'single') {
+                fields.innerHTML = `
+      <div class="name-input-group">
+        <label>Thy Name</label>
+        <input class="name-input" id="input-p1" type="text" placeholder="Enter name..." maxlength="16" autofocus>
+      </div>
+      <div class="name-input-group">
+        <label>Golem Difficulty</label>
+        <select class="name-input" id="ai-level">
+          <option value="easy">Easy (Kid)</option>
+          <option value="medium" selected>Medium (Balanced)</option>
+          <option value="hard">Hard (Skilled)</option>
+        </select>
+        <div class="difficulty-hint">Easy is for beginners. Medium is balanced. Hard is tough.</div>
+      </div>`;
+                document.getElementById('start-buttons').innerHTML = `
+      <button class="btn-stone primary btn-start-game" onclick="confirmNames('standard')">⚔ Begin Battle</button>
+      <button class="btn-stone btn-start-game" onclick="confirmNames('endless')">∞ Endless (5 Hearts)</button>`;
+            } else {
+                fields.innerHTML = `
+      <div class="name-input-group">
+        <label>Player 1 (Left)</label>
+        <input class="name-input" id="input-p1" type="text" placeholder="Player 1 name..." maxlength="16" autofocus>
+      </div>
+      <div class="name-input-group">
+        <label>Player 2 (Right)</label>
+        <input class="name-input" id="input-p2" type="text" placeholder="Player 2 name..." maxlength="16">
+      </div>`;
+                document.getElementById('start-buttons').innerHTML =
+                    `<button class="btn-stone primary btn-start-game" onclick="confirmNames('standard')">⚔ Begin Battle</button>`;
+            }
+            showModal('name');
+            setTimeout(() => document.getElementById('input-p1').focus(), 100);
+        }
+        function confirmNames(variant) {
+            gameVariant = variant || 'standard';
+            const inp1 = document.getElementById('input-p1');
+            p1Name = (inp1.value.trim() || 'Player 1').substring(0, 16);
+            if (gameMode === 'dual') {
+                const inp2 = document.getElementById('input-p2');
+                p2Name = (inp2.value.trim() || 'Player 2').substring(0, 16);
+            } else {
+                p2Name = 'Golem';
+                if (gameVariant === 'endless') {
+                    aiLevel = 'endless';
+                } else {
+                    const levelEl = document.getElementById('ai-level');
+                    aiLevel = levelEl ? levelEl.value : 'medium';
+                }
+            }
+            closeModal('name');
+            initGame();
+        }
+        // --- Canvas Sizing ---
+        function sizeCanvas() {
+            const maxW = Math.min(window.innerWidth - 20, 900);
+            const maxH = Math.min(window.innerHeight - 100, 560);
+            const aspect = 900 / 560;
+            if (maxW / maxH > aspect) {
+                CH = maxH;
+                CW = Math.floor(CH * aspect);
+            } else {
+                CW = maxW;
+                CH = Math.floor(CW / aspect);
+            }
+            canvas.width = CW;
+            canvas.height = CH;
+        }
+        // --- Init Game ---
+        function initGame() {
+            sizeCanvas();
+            showScreen('game-screen');
+            document.getElementById('hud-p1-name').textContent = p1Name;
+            document.getElementById('hud-p2-name').textContent = p2Name;
+            const paddleW = Math.max(12, CW * 0.015);
+            const paddleH = Math.max(70, CH * 0.16);
+            const wallOffset = Math.max(20, CW * 0.03);
+            if (gameMode === 'single' && gameVariant === 'endless') {
+                p1Lives = 5;
+                p2Lives = 999; // endless opponent
+                nextHeartAt = 5;
+            } else {
+                p1Lives = 3; p2Lives = 3;
+                nextHeartAt = 0;
+            }
+            p1Score = 0; p2Score = 0;
+            rallyCount = 0;
+            ballBaseSpeed = CW * 0.005;
+            speedRamp = 0;
+            aiConfig = getAiConfig(aiLevel);
+            aiDifficulty = aiConfig.diffBase;
+            aiReactionOffset = CH / 2;
+            aiThinkCooldown = 0;
+            aiErrorOffset = 0;
+            aiLastDir = 0;
+            aiSpeed = CH * 0.006;
+            paddle1 = {
+                x: wallOffset,
+                y: CH / 2 - paddleH / 2,
+                w: paddleW, h: paddleH,
+                vy: 0, prevY: CH / 2 - paddleH / 2,
+                speed: CH * 0.009
+            };
+            paddle2 = {
+                x: CW - wallOffset - paddleW,
+                y: CH / 2 - paddleH / 2,
+                w: paddleW, h: paddleH,
+                vy: 0, prevY: CH / 2 - paddleH / 2,
+                speed: CH * 0.009
+            };
+            resetBall(1);
+            updateHUD();
+            startCountdown();
+        }
+        function resetBall(dir) {
+            const r = Math.max(8, CW * 0.012);
+            ball = {
+                x: CW / 2,
+                y: CH / 2,
+                r: r,
+                vx: 0,
+                vy: 0,
+                baseSpeed: ballBaseSpeed,
+                dir: dir || (Math.random() > 0.5 ? 1 : -1)
+            };
+        }
+        function launchBall() {
+            const overlay = document.getElementById('countdown-overlay');
+            overlay.classList.remove('active');
+            const angle = (Math.random() * 0.8 - 0.4); // -0.4 to 0.4 radians
+            const speed = ball.baseSpeed + speedRamp;
+            ball.vx = Math.cos(angle) * speed * ball.dir;
+            ball.vy = Math.sin(angle) * speed;
+        }
+        // --- Countdown ---
+        function startCountdown() {
+            gameState = 'countdown';
+            const overlay = document.getElementById('countdown-overlay');
+            const textEl = document.getElementById('countdown-text');
+            overlay.classList.add('active');
+            document.getElementById('gameover-overlay').classList.remove('active');
+            document.getElementById('pause-overlay').classList.remove('active');
+            let count = 3;
+            textEl.textContent = count;
+            textEl.className = 'countdown-text';
+            // Start rendering the court during countdown
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            renderFrame();
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    textEl.textContent = count;
+                    textEl.className = 'countdown-text';
+                    void textEl.offsetWidth;
+                    textEl.className = 'countdown-text';
+                } else if (count === 0) {
+                    textEl.textContent = 'BEGIN';
+                    textEl.className = 'countdown-text';
+                } else {
+                    clearInterval(interval);
+                    gameState = 'playing';
+                    overlay.classList.remove('active');
+                    launchBall();
+                    if (animFrameId) cancelAnimationFrame(animFrameId);
+                    lastTime = performance.now();
+                    animFrameId = requestAnimationFrame(gameLoop);
+                }
+            }, 700);
+
+            // Start the game loop immediately so paddles can move during countdown
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            lastTime = performance.now();
+            animFrameId = requestAnimationFrame(gameLoop);
+        }
+        // --- HUD ---
+        function updateHUD() {
+            document.getElementById('hud-p1-score').textContent = p1Score;
+            document.getElementById('hud-p2-score').textContent = p2Score;
+            const p1Max = (gameMode === 'single' && gameVariant === 'endless') ? 5 : 3;
+            renderHearts('hud-p1-hearts', p1Lives, p1Max);
+            renderHearts('hud-p2-hearts', p2Lives, 3);
+        }
+        function renderHearts(containerId, lives, maxLives) {
+            const cont = document.getElementById(containerId);
+            if (gameMode === 'single' && gameVariant === 'endless' && containerId === 'hud-p2-hearts') {
+                cont.innerHTML = '<span class="hud-heart">∞</span>';
+                return;
+            }
+            let html = '';
+            for (let i = 0; i < maxLives; i++) {
+                if (i < lives) {
+                    html += '<span class="hud-heart">❤️</span>';
+                } else {
+                    html += '<span class="hud-heart lost">🖤</span>';
+                }
+            }
+            cont.innerHTML = html;
+        }
+        function loseHeart(player) {
+            if (player === 1) {
+                p1Lives--;
+                p2Score++;
+            } else {
+                p2Lives--;
+                p1Score++;
+                if (gameMode === 'single' && gameVariant === 'endless' && p1Score >= nextHeartAt) {
+                    p1Lives++;
+                    nextHeartAt += 5;
+                }
+            }
+            rallyCount = 0;
+            updateHUD();
+            // Screen shake
+            const wrapper = document.getElementById('game-wrapper');
+            wrapper.classList.remove('shake');
+            void wrapper.offsetWidth;
+            wrapper.classList.add('shake');
+            setTimeout(() => wrapper.classList.remove('shake'), 500);
+            // Check game over
+            if (p1Lives <= 0 || p2Lives <= 0) {
+                endGame();
+                return;
+            }
+            // Reset ball
+            resetBall(player === 1 ? 1 : -1);
+            // Brief pause then countdown
+            gameState = 'countdown';
+            setTimeout(() => startCountdown(), 600);
+        }
+        // --- Game Over ---
+        function endGame() {
+            gameState = 'gameover';
+            if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+            const overlay = document.getElementById('gameover-overlay');
+            const title = document.getElementById('gameover-title');
+            const subtitle = document.getElementById('gameover-subtitle');
+            const scoreEl = document.getElementById('gameover-score');
+            if (gameMode === 'single') {
+                if (p2Lives <= 0) {
+                    title.textContent = '⚔ Victory! ⚔';
+                    subtitle.textContent = `${p1Name} has conquered the Golem!`;
+                } else {
+                    title.textContent = '💀 Defeat 💀';
+                    subtitle.textContent = 'The Golem stands unbroken.';
+                }
+                scoreEl.textContent = `Score: ${p1Score}`;
+                addToLeaderboard(p1Name, p1Score);
+            } else {
+                const winner = p2Lives <= 0 ? p1Name : p2Name;
+                const winScore = p2Lives <= 0 ? p1Score : p2Score;
+                title.textContent = '⚔ Victory! ⚔';
+                subtitle.textContent = `${winner} claims the Monolith!`;
+                scoreEl.textContent = `Score: ${winScore}`;
+            }
+            overlay.classList.add('active');
+        }
+        function restartGame() {
+            document.getElementById('gameover-overlay').classList.remove('active');
+            initGame();
+        }
+        function quitToMenu() {
+            gameState = 'menu';
+            if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+            document.getElementById('gameover-overlay').classList.remove('active');
+            document.getElementById('pause-overlay').classList.remove('active');
+            document.getElementById('countdown-overlay').classList.remove('active');
+            showScreen('menu-screen');
+        }
+        // --- Pause ---
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                document.getElementById('pause-overlay').classList.add('active');
+                if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+            } else if (gameState === 'paused') {
+                gameState = 'playing';
+                document.getElementById('pause-overlay').classList.remove('active');
+                lastTime = performance.now();
+                animFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+        // --- Input ---
+        document.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (e.key === 'Escape') {
+                if (gameState === 'playing' || gameState === 'paused') togglePause();
+            }
+            if (e.key === 'Enter') {
+                const nameModal = document.getElementById('modal-name');
+                if (nameModal.classList.contains('active')) confirmNames('standard');
+            }
+            // Prevent scrolling with arrow keys
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+        });
+        document.addEventListener('keyup', e => { keys[e.key] = false; });
+        canvas.addEventListener('mousemove', e => {
+            if (gameMode === 'single' && (gameState === 'playing' || gameState === 'countdown')) {
+                const rect = canvas.getBoundingClientRect();
+                mouseY = ((e.clientY - rect.top) / rect.height) * CH;
+                mouseActive = true;
+            }
+        });
+        canvas.addEventListener('mouseleave', () => { mouseActive = false; });
+        // --- Touch (Mobile) ---
+        function handleTouchMove(touch) {
+            if (gameState !== 'playing' && gameState !== 'countdown') return;
+            const rect = canvas.getBoundingClientRect();
+            const tx = ((touch.clientX - rect.left) / rect.width) * CW;
+            const ty = ((touch.clientY - rect.top) / rect.height) * CH;
+
+            if (gameMode === 'dual') {
+                if (tx < CW / 2) {
+                    paddle1.y = ty - paddle1.h / 2;
+                    paddle1.y = Math.max(0, Math.min(CH - paddle1.h, paddle1.y));
+                } else {
+                    paddle2.y = ty - paddle2.h / 2;
+                    paddle2.y = Math.max(0, Math.min(CH - paddle2.h, paddle2.y));
+                }
+                return;
+            }
+
+            mouseY = ty;
+            mouseActive = true;
+        }
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches && e.touches[0]) handleTouchMove(e.touches[0]);
+            e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchmove', e => {
+            if (e.touches && e.touches[0]) handleTouchMove(e.touches[0]);
+            e.preventDefault();
+        }, { passive: false });
+        canvas.addEventListener('touchend', () => { mouseActive = false; }, { passive: true });
+        // --- AI ---
+        function getAiConfig(level) {
+            switch (level) {
+                case 'easy':
+                    return {
+                        diffBase: 0.7,
+                        maxDifficulty: 1.2,
+                        ramp: 0.03,
+                        reactionBase: 0.03,
+                        reactionScale: 0.006,
+                        reactionDelay: 0.015,
+                        speedBase: 0.32,
+                        speedScale: 0.008,
+                        errorScale: 1.4,
+                        thinkMin: 36,
+                        thinkRange: 28,
+                        predictMax: 90,
+                        reactGateX: 0.62
+                    };
+                case 'endless':
+                    return {
+                        diffBase: 0.78,
+                        maxDifficulty: 1.45,
+                        ramp: 0.05,
+                        reactionBase: 0.035,
+                        reactionScale: 0.008,
+                        reactionDelay: 0.02,
+                        speedBase: 0.38,
+                        speedScale: 0.012,
+                        errorScale: 1.15,
+                        thinkMin: 30,
+                        thinkRange: 24,
+                        predictMax: 110,
+                        reactGateX: 0.6
+                    };
+                case 'hard':
+                    return {
+                        diffBase: 1.05,
+                        maxDifficulty: 2.2,
+                        ramp: 0.1,
+                        reactionBase: 0.06,
+                        reactionScale: 0.012,
+                        reactionDelay: 0.03,
+                        speedBase: 0.6,
+                        speedScale: 0.025,
+                        errorScale: 0.5,
+                        thinkMin: 12,
+                        thinkRange: 14,
+                        predictMax: 200,
+                        reactGateX: 0.5
+                    };
+                default:
+                    return {
+                        diffBase: 0.9,
+                        maxDifficulty: 1.8,
+                        ramp: 0.06,
+                        reactionBase: 0.045,
+                        reactionScale: 0.01,
+                        reactionDelay: 0.025,
+                        speedBase: 0.45,
+                        speedScale: 0.018,
+                        errorScale: 0.85,
+                        thinkMin: 22,
+                        thinkRange: 18,
+                        predictMax: 140,
+                        reactGateX: 0.55
+                    };
+            }
+        }
+        function updateAI(dt) {
+            // Target: ball's predicted Y at paddle2's X (smoothed)
+            const centerTarget = CH / 2;
+            let targetY = centerTarget;
+            const ballMovingToAI = ball.vx > 0;
+            const distX = paddle2.x - ball.x;
+            const dir = ballMovingToAI ? 1 : -1;
+            // On direction change toward AI, add reaction delay and error
+            if (dir !== aiLastDir) {
+                aiLastDir = dir;
+                if (ballMovingToAI) {
+                    aiThinkCooldown = aiConfig.thinkMin + Math.random() * aiConfig.thinkRange; // frames
+                    aiErrorOffset = (Math.random() - 0.5) * paddle2.h * aiConfig.errorScale;
+                }
+            }
+            if (ballMovingToAI && distX > 0) {
+                // Don't react too early; wait until ball crosses a gate
+                if (ball.x < CW * aiConfig.reactGateX) {
+                    targetY = centerTarget;
+                } else {
+                    // Predict where ball will be when it reaches paddle2
+                    const timeToReach = distX / ball.vx; // in "frames" (dt=1 at ~60fps)
+                    if (timeToReach >= 0 && timeToReach < aiConfig.predictMax) {
+                        let predictedY = ball.y + ball.vy * timeToReach;
+                        // Account for bounces
+                        let bounces = 0;
+                        while ((predictedY < 0 || predictedY > CH) && bounces < 10) {
+                            if (predictedY < 0) predictedY = -predictedY;
+                            if (predictedY > CH) predictedY = 2 * CH - predictedY;
+                            bounces++;
+                        }
+                        targetY = predictedY + aiErrorOffset;
+                    }
+                }
+            }
+            // Clamp target within bounds for paddle center
+            const minTarget = paddle2.h / 2;
+            const maxTarget = CH - paddle2.h / 2;
+            targetY = Math.max(minTarget, Math.min(maxTarget, targetY));
+
+            // Smooth reaction (imperfection)
+            if (aiThinkCooldown > 0) aiThinkCooldown -= dt;
+            const reaction = aiThinkCooldown > 0
+                ? dt * aiConfig.reactionDelay
+                : Math.min(1, dt * (aiConfig.reactionBase + aiDifficulty * aiConfig.reactionScale));
+            aiReactionOffset += (targetY - aiReactionOffset) * reaction;
+            const target = aiReactionOffset;
+            const center = paddle2.y + paddle2.h / 2;
+            const diff = target - center;
+            const deadZone = Math.max(6, paddle2.h * 0.08);
+            const currentAiSpeed = aiSpeed * (aiConfig.speedBase + aiDifficulty * aiConfig.speedScale);
+            paddle2.prevY = paddle2.y;
+            if (Math.abs(diff) > deadZone) {
+                paddle2.y += Math.sign(diff) * Math.min(Math.abs(diff), currentAiSpeed * dt);
+            }
+            paddle2.y = Math.max(0, Math.min(CH - paddle2.h, paddle2.y));
+            paddle2.vy = paddle2.y - paddle2.prevY;
+        }
+        // --- Physics / Update ---
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            if (gameState !== 'playing' && gameState !== 'countdown') return;
+            const dt = Math.min((timestamp - lastTime) / 16.667, 3); // normalize to ~60fps, cap
+            lastTime = timestamp;
+            update(dt);
+            renderFrame();
+            animFrameId = requestAnimationFrame(gameLoop);
+        }
+        function update(dt) {
+            // --- Paddle 1 movement ---
+            paddle1.prevY = paddle1.y;
+            if (gameMode === 'single') {
+                const kUp = keys['w'] || keys['W'] || keys['ArrowUp'];
+                const kDown = keys['s'] || keys['S'] || keys['ArrowDown'];
+
+                if (kUp) {
+                    paddle1.y -= paddle1.speed * dt;
+                } else if (kDown) {
+                    paddle1.y += paddle1.speed * dt;
+                } else if (mouseActive && mouseY !== null) {
+                    const target = mouseY - paddle1.h / 2;
+                    const diff = target - paddle1.y;
+                    paddle1.y += diff * 0.3 * dt;
+                }
+            } else {
+                if (keys['w'] || keys['W']) paddle1.y -= paddle1.speed * dt;
+                if (keys['s'] || keys['S']) paddle1.y += paddle1.speed * dt;
+            }
+            paddle1.y = Math.max(0, Math.min(CH - paddle1.h, paddle1.y));
+            paddle1.vy = paddle1.y - paddle1.prevY;
+            // --- Paddle 2 movement ---
+            if (gameMode === 'single') {
+                updateAI(dt);
+            } else {
+                paddle2.prevY = paddle2.y;
+                if (keys['ArrowUp']) paddle2.y -= paddle2.speed * dt;
+                if (keys['ArrowDown']) paddle2.y += paddle2.speed * dt;
+                paddle2.y = Math.max(0, Math.min(CH - paddle2.h, paddle2.y));
+                paddle2.vy = paddle2.y - paddle2.prevY;
+            }
+            // --- Ball movement & Collisions (Only when playing) ---
+            if (gameState === 'playing') {
+                ball.x += ball.vx * dt;
+                ball.y += ball.vy * dt;
+                // --- Wall bounce (top/bottom) ---
+                if (ball.y - ball.r < 0) {
+                    ball.y = ball.r;
+                    ball.vy = Math.abs(ball.vy);
+                    playWall();
+                }
+                if (ball.y + ball.r > CH) {
+                    ball.y = CH - ball.r;
+                    ball.vy = -Math.abs(ball.vy);
+                    playWall();
+                }
+                // --- Paddle collision ---
+                if (ball.vx < 0 && ballIntersectsPaddle(ball, paddle1)) {
+                    resolvePaddleCollision(ball, paddle1, 1);
+                    playHit();
+                }
+                if (ball.vx > 0 && ballIntersectsPaddle(ball, paddle2)) {
+                    resolvePaddleCollision(ball, paddle2, -1);
+                    playHit();
+                }
+                // --- Scoring ---
+                if (ball.x + ball.r < 0) {
+                    playScore();
+                    loseHeart(1);
+                    return;
+                }
+                if (ball.x - ball.r > CW) {
+                    playScore();
+                    loseHeart(2);
+                    return;
+                }
+                // --- Speed ramp ---
+                speedRamp += 0.0002 * dt;
+            }
+        }
+        function ballIntersectsPaddle(b, p) {
+            // Closest point on paddle to ball center
+            const closestX = Math.max(p.x, Math.min(b.x, p.x + p.w));
+            const closestY = Math.max(p.y, Math.min(b.y, p.y + p.h));
+            const dx = b.x - closestX;
+            const dy = b.y - closestY;
+            return (dx * dx + dy * dy) <= (b.r * b.r);
+        }
+        function resolvePaddleCollision(b, p, dirX) {
+            // Place ball outside paddle
+            if (dirX > 0) {
+                b.x = p.x + p.w + b.r;
+            } else {
+                b.x = p.x - b.r;
+            }
+            // Calculate reflection angle based on where ball hit paddle
+            const hitPos = (b.y - p.y) / p.h; // 0 to 1
+            const angle = (hitPos - 0.5) * Math.PI * 0.7; // -0.35π to 0.35π
+            rallyCount++;
+            const speed = b.baseSpeed + speedRamp + rallyCount * 0.08;
+            aiDifficulty = Math.min(aiConfig.maxDifficulty, aiConfig.diffBase + rallyCount * aiConfig.ramp);
+            // Paddle momentum spin
+            const spin = p.vy * 0.35;
+            b.vx = Math.cos(angle) * speed * dirX;
+            b.vy = Math.sin(angle) * speed + spin;
+            // Ensure minimum horizontal speed
+            if (Math.abs(b.vx) < speed * 0.3) {
+                b.vx = speed * 0.3 * dirX;
+            }
+        }
+        // --- Rendering ---
+        function renderFrame() {
+            ctx.clearRect(0, 0, CW, CH);
+            drawCourt();
+            drawPaddle(paddle1);
+            drawPaddle(paddle2);
+            drawBall();
+        }
+        function drawCourt() {
+            // Stone base
+            const grad = ctx.createRadialGradient(CW / 2, CH / 2, 10, CW / 2, CH / 2, CW * 0.7);
+            grad.addColorStop(0, '#2a322a');
+            grad.addColorStop(0.5, '#222922');
+            grad.addColorStop(1, '#181d18');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, CW, CH);
+            // Stone texture noise (cached)
+            ctx.globalAlpha = 0.04;
+            for (let i = 0; i < noisePatterns.length; i++) {
+                const n = noisePatterns[i];
+                ctx.fillStyle = n.color;
+                ctx.beginPath();
+                ctx.ellipse(n.x * CW, n.y * CH, n.s, n.s * n.ratio, n.rot, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            // Center line (carved groove)
+            ctx.setLineDash([12, 8]);
+            ctx.strokeStyle = 'rgba(201,168,76,0.15)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(CW / 2, 0);
+            ctx.lineTo(CW / 2, CH);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // Center circle
+            ctx.strokeStyle = 'rgba(201,168,76,0.1)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(CW / 2, CH / 2, Math.min(CW, CH) * 0.12, 0, Math.PI * 2);
+            ctx.stroke();
+            // Corner runes (decorative)
+            ctx.fillStyle = 'rgba(201,168,76,0.06)';
+            ctx.font = `${CW * 0.03}px serif`;
+            ctx.fillText('◆', 12, CW * 0.035);
+            ctx.fillText('◆', CW - CW * 0.035, CW * 0.035);
+            ctx.fillText('◆', 12, CH - 10);
+            ctx.fillText('◆', CW - CW * 0.035, CH - 10);
+            // Moss patches (subtle)
+            const mossPulse = 0.3 + Math.sin(Date.now() * 0.001) * 0.15;
+            ctx.globalAlpha = mossPulse * 0.08;
+            const mossGrad = ctx.createRadialGradient(CW * 0.15, CH * 0.8, 0, CW * 0.15, CH * 0.8, CW * 0.12);
+            mossGrad.addColorStop(0, '#6b8f5e');
+            mossGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = mossGrad;
+            ctx.fillRect(0, 0, CW, CH);
+            const mossGrad2 = ctx.createRadialGradient(CW * 0.85, CH * 0.2, 0, CW * 0.85, CH * 0.2, CW * 0.1);
+            mossGrad2.addColorStop(0, '#6b8f5e');
+            mossGrad2.addColorStop(1, 'transparent');
+            ctx.fillStyle = mossGrad2;
+            ctx.fillRect(0, 0, CW, CH);
+            ctx.globalAlpha = 1;
+        }
+        function drawPaddle(p) {
+            // Stone pillar
+            const grad = ctx.createLinearGradient(p.x, 0, p.x + p.w, 0);
+            grad.addColorStop(0, '#4a5248');
+            grad.addColorStop(0.3, '#5a655a');
+            grad.addColorStop(0.5, '#636e63');
+            grad.addColorStop(0.7, '#5a655a');
+            grad.addColorStop(1, '#3d4a3d');
+            ctx.fillStyle = grad;
+            // Rounded rect
+            const radius = 3;
+            ctx.beginPath();
+            ctx.moveTo(p.x + radius, p.y);
+            ctx.lineTo(p.x + p.w - radius, p.y);
+            ctx.arcTo(p.x + p.w, p.y, p.x + p.w, p.y + radius, radius);
+            ctx.lineTo(p.x + p.w, p.y + p.h - radius);
+            ctx.arcTo(p.x + p.w, p.y + p.h, p.x + p.w - radius, p.y + p.h, radius);
+            ctx.lineTo(p.x + radius, p.y + p.h);
+            ctx.arcTo(p.x, p.y + p.h, p.x, p.y + p.h - radius, radius);
+            ctx.lineTo(p.x, p.y + radius);
+            ctx.arcTo(p.x, p.y, p.x + radius, p.y, radius);
+            ctx.closePath();
+            ctx.fill();
+            // Inner carved lines
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x + 3, p.y + 6);
+            ctx.lineTo(p.x + p.w - 3, p.y + 6);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(p.x + 3, p.y + p.h - 6);
+            ctx.lineTo(p.x + p.w - 3, p.y + p.h - 6);
+            ctx.stroke();
+            // Highlight edge
+            ctx.strokeStyle = 'rgba(201,168,76,0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x + radius, p.y);
+            ctx.lineTo(p.x + p.w - radius, p.y);
+            ctx.arcTo(p.x + p.w, p.y, p.x + p.w, p.y + radius, radius);
+            ctx.lineTo(p.x + p.w, p.y + p.h - radius);
+            ctx.arcTo(p.x + p.w, p.y + p.h, p.x + p.w - radius, p.y + p.h, radius);
+            ctx.lineTo(p.x + radius, p.y + p.h);
+            ctx.arcTo(p.x, p.y + p.h, p.x, p.y + p.h - radius, radius);
+            ctx.lineTo(p.x, p.y + radius);
+            ctx.arcTo(p.x, p.y, p.x + radius, p.y, radius);
+            ctx.closePath();
+            ctx.stroke();
+            // Glow
+            ctx.shadowColor = 'rgba(201,168,76,0.15)';
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = 'rgba(201,168,76,0.1)';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+        function drawBall() {
+            // Orb glow
+            const glowIntensity = 0.4 + Math.sin(Date.now() * 0.004) * 0.2;
+            // Outer glow
+            const outerGlow = ctx.createRadialGradient(ball.x, ball.y, ball.r * 0.5, ball.x, ball.y, ball.r * 3);
+            outerGlow.addColorStop(0, `rgba(201,168,76,${glowIntensity * 0.3})`);
+            outerGlow.addColorStop(1, 'transparent');
+            ctx.fillStyle = outerGlow;
+            ctx.fillRect(ball.x - ball.r * 3, ball.y - ball.r * 3, ball.r * 6, ball.r * 6);
+            // Ball body
+            const ballGrad = ctx.createRadialGradient(
+                ball.x - ball.r * 0.3, ball.y - ball.r * 0.3, ball.r * 0.1,
+                ball.x, ball.y, ball.r
+            );
+            ballGrad.addColorStop(0, '#e8d088');
+            ballGrad.addColorStop(0.4, '#c9a84c');
+            ballGrad.addColorStop(0.8, '#8a7430');
+            ballGrad.addColorStop(1, '#5a4a20');
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = ballGrad;
+            ctx.fill();
+            // Inner carving
+            ctx.strokeStyle = 'rgba(232,200,74,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r * 0.55, 0, Math.PI * 2);
+            ctx.stroke();
+            // Specular highlight
+            ctx.beginPath();
+            ctx.arc(ball.x - ball.r * 0.25, ball.y - ball.r * 0.25, ball.r * 0.25, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,220,0.25)';
+            ctx.fill();
+            // Trail
+            if (gameState === 'playing') {
+                ctx.globalAlpha = 0.08;
+                for (let i = 1; i <= 4; i++) {
+                    const tx = ball.x - ball.vx * i * 1.5;
+                    const ty = ball.y - ball.vy * i * 1.5;
+                    const tr = ball.r * (1 - i * 0.15);
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, tr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#c9a84c';
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+            }
+        }
+        // --- Resize ---
+        window.addEventListener('resize', () => {
+            if (gameState !== 'menu') {
+                sizeCanvas();
+                // Recalculate paddle positions proportionally
+                const paddleW = Math.max(12, CW * 0.015);
+                const paddleH = Math.max(70, CH * 0.16);
+                const wallOffset = Math.max(20, CW * 0.03);
+                paddle1.x = wallOffset;
+                paddle1.w = paddleW;
+                paddle1.h = paddleH;
+                paddle1.speed = CH * 0.009;
+                paddle2.x = CW - wallOffset - paddleW;
+                paddle2.w = paddleW;
+                paddle2.h = paddleH;
+                paddle2.speed = CH * 0.009;
+                ball.r = Math.max(8, CW * 0.012);
+                ballBaseSpeed = CW * 0.005;
+                aiSpeed = CH * 0.006;
+                if (gameState !== 'playing') renderFrame();
+            }
+        });
+        // --- Seed stone texture once (optimization: cache noise pattern) ---
+        // The noise in drawCourt uses Math.random so it shimmers subtly - intended as a feature
+        // --- Initial Render of Menu ---
+        // (already shown via CSS active class)
+    </script>
+</body>
+
+</html>

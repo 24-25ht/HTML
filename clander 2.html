@@ -1,0 +1,1071 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Dual Calendar - Hijri & Gregorian</title>  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+    <style>  
+        * {  
+            margin: 0;  
+            padding: 0;  
+            box-sizing: border-box;  
+        }  
+
+        body {  
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            min-height: 100vh;  
+            padding: 20px;  
+            color: #333;  
+        }  
+
+        .container {  
+            max-width: 1400px;  
+            margin: 0 auto;  
+        }  
+
+        .header {  
+            text-align: center;  
+            color: white;  
+            margin-bottom: 40px;  
+            animation: slideDown 0.8s ease-out;  
+        }  
+
+        .header h1 {  
+            font-size: 3.5em;  
+            margin-bottom: 10px;  
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);  
+            font-weight: 700;  
+        }  
+
+        .header p {  
+            font-size: 1.2em;  
+            opacity: 0.9;  
+        }  
+
+        .toggle-container {  
+            display: flex;  
+            justify-content: center;  
+            gap: 15px;  
+            margin-bottom: 30px;  
+            flex-wrap: wrap;  
+        }  
+
+        .toggle-btn {  
+            background: white;  
+            border: 3px solid white;  
+            padding: 12px 30px;  
+            font-size: 1em;  
+            border-radius: 25px;  
+            cursor: pointer;  
+            transition: all 0.3s ease;  
+            font-weight: 600;  
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);  
+        }  
+
+        .toggle-btn.active {  
+            background: #667eea;  
+            color: white;  
+            transform: scale(1.05);  
+        }  
+
+        .toggle-btn:hover {  
+            transform: translateY(-2px);  
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);  
+        }  
+
+        .calendars-wrapper {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));  
+            gap: 30px;  
+            margin-bottom: 30px;  
+        }  
+
+        .calendar-card {  
+            background: white;  
+            border-radius: 20px;  
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);  
+            overflow: hidden;  
+            animation: slideUp 0.8s ease-out;  
+            transform: translateY(0);  
+        }  
+
+        .calendar-card.hidden {  
+            display: none;  
+        }  
+
+        .calendar-header {  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            color: white;  
+            padding: 25px;  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+        }  
+
+        .calendar-header h2 {  
+            font-size: 1.8em;  
+        }  
+
+        .calendar-header .date-info {  
+            text-align: right;  
+            font-size: 0.95em;  
+            opacity: 0.9;  
+        }  
+
+        .nav-buttons {  
+            display: flex;  
+            gap: 10px;  
+        }  
+
+        .nav-btn {  
+            background: rgba(255,255,255,0.2);  
+            border: none;  
+            color: white;  
+            width: 40px;  
+            height: 40px;  
+            border-radius: 50%;  
+            cursor: pointer;  
+            font-size: 1.2em;  
+            transition: all 0.3s ease;  
+            display: flex;  
+            align-items: center;  
+            justify-content: center;  
+        }  
+
+        .nav-btn:hover {  
+            background: rgba(255,255,255,0.4);  
+            transform: scale(1.1);  
+        }  
+
+        .calendar-body {  
+            padding: 25px;  
+        }  
+
+        .weekdays {  
+            display: grid;  
+            grid-template-columns: repeat(7, 1fr);  
+            gap: 10px;  
+            margin-bottom: 15px;  
+        }  
+
+        .weekday {  
+            text-align: center;  
+            font-weight: 700;  
+            color: #667eea;  
+            padding: 10px;  
+            font-size: 0.95em;  
+        }  
+
+        .days {  
+            display: grid;  
+            grid-template-columns: repeat(7, 1fr);  
+            gap: 10px;  
+        }  
+
+        .day {  
+            aspect-ratio: 1;  
+            display: flex;  
+            align-items: center;  
+            justify-content: center;  
+            border-radius: 12px;  
+            cursor: pointer;  
+            transition: all 0.3s ease;  
+            position: relative;  
+            font-weight: 600;  
+            background: #f8f9fa;  
+            color: #333;  
+        }  
+
+        .day:hover {  
+            background: #e9ecef;  
+            transform: scale(1.05);  
+        }  
+
+        .day.other-month {  
+            color: #bbb;  
+            background: #f0f0f0;  
+        }  
+
+        .day.today {  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            color: white;  
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);  
+            font-weight: 700;  
+        }  
+
+        .day.event {  
+            border: 2px solid #ff6b6b;  
+        }  
+
+        .day.event::after {  
+            content: '';  
+            position: absolute;  
+            bottom: 3px;  
+            width: 6px;  
+            height: 6px;  
+            background: #ff6b6b;  
+            border-radius: 50%;  
+        }  
+
+        .events-section {  
+            background: white;  
+            border-radius: 20px;  
+            padding: 25px;  
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);  
+            margin-bottom: 30px;  
+        }  
+
+        .events-section h3 {  
+            color: #667eea;  
+            margin-bottom: 20px;  
+            font-size: 1.5em;  
+        }  
+
+        .events-list {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));  
+            gap: 15px;  
+        }  
+
+        .event-item {  
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);  
+            padding: 15px;  
+            border-radius: 12px;  
+            border-left: 4px solid #667eea;  
+            transition: all 0.3s ease;  
+        }  
+
+        .event-item:hover {  
+            transform: translateX(5px);  
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);  
+        }  
+
+        .event-item h4 {  
+            color: #667eea;  
+            margin-bottom: 5px;  
+        }  
+
+        .event-item p {  
+            color: #666;  
+            font-size: 0.9em;  
+        }  
+
+        .phenomena-section {  
+            background: white;  
+            border-radius: 20px;  
+            padding: 25px;  
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);  
+        }  
+
+        .phenomena-section h3 {  
+            color: #667eea;  
+            margin-bottom: 20px;  
+            font-size: 1.5em;  
+        }  
+
+        .phenomena-grid {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  
+            gap: 20px;  
+        }  
+
+        .phenomena-card {  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            color: white;  
+            padding: 20px;  
+            border-radius: 15px;  
+            transition: all 0.3s ease;  
+        }  
+
+        .phenomena-card:hover {  
+            transform: translateY(-5px);  
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);  
+        }  
+
+        .phenomena-card h4 {  
+            margin-bottom: 10px;  
+            font-size: 1.1em;  
+        }  
+
+        .phenomena-card p {  
+            font-size: 0.9em;  
+            opacity: 0.95;  
+            line-height: 1.5;  
+        }  
+
+        .loading {  
+            text-align: center;  
+            color: white;  
+            font-size: 1.2em;  
+        }  
+
+        .error {  
+            background: #ff6b6b;  
+            color: white;  
+            padding: 15px;  
+            border-radius: 10px;  
+            margin: 10px 0;  
+        }  
+
+        .prayer-times {  
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);  
+            color: white;  
+            padding: 20px;  
+            border-radius: 15px;  
+            margin: 15px 0;  
+        }  
+
+        .prayer-times h4 {  
+            margin-bottom: 15px;  
+            font-size: 1.2em;  
+        }  
+
+        .prayer-grid {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));  
+            gap: 10px;  
+        }  
+
+        .prayer-item {  
+            background: rgba(255,255,255,0.2);  
+            padding: 10px;  
+            border-radius: 8px;  
+            text-align: center;  
+            font-size: 0.9em;  
+        }  
+
+        .prayer-item .name {  
+            font-weight: 700;  
+            display: block;  
+            margin-bottom: 5px;  
+        }  
+
+        .prayer-item .time {  
+            font-size: 1.1em;  
+        }  
+
+        @keyframes slideDown {  
+            from {  
+                opacity: 0;  
+                transform: translateY(-30px);  
+            }  
+            to {  
+                opacity: 1;  
+                transform: translateY(0);  
+            }  
+        }  
+
+        @keyframes slideUp {  
+            from {  
+                opacity: 0;  
+                transform: translateY(30px);  
+            }  
+            to {  
+                opacity: 1;  
+                transform: translateY(0);  
+            }  
+        }  
+
+        @media (max-width: 768px) {  
+            .calendars-wrapper {  
+                grid-template-columns: 1fr;  
+            }  
+
+            .header h1 {  
+                font-size: 2em;  
+            }  
+
+            .toggle-container {  
+                flex-direction: column;  
+            }  
+
+            .toggle-btn {  
+                width: 100%;  
+            }  
+        }  
+
+        .today-indicator {  
+            font-size: 0.8em;  
+            opacity: 0.8;  
+            margin-top: 5px;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <div class="container">  
+        <div class="header">  
+            <h1><i class="fas fa-calendar-days"></i> Dual Calendar</h1>  
+            <p>Hijri & Gregorian Calendars with Events & Phenomena</p>  
+        </div>  
+
+        <div class="toggle-container">  
+            <button class="toggle-btn active" onclick="toggleCalendar('both', event)">  
+                <i class="fas fa-eye"></i> Show Both  
+            </button>  
+            <button class="toggle-btn" onclick="toggleCalendar('gregorian', event)">  
+                <i class="fas fa-calendar"></i> Gregorian Only  
+            </button>  
+            <button class="toggle-btn" onclick="toggleCalendar('hijri', event)">  
+                <i class="fas fa-moon"></i> Hijri Only  
+            </button>  
+        </div>  
+
+        <div class="calendars-wrapper">  
+            <!-- Gregorian Calendar -->  
+            <div class="calendar-card" id="gregorian-card">  
+                <div class="calendar-header">  
+                    <div>  
+                        <h2><i class="fas fa-calendar"></i> Gregorian</h2>  
+                    </div>  
+                    <div class="nav-buttons">  
+                        <button class="nav-btn" onclick="previousMonth('gregorian')"><i class="fas fa-chevron-left"></i></button>  
+                        <button class="nav-btn" onclick="nextMonth('gregorian')"><i class="fas fa-chevron-right"></i></button>  
+                    </div>  
+                    <div class="date-info">  
+                        <div id="gregorian-month-year"></div>  
+                        <div class="today-indicator" id="gregorian-today"></div>  
+                    </div>  
+                </div>  
+                <div class="calendar-body">  
+                    <div class="weekdays">  
+                        <div class="weekday">Sun</div>  
+                        <div class="weekday">Mon</div>  
+                        <div class="weekday">Tue</div>  
+                        <div class="weekday">Wed</div>  
+                        <div class="weekday">Thu</div>  
+                        <div class="weekday">Fri</div>  
+                        <div class="weekday">Sat</div>  
+                    </div>  
+                    <div class="days" id="gregorian-days"></div>  
+                </div>  
+            </div>  
+
+            <!-- Hijri Calendar -->  
+            <div class="calendar-card" id="hijri-card">  
+                <div class="calendar-header">  
+                    <div>  
+                        <h2><i class="fas fa-moon"></i> Hijri</h2>  
+                    </div>  
+                    <div class="nav-buttons">  
+                        <button class="nav-btn" onclick="previousMonth('hijri')"><i class="fas fa-chevron-left"></i></button>  
+                        <button class="nav-btn" onclick="nextMonth('hijri')"><i class="fas fa-chevron-right"></i></button>  
+                    </div>  
+                    <div class="date-info">  
+                        <div id="hijri-month-year"></div>  
+                        <div class="today-indicator" id="hijri-today"></div>  
+                    </div>  
+                </div>  
+                <div class="calendar-body">  
+                    <div class="weekdays">  
+                        <div class="weekday">Ahd</div>  
+                        <div class="weekday">Ith</div>  
+                        <div class="weekday">Sel</div>  
+                        <div class="weekday">Rab</div>  
+                        <div class="weekday">Kha</div>  
+                        <div class="weekday">Jum</div>  
+                        <div class="weekday">Sab</div>  
+                    </div>  
+                    <div class="days" id="hijri-days"></div>  
+                </div>  
+            </div>  
+        </div>  
+
+        <!-- Prayer Times Section -->  
+        <div id="prayer-times-section"></div>  
+
+        <!-- Events Section -->  
+        <div class="events-section">  
+            <h3><i class="fas fa-bell"></i> Upcoming Events & Holidays</h3>  
+            <div class="events-list" id="events-list">  
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading events...</div>  
+            </div>  
+        </div>  
+
+        <!-- Scientific Phenomena -->  
+        <div class="phenomena-section">  
+            <h3><i class="fas fa-star"></i> Astronomical & Scientific Phenomena</h3>  
+            <div class="phenomena-grid" id="phenomena-list">  
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading phenomena...</div>  
+            </div>  
+        </div>  
+    </div>  
+
+
+<script>
+    // Global variables
+    let currentGregorianDate = new Date();
+    let currentHijriDate = new Date();
+    let currentHijriYear = null;
+    let currentHijriMonth = null;
+    let calendarView = 'both';
+    let allEvents = [];
+    let hijriEvents = {};
+    let gregorianEvents = {};
+    let hijriMonthNames = ['Muharram','Safar','Rabi\' al-awwal','Rabi\' al-thani','Jumada al-awwal','Jumada al-thani','Rajab','Sha\'ban','Ramadan','Shawwal','Dhu al-Qadah','Dhu al-Hijjah'];
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCalendars();
+        loadEvents();
+        loadPhenomena();
+        loadPrayerTimes();
+    });
+
+    // Toggle calendar view
+    function toggleCalendar(view, evt) {
+        calendarView = view;
+        
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        if (evt && evt.target) evt.target.closest('.toggle-btn').classList.add('active');
+
+        const gregorianCard = document.getElementById('gregorian-card');
+        const hijriCard = document.getElementById('hijri-card');
+
+        if (view === 'both') {
+            gregorianCard.classList.remove('hidden');
+            hijriCard.classList.remove('hidden');
+        } else if (view === 'gregorian') {
+            gregorianCard.classList.remove('hidden');
+            hijriCard.classList.add('hidden');
+        } else if (view === 'hijri') {
+            gregorianCard.classList.add('hidden');
+            hijriCard.classList.remove('hidden');
+        }
+    }
+
+    // ===== ALADHAN API FUNCTIONS (NEW) =====
+
+    // Get current Hijri date from Aladhan API
+    async function getCurrentHijriDate() {
+        try {
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            const url = `https://api.aladhan.com/v1/convert?date=${dd}-${mm}-${yyyy}&hijri=false`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                // fallback to timings endpoint which includes hijri info
+                const tResp = await fetch(`https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=40.7128&longitude=-74.0060&method=2`);
+                if (!tResp.ok) return null;
+                const tData = await tResp.json();
+                if (tData.data && tData.data.date && tData.data.date.hijri) {
+                    return {
+                        day: tData.data.date.hijri.day,
+                        month: tData.data.date.hijri.month.number,
+                        year: tData.data.date.hijri.year,
+                        monthName: tData.data.date.hijri.month.en
+                    };
+                }
+                return null;
+            }
+            const data = await response.json();
+            if (data.data && data.data.hijri) {
+                return {
+                    day: data.data.hijri.day,
+                    month: data.data.hijri.month.number,
+                    year: data.data.hijri.year,
+                    monthName: data.data.hijri.month.en
+                };
+            }
+        } catch (error) {
+            console.error('Error fetching Hijri date:', error);
+            return null;
+        }
+    }
+
+    // Convert Gregorian date to Hijri using Aladhan API
+    async function gregorianToHijriAPI(gregorianDate) {
+        try {
+            const day = String(gregorianDate.getDate()).padStart(2, '0');
+            const month = String(gregorianDate.getMonth() + 1).padStart(2, '0');
+            const year = gregorianDate.getFullYear();
+            const url = `https://api.aladhan.com/v1/convert?date=${day}-${month}-${year}&hijri=false`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                // fallback to timings endpoint
+                const tResp = await fetch(`https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=40.7128&longitude=-74.0060&method=2`);
+                if (!tResp.ok) return null;
+                const tData = await tResp.json();
+                if (tData.data && tData.data.date && tData.data.date.hijri) {
+                    return {
+                        day: tData.data.date.hijri.day,
+                        month: tData.data.date.hijri.month.number,
+                        year: tData.data.date.hijri.year,
+                        monthName: tData.data.date.hijri.month.en
+                    };
+                }
+                return null;
+            }
+            const data = await response.json();
+            if (data.data && data.data.hijri) {
+                return {
+                    day: data.data.hijri.day,
+                    month: data.data.hijri.month.number,
+                    year: data.data.hijri.year,
+                    monthName: data.data.hijri.month.en
+                };
+            }
+        } catch (error) {
+            console.error('Error converting to Hijri:', error);
+            return null;
+        }
+    }
+
+    // Convert Hijri date to Gregorian using Aladhan API
+    async function hijriToGregorianAPI(hijriDay, hijriMonth, hijriYear) {
+        try {
+            const dd = String(hijriDay).padStart(2, '0');
+            const mm = String(hijriMonth).padStart(2, '0');
+            const yyyy = hijriYear;
+            const url = `https://api.aladhan.com/v1/convert?date=${dd}-${mm}-${yyyy}&hijri=true`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                // if convert fails, return null — caller will handle
+                return null;
+            }
+            const data = await response.json();
+            if (data.data && data.data.gregorian) {
+                const greg = data.data.gregorian;
+                return new Date(`${greg.year}-${String(greg.month.number).padStart(2, '0')}-${String(greg.day).padStart(2, '0')}`);
+            }
+        } catch (error) {  
+            console.error('Error converting to Gregorian:', error);  
+            return null;  
+        }  
+    }  
+
+    // ===== END ALADHAN API FUNCTIONS =====  
+
+    // Render both calendars  
+    async function renderCalendars() {  
+        renderGregorianCalendar();  
+        await renderHijriCalendarAPI();  
+    }  
+
+    // Render Gregorian Calendar  
+    function renderGregorianCalendar() {  
+        const year = currentGregorianDate.getFullYear();  
+        const month = currentGregorianDate.getMonth();  
+
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',  
+                          'July', 'August', 'September', 'October', 'November', 'December'];  
+
+        document.getElementById('gregorian-month-year').textContent = `${monthNames[month]} ${year}`;  
+        
+        const today = new Date();  
+        document.getElementById('gregorian-today').textContent =   
+            today.getMonth() === month && today.getFullYear() === year ? `Today: ${today.getDate()}` : '';  
+
+        const firstDay = new Date(year, month, 1).getDay();  
+        const daysInMonth = new Date(year, month + 1, 0).getDate();  
+        const daysInPrevMonth = new Date(year, month, 0).getDate();  
+
+        const days = [];  
+        
+        // Previous month days  
+        for (let i = firstDay - 1; i >= 0; i--) {  
+            days.push({  
+                day: daysInPrevMonth - i,  
+                isCurrentMonth: false,  
+                date: new Date(year, month - 1, daysInPrevMonth - i)  
+            });  
+        }  
+
+        // Current month days  
+        for (let i = 1; i <= daysInMonth; i++) {  
+            days.push({  
+                day: i,  
+                isCurrentMonth: true,  
+                date: new Date(year, month, i)  
+            });  
+        }  
+
+        // Next month days  
+        const remainingDays = 42 - days.length;  
+        for (let i = 1; i <= remainingDays; i++) {  
+            days.push({  
+                day: i,  
+                isCurrentMonth: false,  
+                date: new Date(year, month + 1, i)  
+            });  
+        }  
+
+        renderDays('gregorian', days);  
+    }  
+
+    // Render Hijri Calendar using Aladhan API (UPDATED)  
+    async function renderHijriCalendarAPI() {  
+        // Use stored hijri month/year if navigation changed them, otherwise fetch current
+        let hijriToday = null;
+        if (currentHijriYear !== null && currentHijriMonth !== null) {
+            hijriToday = { day: null, month: currentHijriMonth, year: currentHijriYear, monthName: hijriMonthNames[currentHijriMonth - 1] };
+        } else {
+            hijriToday = await getCurrentHijriDate();
+            if (!hijriToday) { console.error('Could not fetch Hijri date'); return; }
+            currentHijriYear = hijriToday.year;
+            currentHijriMonth = hijriToday.month;
+        }
+
+        const year = Number(currentHijriYear);
+        const month = Number(currentHijriMonth);
+        const monthName = hijriMonthNames[month - 1] || (hijriToday.monthName || '');
+
+        document.getElementById('hijri-month-year').textContent = `${monthName} ${year} AH`;  
+        document.getElementById('hijri-today').textContent = hijriToday.day ? `Today: ${hijriToday.day}` : '';
+
+        // Determine weekday of the 1st day of this Hijri month by converting to Gregorian
+        let startDayOfWeek = 0;
+        try {
+            const firstGreg = await hijriToGregorianAPI(1, month, year);
+            if (firstGreg) startDayOfWeek = firstGreg.getDay();
+        } catch (e) { startDayOfWeek = 0; }
+
+        const days = [];
+        const daysInHijriMonth = 30;
+
+        // Add previous month days
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+            const prevMonth = month === 1 ? 12 : month - 1;
+            const prevYear = month === 1 ? year - 1 : year;
+            days.push({ day: daysInHijriMonth - i, isCurrentMonth: false, hijri: { day: daysInHijriMonth - i, month: prevMonth, year: prevYear } });
+        }
+
+        // Current month days
+        for (let i = 1; i <= daysInHijriMonth; i++) {
+            days.push({ day: i, isCurrentMonth: true, hijri: { day: i, month: month, year: year } });
+        }
+
+        // Next month days
+        const remainingDays = 42 - days.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            const nextMonth = month === 12 ? 1 : month + 1;
+            const nextYear = month === 12 ? year + 1 : year;
+            days.push({ day: i, isCurrentMonth: false, hijri: { day: i, month: nextMonth, year: nextYear } });
+        }
+
+        renderDays('hijri', days);
+    }
+
+    // Render day cells in calendar  
+    function renderDays(type, days) {
+        const daysContainer = document.getElementById(`${type}-days`);
+        if (!daysContainer) return;
+        daysContainer.innerHTML = '';
+
+        const today = new Date();
+        const gregorianToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        days.forEach(dayObj => {
+            const dayElement = document.createElement('div');
+            dayElement.className = `day ${dayObj.isCurrentMonth ? 'current-month' : 'other-month'}`;
+
+            let isToday = false;
+            let dateKey = null;
+            if (type === 'gregorian' && dayObj.date) {
+                dateKey = `${dayObj.date.getFullYear()}-${String(dayObj.date.getMonth() + 1).padStart(2, '0')}-${String(dayObj.date.getDate()).padStart(2, '0')}`;
+                isToday = dateKey === gregorianToday;
+            }
+
+            if (isToday) {
+                dayElement.classList.add('today');
+            }
+
+            dayElement.textContent = dayObj.day;
+
+            // Add event indicator if events exist for that date
+            if (type === 'gregorian' && dateKey && gregorianEvents[dateKey]) {
+                dayElement.classList.add('has-event');
+            }
+
+            dayElement.addEventListener('click', () => {
+                if (type === 'gregorian' && dayObj.isCurrentMonth) {
+                    showDayDetails(dayObj.date, 'gregorian');
+                } else if (type === 'hijri' && dayObj.isCurrentMonth && dayObj.hijri) {
+                    showHijriDayDetails(dayObj.hijri);
+                }
+            });
+
+            daysContainer.appendChild(dayElement);
+        });
+    }
+
+    // Navigate to previous month (Gregorian/Hijri generic)  
+    function previousMonth(type) {
+        if (type === 'gregorian') {
+            currentGregorianDate = new Date(currentGregorianDate.getFullYear(), currentGregorianDate.getMonth() - 1);
+            renderGregorianCalendar();
+        } else if (type === 'hijri') {
+            if (currentHijriYear === null || currentHijriMonth === null) return renderHijriCalendarAPI();
+            currentHijriMonth -= 1;
+            if (currentHijriMonth < 1) { currentHijriMonth = 12; currentHijriYear -= 1; }
+            renderHijriCalendarAPI();
+        }
+    }
+
+    // Navigate to next month (Gregorian/Hijri generic)
+    function nextMonth(type) {
+        if (type === 'gregorian') {
+            currentGregorianDate = new Date(currentGregorianDate.getFullYear(), currentGregorianDate.getMonth() + 1);
+            renderGregorianCalendar();
+        } else if (type === 'hijri') {
+            if (currentHijriYear === null || currentHijriMonth === null) return renderHijriCalendarAPI();
+            currentHijriMonth += 1;
+            if (currentHijriMonth > 12) { currentHijriMonth = 1; currentHijriYear += 1; }
+            renderHijriCalendarAPI();
+        }
+    }
+
+    // Load events from APIs  
+    async function loadEvents() {
+        try {
+            // Load Gregorian events from Nager API
+            const today = new Date();
+            const year = today.getFullYear();
+
+            try {
+                const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/US`);
+                const holidays = await response.json();
+
+                holidays.forEach(holiday => {
+                    const dateStr = holiday.date;
+                    if (!gregorianEvents[dateStr]) { gregorianEvents[dateStr] = []; }
+                    gregorianEvents[dateStr].push({ title: holiday.name, type: 'Public Holiday', date: dateStr });
+                });
+            } catch (error) {
+                console.error('Error loading holidays:', error);
+            }
+
+            // Add Islamic holidays (static data) — ensure hijri events include year
+            const islamicHolidays = [
+                { hijri: '1-1', gregorian: '2025-07-08', title: 'Islamic New Year', type: 'Islamic Holiday' },
+                { hijri: '12-12', gregorian: '2025-09-16', title: 'Eid al-Fitr', type: 'Islamic Holiday' },
+                { hijri: '12-10', gregorian: '2025-06-15', title: 'Eid al-Adha', type: 'Islamic Holiday' },
+                { hijri: '3-12', gregorian: '2025-09-23', title: 'Mawlid al-Nabi', type: 'Islamic Holiday' },
+                { hijri: '9-1', gregorian: '2025-02-28', title: 'Ramadan Starts', type: 'Islamic Holiday' }
+            ];
+
+            // get current hijri year to build full keys
+            const hijriToday = await getCurrentHijriDate();
+            const hYear = hijriToday ? hijriToday.year : new Date().getFullYear();
+
+            islamicHolidays.forEach(holiday => {
+                let key = holiday.hijri;
+                // if hijri is missing year, append current hijri year
+                if ((key.match(/-/g) || []).length === 1) {
+                    key = `${key}-${hYear}`;
+                }
+                if (!hijriEvents[key]) { hijriEvents[key] = []; }
+                hijriEvents[key].push({ title: holiday.title, type: holiday.type, date: key });
+            });
+
+            displayAllEvents();
+        } catch (error) {
+            console.error('Error loading events:', error);
+        }
+    }
+
+    // Load phenomena data  
+    function loadPhenomena() {  
+        const phenomena = [  
+            { icon: '🌙', title: 'Full Moon', description: 'The Moon is fully illuminated as seen from Earth.', frequency: 'Monthly (every 29.5 days)' },  
+            { icon: '🌑', title: 'New Moon', description: 'The Moon is between Earth and the Sun, not visible.', frequency: 'Monthly (every 29.5 days)' },  
+            { icon: '🌑⭕', title: 'Solar Eclipse', description: 'The Moon passes in front of the Sun, blocking its light.', frequency: 'Every 18 months' },  
+            { icon: '🌍🌕', title: 'Lunar Eclipse', description: 'The Moon passes through Earths shadow, appearing reddish.', frequency: 'Every 6 months' },  
+            { icon: '☄️', title: 'Meteor Showers', description: 'Earth passes through debris trails left by comets.', frequency: 'Throughout the year' },  
+            { icon: '🌍☀️', title: 'Equinox', description: 'Day and night are approximately equal length.', frequency: 'Twice per year' },  
+            { icon: '☀️', title: 'Solstice', description: 'Either the longest or shortest day of the year.', frequency: 'Twice per year' },  
+            { icon: '🌌', title: 'Aurora Borealis', description: 'Northern lights caused by solar wind particles.', frequency: 'Throughout the year' },  
+            { icon: '🪐', title: 'Planetary Conjunction', description: 'Two or more planets appear close together in the sky.', frequency: 'Varies' },  
+            { icon: '🌕✨', title: 'Supermoon', description: 'Full moon occurs at its closest point to Earth.', frequency: '2-3 times per year' }  
+        ];  
+
+        displayPhenomena(phenomena);  
+    }  
+
+    // Display all events  
+    function displayAllEvents() {  
+        const eventsList = document.getElementById('events-list');  
+        eventsList.innerHTML = '';  
+
+        const allEventsList = [];  
+
+        // Collect all Gregorian events  
+        Object.keys(gregorianEvents).forEach(date => {  
+            gregorianEvents[date].forEach(event => {  
+                allEventsList.push({  
+                    date: date,  
+                    title: event.title,  
+                    type: event.type,  
+                    calendar: 'Gregorian'  
+                });  
+            });  
+        });  
+
+        // Collect all Hijri events  
+        Object.keys(hijriEvents).forEach(date => {  
+            hijriEvents[date].forEach(event => {  
+                allEventsList.push({  
+                    date: date,  
+                    title: event.title,  
+                    type: event.type,  
+                    calendar: 'Hijri'  
+                });  
+            });  
+        });  
+
+        // Sort and display  
+        allEventsList.sort((a, b) => new Date(a.date) - new Date(b.date));  
+        
+        if (allEventsList.length === 0) {  
+            eventsList.innerHTML = '<p style="text-align: center; color: #999;">No upcoming events</p>';  
+            return;  
+        }  
+
+        allEventsList.slice(0, 20).forEach(event => {  
+            const eventItem = document.createElement('div');  
+            eventItem.className = 'event-item';  
+            eventItem.innerHTML = `  
+                <div class="event-date">${event.date}</div>  
+                <div class="event-info">  
+                    <div class="event-title">${event.title}</div>  
+                    <div class="event-type">${event.type} • ${event.calendar}</div>  
+                </div>  
+            `;  
+            eventsList.appendChild(eventItem);  
+        });  
+    }  
+
+    // Display astronomical phenomena
+    function displayPhenomena(phenomena) {
+        const phenomenaContainer = document.getElementById('phenomena-list');
+        if (!phenomenaContainer) return;
+        phenomenaContainer.innerHTML = '';
+
+        phenomena.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'phenomena-card';
+            card.innerHTML = `
+                <div class="phenomena-icon">${item.icon}</div>
+                <h4>${item.title}</h4>
+                <p>${item.description}</p>
+                <small>Frequency: ${item.frequency}</small>
+            `;
+            phenomenaContainer.appendChild(card);
+        });
+    }
+
+    // Show Gregorian day details  
+    function showDayDetails(date, type) {  
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;  
+        const eventData = gregorianEvents[dateStr];  
+        
+        if (eventData && eventData.length > 0) {  
+            let details = `Events on ${dateStr}:\n\n`;  
+            eventData.forEach(event => {  
+                details += `• ${event.title} (${event.type})\n`;  
+            });  
+            alert(details);  
+        } else {  
+            alert(`No events on ${dateStr}`);  
+        }  
+    }  
+
+    // Show Hijri day details  
+    async function showHijriDayDetails(hijriDate) {  
+        const dateStr = `${hijriDate.day}-${hijriDate.month}-${hijriDate.year}`;  
+        const eventData = hijriEvents[dateStr];  
+        
+        const gregorianDate = await hijriToGregorianAPI(hijriDate.day, hijriDate.month, hijriDate.year);  
+        const gregorianStr = gregorianDate ?   
+            `${gregorianDate.getFullYear()}-${String(gregorianDate.getMonth() + 1).padStart(2, '0')}-${String(gregorianDate.getDate()).padStart(2, '0')}` :   
+            'N/A';  
+
+        let details = `Hijri Date: ${dateStr}\nGregorian Date: ${gregorianStr}\n`;  
+        
+        if (eventData && eventData.length > 0) {  
+                        details += '\nEvents:\n';
+            eventData.forEach(event => {
+                details += `• ${event.title} (${event.type})\n`;
+            });
+        } else {
+            details += '\nNo events on this date';
+        }
+        alert(details);
+    }
+
+    // Load prayer times from Aladhan API
+    async function loadPrayerTimes() {
+        try {
+            const today = new Date();
+            const day = today.getDate();
+            const month = today.getMonth() + 1;
+            const year = today.getFullYear();
+
+            // Using New York coordinates as default
+            const response = await fetch(
+                `https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=40.7128&longitude=-74.0060&method=2`
+            );
+            const data = await response.json();
+
+            if (data.data && data.data.timings) {
+                const timings = data.data.timings;
+                displayPrayerTimes({
+                    fajr: timings.Fajr,
+                    sunrise: timings.Sunrise,
+                    dhuhr: timings.Dhuhr,
+                    asr: timings.Asr,
+                    maghrib: timings.Maghrib,
+                    isha: timings.Isha
+                });
+            }
+        } catch (error) {
+            console.error('Error loading prayer times:', error);
+        }
+    }
+
+    // Display prayer times — insert into the prayer-times-section
+    function displayPrayerTimes(times) {
+        const section = document.getElementById('prayer-times-section');
+        if (!section) return;
+        section.innerHTML = `
+            <div id="prayer-times" class="prayer-times">
+                <h4>Prayer Times</h4>
+                <div class="prayer-grid">
+                    <div class="prayer-item"><span class="name">Fajr</span><span class="time">${times.fajr}</span></div>
+                    <div class="prayer-item"><span class="name">Sunrise</span><span class="time">${times.sunrise}</span></div>
+                    <div class="prayer-item"><span class="name">Dhuhr</span><span class="time">${times.dhuhr}</span></div>
+                    <div class="prayer-item"><span class="name">Asr</span><span class="time">${times.asr}</span></div>
+                    <div class="prayer-item"><span class="name">Maghrib</span><span class="time">${times.maghrib}</span></div>
+                    <div class="prayer-item"><span class="name">Isha</span><span class="time">${times.isha}</span></div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Format date for display
+    function formatDate(date) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    }
+
+    // Calculate age in days
+    function calculateAgeDays(birthDate) {
+        const today = new Date();
+        const diffTime = Math.abs(today - birthDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    // Convert decimal degrees to DMS format
+    function decimalToDMS(decimal) {
+        const degrees = Math.floor(decimal);
+        const minutes = Math.floor((Math.abs(decimal) - Math.abs(degrees)) * 60);
+        const seconds = Math.round((Math.abs(decimal) - Math.abs(degrees) - minutes / 60) * 3600);
+        return `${degrees}°${minutes}'${seconds}"`;
+    }
+</script>
+</body>
+</html>

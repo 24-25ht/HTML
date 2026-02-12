@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>বাংলা ↔ English Dictionary</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-hover: rgba(255, 255, 255, 0.08);
+      --accent: #7c6aef;
+      --accent-glow: rgba(124, 106, 239, 0.3);
+      --accent2: #e06aaf;
+      --text-primary: #f0eef6;
+      --text-secondary: rgba(240, 238, 246, 0.6);
+      --text-dim: rgba(240, 238, 246, 0.35);
+      --bg-deep: #0a0a12;
+      --success: #4ade80;
+      --warning: #fbbf24;
+      --error: #f87171;
+      --bn-font: 'Hind Siliguri', sans-serif;
+      --en-font: 'Inter', sans-serif;
+      --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--en-font);
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Dynamic Lighting Background */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.4;
+      transition: transform 0.8s var(--smooth), opacity 0.8s;
+    }
+
+    .bg-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(124, 106, 239, 0.3), transparent 70%);
+      top: -200px;
+      left: -200px;
+    }
+
+    .bg-orb-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(224, 106, 175, 0.25), transparent 70%);
+      bottom: -200px;
+      right: -200px;
+    }
+
+    .bg-orb-mouse {
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(124, 106, 239, 0.12), rgba(224, 106, 175, 0.06) 40%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: left 0.3s ease-out, top 0.3s ease-out;
+      opacity: 0.6;
+    }
+
+    /* Noise texture overlay */
+    #app::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.015;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 128px 128px;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      z-index: 10;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(10, 10, 18, 0.6);
+      backdrop-filter: blur(20px) saturate(180%);
+    }
+
+    .logo {
+      font-size: 28px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .logo-text {
+      font-family: var(--bn-font);
+      font-weight: 700;
+      font-size: 18px;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .header-btn {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s var(--smooth);
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+
+    .header-btn:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .header-btn .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 50%;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      display: flex;
+      position: relative;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Search Section */
+    .search-section {
+      padding: 24px 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .search-container {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.4s var(--smooth);
+      backdrop-filter: blur(16px) saturate(180%);
+    }
+
+    .search-box:focus-within {
+      border-color: rgba(124, 106, 239, 0.4);
+      box-shadow: 0 0 0 4px rgba(124, 106, 239, 0.08), 0 8px 32px rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .search-icon {
+      padding: 0 0 0 18px;
+      font-size: 18px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+      transition: color 0.3s;
+    }
+
+    .search-box:focus-within .search-icon {
+      color: var(--accent);
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 16px 14px;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 16px;
+      font-family: var(--bn-font);
+      font-weight: 500;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .dir-toggle {
+      padding: 8px 10px;
+      margin: 6px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-family: var(--en-font);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s var(--smooth);
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+    }
+
+    .dir-toggle:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+    }
+
+    .search-btn {
+      padding: 10px 20px;
+      margin: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s var(--spring);
+      font-family: var(--en-font);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .search-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+
+    .search-btn:hover::before {
+      opacity: 1;
+    }
+
+    .search-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Transliteration Suggestions */
+    .translit-bar {
+      max-width: 700px;
+      margin: 8px auto 0;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .translit-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .translit-chip {
+      font-family: var(--bn-font);
+      font-size: 13px;
+      padding: 3px 10px;
+      background: rgba(124, 106, 239, 0.1);
+      border: 1px solid rgba(124, 106, 239, 0.2);
+      border-radius: 20px;
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .translit-chip:hover {
+      background: rgba(124, 106, 239, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Quick Suggest Tags */
+    .quick-tags {
+      max-width: 700px;
+      margin: 10px auto 0;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .quick-tag {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--bn-font);
+    }
+
+    .quick-tag:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Results Area */
+    .results-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 24px 24px;
+      scroll-behavior: smooth;
+    }
+
+    .results-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .results-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .results-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .results-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .results-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* States */
+    .state-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px;
+      text-align: center;
+      animation: fadeIn 0.5s var(--smooth);
+    }
+
+    .state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      filter: grayscale(0.2);
+    }
+
+    .state-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .state-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    /* Skeleton Loader */
+    .skeleton-group {
+      animation: fadeIn 0.3s;
+    }
+
+    .skeleton-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .skel-line {
+      height: 14px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 7px;
+      margin-bottom: 10px;
+    }
+
+    .skel-line.w80 {
+      width: 80%;
+    }
+
+    .skel-line.w60 {
+      width: 60%;
+    }
+
+    .skel-line.w40 {
+      width: 40%;
+    }
+
+    .skel-line.w90 {
+      width: 90%;
+    }
+
+    .skel-line.h24 {
+      height: 24px;
+    }
+
+    .skel-line.h18 {
+      height: 18px;
+    }
+
+    .skel-pills {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .skel-pill {
+      width: 70px;
+      height: 26px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 13px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    /* Result Cards */
+    .result-section {
+      margin-bottom: 20px;
+      animation: slideUp 0.5s var(--spring) both;
+    }
+
+    .result-section:nth-child(1) {
+      animation-delay: 0ms;
+    }
+
+    .result-section:nth-child(2) {
+      animation-delay: 80ms;
+    }
+
+    .result-section:nth-child(3) {
+      animation-delay: 160ms;
+    }
+
+    .result-section:nth-child(4) {
+      animation-delay: 240ms;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .section-icon {
+      font-size: 18px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--glass-border), transparent);
+    }
+
+    /* Word Card */
+    .word-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 28px;
+      backdrop-filter: blur(16px) saturate(180%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .word-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+
+    .word-primary {
+      font-family: var(--bn-font);
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, var(--text-primary), rgba(255, 255, 255, 0.7));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .word-phonetic {
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .pos-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .pos-pill {
+      padding: 4px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-radius: 20px;
+      background: rgba(124, 106, 239, 0.12);
+      border: 1px solid rgba(124, 106, 239, 0.25);
+      color: var(--accent);
+      backdrop-filter: blur(8px);
+    }
+
+    .pos-pill.gender {
+      background: rgba(224, 106, 175, 0.12);
+      border-color: rgba(224, 106, 175, 0.25);
+      color: var(--accent2);
+    }
+
+    /* Translation Items */
+    .translation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .translation-item {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: all 0.3s var(--smooth);
+      backdrop-filter: blur(16px) saturate(180%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .translation-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    }
+
+    .translation-item:hover {
+      background: var(--glass-hover);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateX(4px);
+    }
+
+    .trans-num {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .trans-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .trans-word {
+      font-family: var(--bn-font);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+      text-rendering: optimizeLegibility;
+    }
+
+    .trans-meaning {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .trans-pos {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      border-radius: 12px;
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      color: var(--success);
+      margin-top: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Sentence Bubbles (Parallel Sentence Lab) */
+    .sentences-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sentence-pair {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(16px) saturate(180%);
+      transition: all 0.3s;
+    }
+
+    .sentence-pair:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .sentence-row {
+      padding: 14px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .sentence-row+.sentence-row {
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .sentence-lang {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .sentence-lang.bn {
+      background: rgba(124, 106, 239, 0.15);
+      color: var(--accent);
+    }
+
+    .sentence-lang.en {
+      background: rgba(224, 106, 175, 0.15);
+      color: var(--accent2);
+    }
+
+    .sentence-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+
+    .sentence-text.bn-text {
+      font-family: var(--bn-font);
+      text-rendering: optimizeLegibility;
+    }
+
+    .sentence-text mark {
+      background: rgba(124, 106, 239, 0.2);
+      color: var(--accent);
+      border-radius: 3px;
+      padding: 0 3px;
+      font-weight: 600;
+    }
+
+    /* Meanings Section */
+    .meaning-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 18px 22px;
+      backdrop-filter: blur(16px) saturate(180%);
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .meaning-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+    }
+
+    .meaning-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      padding-left: 12px;
+    }
+
+    .meaning-text.bn-meaning {
+      font-family: var(--bn-font);
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 0;
+      overflow: hidden;
+      border-left: 1px solid var(--glass-border);
+      background: rgba(10, 10, 18, 0.8);
+      backdrop-filter: blur(20px);
+      transition: width 0.4s var(--smooth);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar.open {
+      width: 280px;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .sidebar-close {
+      width: 28px;
+      height: 28px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .sidebar-close:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .sidebar-content::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      padding: 8px 8px 6px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      background: var(--glass-hover);
+    }
+
+    .history-word {
+      flex: 1;
+      font-family: var(--bn-font);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-dir {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .fav-btn {
+      font-size: 14px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+      transition: transform 0.2s;
+    }
+
+    .fav-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .sidebar-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+
+    /* Audio Player */
+    .audio-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      color: var(--accent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .audio-btn:hover {
+      background: rgba(124, 106, 239, 0.15);
+      transform: scale(1.1);
+    }
+
+    .audio-btn.playing {
+      animation: pulse-audio 0.6s ease infinite;
+    }
+
+    @keyframes pulse-audio {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(124, 106, 239, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(124, 106, 239, 0);
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        padding: 12px 16px;
+      }
+
+      .logo-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+      }
+
+      .logo-text {
+        font-size: 15px;
+      }
+
+      .logo-sub {
+        display: none;
+      }
+
+      .search-section {
+        padding: 16px 16px 10px;
+      }
+
+      .search-input {
+        font-size: 15px;
+        padding: 14px 10px;
+      }
+
+      .search-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+      }
+
+      .dir-toggle {
+        font-size: 11px;
+        padding: 6px 8px;
+      }
+
+      .results-scroll {
+        padding: 0 16px 16px;
+      }
+
+      .word-primary {
+        font-size: 28px;
+      }
+
+      .word-card {
+        padding: 20px;
+      }
+
+      .sidebar.open {
+        width: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 50;
+      }
+
+      .translation-item {
+        padding: 14px 16px;
+      }
+
+      .sentence-row {
+        padding: 12px 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .search-btn span {
+        display: none;
+      }
+
+      .search-btn::after {
+        content: '🔍';
+        font-size: 16px;
+      }
+
+      .quick-tags {
+        display: none;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .results-inner {
+        max-width: 1000px;
+      }
+
+      .search-container {
+        max-width: 800px;
+      }
+    }
+
+    /* Focus visible */
+    *:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Print-hidden elements */
+    .no-print {}
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <div id="bg-canvas">
+      <div class="bg-orb bg-orb-1"></div>
+      <div class="bg-orb bg-orb-2"></div>
+      <div class="bg-orb bg-orb-mouse" id="mouseOrb"></div>
+    </div>
+
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">📖</div>
+        <div>
+          <div class="logo-text">অভিধান</div>
+          <div class="logo-sub">Bengali ↔ English Dictionary</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="historyBtn" title="History & Favorites">📚<span class="badge" id="historyBadge"
+            style="display:none">0</span></button>
+      </div>
+    </header>
+
+    <div class="main">
+      <div class="content-area">
+        <div class="search-section">
+          <div class="search-container">
+            <div class="search-box">
+              <div class="search-icon">🔍</div>
+              <input class="search-input" id="searchInput" type="text" placeholder="Type a word... বাংলা বা English"
+                autocomplete="off" spellcheck="false">
+              <button class="dir-toggle" id="dirToggle" title="Switch direction">BN→EN</button>
+              <button class="search-btn" id="searchBtn"><span>Search</span></button>
+            </div>
+            <div class="translit-bar" id="translitBar"></div>
+            <div class="quick-tags" id="quickTags">
+              <span class="quick-tag" data-word="hello">hello</span>
+              <span class="quick-tag" data-word="love">love ❤️</span>
+              <span class="quick-tag" data-word="আকাশ">আকাশ</span>
+              <span class="quick-tag" data-word="water">water</span>
+              <span class="quick-tag" data-word="ধন্যবাদ">ধন্যবাদ</span>
+              <span class="quick-tag" data-word="beautiful">beautiful</span>
+              <span class="quick-tag" data-word="বন্ধু">বন্ধু</span>
+              <span class="quick-tag" data-word="peace">peace</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-scroll" id="resultsScroll">
+          <div class="results-inner" id="resultsInner">
+            <div class="state-container" id="initialState">
+              <div class="state-icon">🌏</div>
+              <div class="state-title">Explore Bengali & English</div>
+              <div class="state-desc">Type a word in Bengali or English to discover translations, meanings, and
+                contextual sentences.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">📚 Personal Lexicon</div>
+          <button class="sidebar-close" id="sidebarClose">✕</button>
+        </div>
+        <div class="sidebar-content" id="sidebarContent">
+          <div class="sidebar-empty">Your search history will appear here</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ===== State Management =====
+      const state = {
+        direction: 'bn-en', // bn-en or en-bn
+        query: '',
+        status: 'idle', // idle, loading, results, empty, error
+        results: null,
+        history: [],
+        favorites: []
+      };
+
+      // ===== Transliteration Map =====
+      const translitMap = {
+        'a': 'অ', 'aa': 'আ', 'i': 'ই', 'ii': 'ঈ', 'u': 'উ', 'uu': 'ঊ',
+        'e': 'এ', 'ai': 'ঐ', 'o': 'ও', 'au': 'ঔ',
+        'k': 'ক', 'kh': 'খ', 'g': 'গ', 'gh': 'ঘ', 'ng': 'ঙ',
+        'ch': 'চ', 'chh': 'ছ', 'j': 'জ', 'jh': 'ঝ',
+        't': 'ত', 'th': 'থ', 'd': 'দ', 'dh': 'ধ', 'n': 'ন',
+        'p': 'প', 'ph': 'ফ', 'b': 'ব', 'bh': 'ভ', 'm': 'ম',
+        'y': 'য', 'r': 'র', 'l': 'ল', 'sh': 'শ', 's': 'স', 'h': 'হ',
+        'ami': 'আমি', 'tumi': 'তুমি', 'apni': 'আপনি',
+        'dhonnobad': 'ধন্যবাদ', 'namaskar': 'নমস্কার',
+        'bhai': 'ভাই', 'bon': 'বোন', 'ma': 'মা', 'baba': 'বাবা',
+        'pani': 'পানি', 'khabar': 'খাবার', 'bari': 'বাড়ি',
+        'sundor': 'সুন্দর', 'bhalo': 'ভালো', 'besh': 'বেশ',
+        'haan': 'হ্যাঁ', 'na': 'না', 'keno': 'কেনো',
+        'ki': 'কি', 'kothay': 'কোথায়', 'kokhon': 'কখন',
+        'bondhu': 'বন্ধু', 'priyo': 'প্রিয়', 'valobasha': 'ভালোবাসা',
+        'akash': 'আকাশ', 'shanti': 'শান্তি', 'jibon': 'জীবন'
+      };
+
+      // ===== DOM Refs =====
+      const $ = id => document.getElementById(id);
+      const searchInput = $('searchInput');
+      const searchBtn = $('searchBtn');
+      const dirToggle = $('dirToggle');
+      const translitBar = $('translitBar');
+      const resultsInner = $('resultsInner');
+      const sidebar = $('sidebar');
+      const sidebarContent = $('sidebarContent');
+      const historyBadge = $('historyBadge');
+      const mouseOrb = $('mouseOrb');
+
+      // ===== Dynamic Lighting =====
+      let mouseX = 50, mouseY = 50;
+      document.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        mouseOrb.style.left = mouseX + 'px';
+        mouseOrb.style.top = mouseY + 'px';
+      });
+
+      // ===== Direction Toggle =====
+      dirToggle.addEventListener('click', () => {
+        state.direction = state.direction === 'bn-en' ? 'en-bn' : 'bn-en';
+        dirToggle.textContent = state.direction === 'bn-en' ? 'BN→EN' : 'EN→BN';
+        searchInput.placeholder = state.direction === 'bn-en'
+          ? 'বাংলা শব্দ লিখুন...'
+          : 'Type an English word...';
+      });
+
+      // ===== Transliteration =====
+      searchInput.addEventListener('input', () => {
+        const val = searchInput.value.trim().toLowerCase();
+        translitBar.innerHTML = '';
+
+        if (!val || /[\u0980-\u09FF]/.test(val)) return;
+
+        const suggestions = [];
+        for (const [roman, bangla] of Object.entries(translitMap)) {
+          if (roman.startsWith(val) || val.startsWith(roman)) {
+            suggestions.push({ roman, bangla });
+          }
+        }
+
+        if (suggestions.length === 0) return;
+
+        const label = document.createElement('span');
+        label.className = 'translit-label';
+        label.textContent = 'বাংলা:';
+        translitBar.appendChild(label);
+
+        suggestions.slice(0, 5).forEach(s => {
+          const chip = document.createElement('span');
+          chip.className = 'translit-chip';
+          chip.textContent = s.bangla;
+          chip.title = s.roman;
+          chip.addEventListener('click', () => {
+            searchInput.value = s.bangla;
+            translitBar.innerHTML = '';
+            if (state.direction === 'en-bn') {
+              state.direction = 'bn-en';
+              dirToggle.textContent = 'BN→EN';
+            }
+            doSearch();
+          });
+          translitBar.appendChild(chip);
+        });
+      });
+
+      // ===== Quick Tags =====
+      document.querySelectorAll('.quick-tag').forEach(tag => {
+        tag.addEventListener('click', () => {
+          const word = tag.dataset.word;
+          searchInput.value = word;
+          const isBn = /[\u0980-\u09FF]/.test(word);
+          state.direction = isBn ? 'bn-en' : 'en-bn';
+          dirToggle.textContent = isBn ? 'BN→EN' : 'EN→BN';
+          doSearch();
+        });
+      });
+
+      // ===== Search =====
+      searchBtn.addEventListener('click', doSearch);
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') doSearch();
+      });
+
+      async function doSearch() {
+        const query = searchInput.value.trim();
+        if (!query) return;
+
+        state.query = query;
+        translitBar.innerHTML = '';
+
+        // Auto-detect direction
+        const hasBengali = /[\u0980-\u09FF]/.test(query);
+        if (hasBengali && state.direction === 'en-bn') {
+          state.direction = 'bn-en';
+          dirToggle.textContent = 'BN→EN';
+        } else if (!hasBengali && state.direction === 'bn-en') {
+          state.direction = 'en-bn';
+          dirToggle.textContent = 'EN→BN';
+        }
+
+        const from = state.direction === 'bn-en' ? 'bn' : 'en';
+        const dest = state.direction === 'bn-en' ? 'en' : 'bn';
+
+        setState('loading');
+        addToHistory(query, state.direction);
+
+        const p = [];
+        // MyMemory Parallel Fetch
+        p.push(fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=${from}|${dest}`).then(r => r.json()).catch(() => null));
+        // DictionaryAPI parallel fetch (English only)
+        if (!hasBengali) {
+          p.push(fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(query)}`).then(r => r.json()).catch(() => null));
+        }
+
+        try {
+          const [mm, da] = await Promise.all(p);
+          if (!mm || (mm.responseData.translatedText === query && !mm.matches.length)) {
+            setState('empty'); return;
+          }
+          processResults(mm, da, query);
+        } catch (e) { setState('empty') }
+      }
+
+      function processResults(mm, da, query) {
+        const translations = [];
+        const meanings = [];
+        const posSet = new Set();
+        const sentences = [];
+        let phonetic = '';
+
+        // Process MyMemory
+        if (mm && mm.matches) {
+          mm.matches.forEach(m => {
+            if (m.translation && m.translation.toLowerCase() !== query.toLowerCase()) {
+              translations.push({
+                word: m.translation,
+                meaning: m.reference || '',
+                pos: ''
+              });
+            }
+            if (m.segment && m.translation && m.segment.length > 20) {
+              sentences.push({ source: state.direction === 'en-bn' ? m.segment : m.translation, target: state.direction === 'en-bn' ? m.translation : m.segment });
+            }
+          });
+        }
+        if (mm && mm.responseData) {
+          const mainTr = mm.responseData.translatedText;
+          if (mainTr && mainTr.toLowerCase() !== query.toLowerCase() && !translations.some(t => t.word === mainTr)) {
+            translations.unshift({ word: mainTr, meaning: 'Primary Translation', pos: '' });
+          }
+        }
+
+        // Process DictionaryAPI
+        if (da && Array.isArray(da)) {
+          const entry = da[0];
+          phonetic = entry.phonetic || (entry.phonetics && entry.phonetics[0] ? entry.phonetics[0].text : '');
+
+          entry.meanings.forEach(m => {
+            if (m.partOfSpeech) posSet.add(m.partOfSpeech);
+            m.definitions.forEach(d => {
+              if (d.definition) meanings.push({ text: d.definition, language: 'en' });
+              if (d.example) sentences.push({ source: d.example, target: '' });
+            });
+          });
+        }
+
+        const uniqueTr = [];
+        const seenTr = new Set();
+        translations.forEach(t => {
+          const clean = t.word.toLowerCase().trim();
+          if (!seenTr.has(clean)) { seenTr.add(clean); uniqueTr.push(t) }
+        });
+
+        state.results = {
+          query,
+          direction: state.direction,
+          phonetic,
+          translations: uniqueTr.slice(0, 10),
+          meanings: uniqueBy(meanings, 'text').slice(0, 8),
+          pos: [...posSet],
+          sentences: sentences.slice(0, 6)
+        };
+
+        setState('results');
+      }
+
+      // ===== Render States =====
+      function setState(status) {
+        state.status = status;
+        resultsInner.innerHTML = '';
+
+        switch (status) {
+          case 'loading':
+            resultsInner.innerHTML = renderSkeleton();
+            break;
+          case 'results':
+            renderResults();
+            break;
+          case 'empty':
+            resultsInner.innerHTML = renderEmpty();
+            break;
+          case 'error':
+            resultsInner.innerHTML = renderError();
+            break;
+          default:
+            resultsInner.innerHTML = renderInitial();
+        }
+      }
+
+      function renderSkeleton() {
+        return `
+      <div class="skeleton-group">
+        <div class="skeleton-card">
+          <div class="skel-line h24 w60"></div>
+          <div class="skel-line w40"></div>
+          <div class="skel-pills"><div class="skel-pill"></div><div class="skel-pill"></div></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skel-line h18 w80"></div>
+          <div class="skel-line w60"></div>
+          <div class="skel-line w90"></div>
+        </div>
+        <div class="skeleton-card">
+          <div class="skel-line h18 w60"></div>
+          <div class="skel-line w80"></div>
+        </div>
+      </div>`;
+      }
+
+      function renderEmpty() {
+        const suggestions = ['hello', 'আকাশ', 'love', 'বন্ধু', 'peace'];
+        return `
+      <div class="state-container">
+        <div class="state-icon">🔮</div>
+        <div class="state-title">No results found</div>
+        <div class="state-desc">We couldn't find translations for "<strong>${escHtml(state.query)}</strong>". Try a different spelling or one of these words:</div>
+        <div class="quick-tags" style="justify-content:center;margin-top:16px;">
+          ${suggestions.map(w => `<span class="quick-tag" onclick="document.getElementById('searchInput').value='${w}';document.getElementById('searchBtn').click()">${w}</span>`).join('')}
+        </div>
+      </div>`;
+      }
+
+      function renderError() {
+        return `
+      <div class="state-container">
+        <div class="state-icon">⚡</div>
+        <div class="state-title">Connection Issue</div>
+        <div class="state-desc">Something went wrong while fetching results. Please check your connection and try again.</div>
+      </div>`;
+      }
+
+      function renderInitial() {
+        return `
+      <div class="state-container" id="initialState">
+        <div class="state-icon">🌏</div>
+        <div class="state-title">Explore Bengali & English</div>
+        <div class="state-desc">Type a word in Bengali or English to discover translations, meanings, and contextual sentences.</div>
+      </div>`;
+      }
+
+      function renderResults() {
+        const r = state.results;
+        if (!r) return;
+
+        const isBnEn = r.direction === 'bn-en';
+        const srcLang = isBnEn ? 'BN' : 'EN';
+        const destLang = isBnEn ? 'EN' : 'BN';
+        let html = '';
+
+        // Word Card
+        html += `<div class="result-section">
+      <div class="section-header">
+        <span class="section-icon">✨</span>
+        <span class="section-title">Word</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="word-card">
+        <div class="word-primary">${escHtml(r.query)}</div>
+        <div class="word-phonetic">${srcLang === 'BN' ? 'বাংলা' : 'English'} → ${destLang === 'EN' ? 'English' : 'বাংলা'} ${r.phonetic ? `<span style="font-family:var(--en-font);opacity:.5;margin-left:8px;font-size:14px;font-weight:400">/${r.phonetic}/</span>` : ''}</div>
+        ${r.pos.length > 0 ? `<div class="pos-pills">${r.pos.map(p => `<span class="pos-pill">${escHtml(p)}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>`;
+
+        // Translations
+        if (r.translations.length > 0) {
+          html += `<div class="result-section">
+        <div class="section-header">
+          <span class="section-icon">📝</span>
+          <span class="section-title">Translations</span>
+          <div class="section-line"></div>
+        </div>
+        <div class="translation-list">
+          ${r.translations.map((t, i) => {
+            const isBn = /[\u0980-\u09FF]/.test(t.word);
+            return `<div class="translation-item">
+              <div class="trans-num">${i + 1}</div>
+              <div class="trans-content">
+                <div class="trans-word" ${isBn ? 'style="font-family:var(--bn-font);text-rendering:optimizeLegibility"' : ''}>${escHtml(t.word)}</div>
+                ${t.meaning ? `<div class="trans-meaning">${escHtml(t.meaning)}</div>` : ''}
+                ${t.pos ? `<span class="trans-pos">${escHtml(t.pos)}</span>` : ''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+        }
+
+        // Meanings
+        if (r.meanings.length > 0) {
+          html += `<div class="result-section">
+        <div class="section-header">
+          <span class="section-icon">💡</span>
+          <span class="section-title">Definitions</span>
+          <div class="section-line"></div>
+        </div>
+        ${r.meanings.map(m => {
+            const isBn = /[\u0980-\u09FF]/.test(m.text);
+            return `<div class="meaning-card">
+            <div class="meaning-text ${isBn ? 'bn-meaning' : ''}">${escHtml(m.text)}</div>
+          </div>`;
+          }).join('')}
+      </div>`;
+        }
+
+        // Parallel Sentence Lab
+        if (r.sentences.length > 0) {
+          html += `<div class="result-section">
+        <div class="section-header">
+          <span class="section-icon">🔬</span>
+          <span class="section-title">Parallel Sentence Lab</span>
+          <div class="section-line"></div>
+        </div>
+        <div class="sentences-grid">
+          ${r.sentences.map(s => {
+            const srcText = highlightWord(s.source, r.query);
+            const tgtText = highlightWord(s.target, r.translations.length > 0 ? r.translations[0].word : '');
+            const srcIsBn = /[\u0980-\u09FF]/.test(s.source);
+            const tgtIsBn = /[\u0980-\u09FF]/.test(s.target);
+            return `<div class="sentence-pair">
+              <div class="sentence-row">
+                <span class="sentence-lang ${srcIsBn ? 'bn' : 'en'}">${srcIsBn ? 'BN' : 'EN'}</span>
+                <div class="sentence-text ${srcIsBn ? 'bn-text' : ''}">${srcText}</div>
+              </div>
+              <div class="sentence-row">
+                <span class="sentence-lang ${tgtIsBn ? 'bn' : 'en'}">${tgtIsBn ? 'BN' : 'EN'}</span>
+                <div class="sentence-text ${tgtIsBn ? 'bn-text' : ''}">${tgtText}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+        }
+
+        resultsInner.innerHTML = html;
+      }
+
+      // ===== Sidebar (History & Favorites) =====
+      $('historyBtn').addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        renderSidebar();
+      });
+
+      $('sidebarClose').addEventListener('click', () => {
+        sidebar.classList.remove('open');
+      });
+
+      function addToHistory(word, direction) {
+        // Remove duplicate
+        state.history = state.history.filter(h => h.word !== word);
+        state.history.unshift({ word, direction, time: Date.now() });
+        if (state.history.length > 30) state.history.pop();
+        updateHistoryBadge();
+        if (sidebar.classList.contains('open')) renderSidebar();
+      }
+
+      function toggleFavorite(word) {
+        const idx = state.favorites.indexOf(word);
+        if (idx === -1) {
+          state.favorites.push(word);
+        } else {
+          state.favorites.splice(idx, 1);
+        }
+        renderSidebar();
+      }
+
+      function updateHistoryBadge() {
+        const count = state.history.length;
+        if (count > 0) {
+          historyBadge.style.display = 'flex';
+          historyBadge.textContent = count > 9 ? '9+' : count;
+        } else {
+          historyBadge.style.display = 'none';
+        }
+      }
+
+      function renderSidebar() {
+        if (state.history.length === 0 && state.favorites.length === 0) {
+          sidebarContent.innerHTML = '<div class="sidebar-empty">✨ Your search history and favorite words will appear here</div>';
+          return;
+        }
+
+        let html = '';
+
+        if (state.favorites.length > 0) {
+          html += '<div class="sidebar-section-label">⭐ Favorites</div>';
+          state.favorites.forEach(word => {
+            html += `<div class="history-item" data-word="${escAttr(word)}">
+          <span class="history-word">${escHtml(word)}</span>
+          <button class="fav-btn" data-fav="${escAttr(word)}">⭐</button>
+        </div>`;
+          });
+        }
+
+        html += '<div class="sidebar-section-label">🕐 Recent</div>';
+        state.history.slice(0, 20).forEach(h => {
+          const isFav = state.favorites.includes(h.word);
+          html += `<div class="history-item" data-word="${escAttr(h.word)}" data-dir="${h.direction}">
+        <span class="history-word">${escHtml(h.word)}</span>
+        <span class="history-dir">${h.direction === 'bn-en' ? 'BN→EN' : 'EN→BN'}</span>
+        <button class="fav-btn" data-fav="${escAttr(h.word)}">${isFav ? '⭐' : '☆'}</button>
+      </div>`;
+        });
+
+        sidebarContent.innerHTML = html;
+
+        // Bind clicks
+        sidebarContent.querySelectorAll('.history-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            if (e.target.closest('.fav-btn')) return;
+            const word = item.dataset.word;
+            const dir = item.dataset.dir;
+            searchInput.value = word;
+            if (dir) {
+              state.direction = dir;
+              dirToggle.textContent = dir === 'bn-en' ? 'BN→EN' : 'EN→BN';
+            }
+            doSearch();
+            if (window.innerWidth < 768) sidebar.classList.remove('open');
+          });
+        });
+
+        sidebarContent.querySelectorAll('.fav-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(btn.dataset.fav);
+          });
+        });
+      }
+
+      // ===== Utility Functions =====
+      function safeGet(obj, path, fallback) {
+        try {
+          return path.split('.').reduce((o, k) => {
+            if (o == null) return fallback;
+            return o[k];
+          }, obj) ?? fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function escHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function escAttr(str) {
+        return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function stripHtml(str) {
+        if (!str) return '';
+        const tmp = document.createElement('div');
+        tmp.innerHTML = str;
+        return tmp.textContent || tmp.innerText || '';
+      }
+
+      function highlightWord(text, word) {
+        if (!text || !word) return escHtml(text);
+        const escaped = escHtml(text);
+        const wordEsc = escHtml(word);
+        if (!wordEsc) return escaped;
+        try {
+          const regex = new RegExp(`(${wordEsc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+          return escaped.replace(regex, '<mark>$1</mark>');
+        } catch (e) {
+          return escaped;
+        }
+      }
+
+      function uniqueBy(arr, key) {
+        const seen = new Set();
+        return arr.filter(item => {
+          const val = item[key];
+          if (seen.has(val)) return false;
+          seen.add(val);
+          return true;
+        });
+      }
+
+    })();
+  </script>
+</body>
+
+</html>

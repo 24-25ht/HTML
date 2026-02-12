@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Target Master Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
+            color: #fff;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Menu Screen */
+        #menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0a0a2e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #menu::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 50, 50, 0.08) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .menu-title {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ff4444, #ff8800, #ffcc00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            letter-spacing: 2px;
+        }
+
+        .menu-subtitle {
+            color: #8888aa;
+            font-size: clamp(0.8rem, 2vw, 1.1rem);
+            margin-bottom: 2rem;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 900px;
+            width: 90%;
+            padding: 10px;
+        }
+
+        .game-card {
+            background: linear-gradient(145deg, #1a1a3e, #252560);
+            border: 1px solid #333366;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff6644;
+            box-shadow: 0 10px 30px rgba(255, 100, 50, 0.2);
+        }
+
+        .game-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .game-card .name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .game-card .desc {
+            font-size: 0.75rem;
+            color: #8888bb;
+            line-height: 1.4;
+        }
+
+        .game-card .diff {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .diff-easy {
+            background: #00aa44;
+        }
+
+        .diff-med {
+            background: #cc8800;
+        }
+
+        .diff-hard {
+            background: #cc2222;
+        }
+
+        /* Game Screen */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #111133, #1a1a44);
+            border-bottom: 2px solid #333366;
+            min-height: 50px;
+            z-index: 10;
+        }
+
+        #game-header .left,
+        #game-header .right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #0a0a2a;
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: 1px solid #333366;
+            font-size: 0.85rem;
+        }
+
+        .stat-box span {
+            color: #ffcc00;
+            font-weight: 700;
+        }
+
+        #btn-back {
+            background: linear-gradient(135deg, #cc2222, #881111);
+            border: none;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        #btn-back:hover {
+            transform: scale(1.05);
+        }
+
+        #game-title-bar {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #ffaa44;
+        }
+
+        #game-canvas-wrap {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #0d0d2a;
+            cursor: crosshair;
+        }
+
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Results overlay */
+        #results-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #results-overlay.show {
+            display: flex;
+        }
+
+        .results-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffcc00, #ff6644);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .results-stats {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .results-stats div {
+            margin: 6px 0;
+            font-size: 1.1rem;
+            color: #ccccee;
+        }
+
+        .results-stats span {
+            color: #ffcc00;
+            font-weight: 700;
+        }
+
+        .results-btns {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-res {
+            padding: 10px 30px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-res:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-retry {
+            background: linear-gradient(135deg, #ff6644, #cc3311);
+            color: #fff;
+        }
+
+        .btn-menu {
+            background: linear-gradient(135deg, #4444cc, #2222aa);
+            color: #fff;
+        }
+
+        /* Countdown overlay */
+        #countdown-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 90;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            font-weight: 900;
+            color: #ffcc00;
+        }
+
+        #countdown-overlay.show {
+            display: flex;
+        }
+
+        /* Hit effects */
+        .hit-effect {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.5rem;
+            font-weight: 900;
+            animation: hitFloat 0.8s ease-out forwards;
+            z-index: 50;
+        }
+
+        @keyframes hitFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-40px) scale(1.3);
+            }
+        }
+
+        .miss-effect {
+            position: absolute;
+            pointer-events: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 50, 50, 0.6);
+            border-radius: 50%;
+            animation: missRing 0.5s ease-out forwards;
+            z-index: 50;
+        }
+
+        @keyframes missRing {
+            0% {
+                opacity: 1;
+                transform: scale(0.5);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- MENU -->
+        <div id="menu">
+            <div class="menu-title">🎯 Target Master Pro</div>
+            <div class="menu-subtitle">Choose your training mode</div>
+            <div class="game-grid" id="game-grid"></div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen">
+            <div id="game-header">
+                <div class="left">
+                    <button id="btn-back" onclick="goMenu()">← Menu</button>
+                    <div id="game-title-bar"></div>
+                </div>
+                <div class="right" id="stats-bar"></div>
+            </div>
+            <div id="game-canvas-wrap">
+                <canvas id="game-canvas"></canvas>
+                <div id="results-overlay">
+                    <div class="results-title">🏆 Round Complete!</div>
+                    <div class="results-stats" id="results-stats"></div>
+                    <div class="results-btns">
+                        <button class="btn-res btn-retry" onclick="retryGame()">🔄 Retry</button>
+                        <button class="btn-res btn-menu" onclick="goMenu()">📋 Menu</button>
+                    </div>
+                </div>
+                <div id="countdown-overlay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ GLOBALS ============
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const wrap = document.getElementById('game-canvas-wrap');
+        let W, H, animFrame, gameActive = false, currentGame = null;
+        let mouseX = 0, mouseY = 0;
+
+        function resizeCanvas() {
+            W = wrap.clientWidth; H = wrap.clientHeight;
+            canvas.width = W; canvas.height = H;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // ============ GAME DEFINITIONS ============
+        const games = [
+            { id: 'classic', name: 'Classic Targets', icon: '🎯', desc: 'Hit round targets before they vanish. Speed & accuracy matter!', diff: 'Easy', diffClass: 'diff-easy' },
+            { id: 'speed', name: 'Speed Blitz', icon: '⚡', desc: 'Rapid-fire tiny targets. How many can you hit in 30 seconds?', diff: 'Medium', diffClass: 'diff-med' },
+            { id: 'darts', name: 'Darts Challenge', icon: '🎪', desc: 'Throw darts at a dartboard. Aim for the bullseye!', diff: 'Medium', diffClass: 'diff-med' },
+            { id: 'skeet', name: 'Skeet Shoot', icon: '🕊️', desc: 'Shoot flying discs before they leave the screen.', diff: 'Hard', diffClass: 'diff-hard' },
+            { id: 'reflex', name: 'Reflex Test', icon: '🧠', desc: 'Targets flash briefly. Test your reaction time!', diff: 'Hard', diffClass: 'diff-hard' },
+            { id: 'tracker', name: 'Tracking Shot', icon: '🔮', desc: 'Track and click moving targets that drift smoothly.', diff: 'Medium', diffClass: 'diff-med' },
+            { id: 'sniper', name: 'Precision Sniper', icon: '🔭', desc: 'Tiny distant targets. Pixel-perfect accuracy required.', diff: 'Hard', diffClass: 'diff-hard' },
+        ];
+
+        // Build menu
+        const grid = document.getElementById('game-grid');
+        games.forEach(g => {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `<div class="icon">${g.icon}</div><div class="name">${g.name}</div><div class="desc">${g.desc}</div><div class="diff ${g.diffClass}">${g.diff}</div>`;
+            card.onclick = () => startGame(g.id);
+            grid.appendChild(card);
+        });
+
+        function goMenu() {
+            gameActive = false;
+            cancelAnimationFrame(animFrame);
+            document.getElementById('menu').style.display = 'flex';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('results-overlay').classList.remove('show');
+        }
+
+        function retryGame() {
+            document.getElementById('results-overlay').classList.remove('show');
+            if (currentGame) startGame(currentGame);
+        }
+
+        // ============ GAME ENGINE ============
+        let score, hits, misses, shots, totalTargets, timeLeft, timerInterval;
+        let targets = [], particles = [];
+
+        function startGame(id) {
+            currentGame = id;
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'flex';
+            document.getElementById('results-overlay').classList.remove('show');
+            resizeCanvas();
+            score = 0; hits = 0; misses = 0; shots = 0; targets = []; particles = [];
+            gameActive = false;
+
+            const g = games.find(x => x.id === id);
+            document.getElementById('game-title-bar').textContent = g.icon + ' ' + g.name;
+
+            cancelAnimationFrame(animFrame);
+            clearInterval(timerInterval);
+
+            countdown(() => {
+                gameActive = true;
+                gameEngines[id].init();
+                gameLoop();
+            });
+        }
+
+        function countdown(cb) {
+            const ov = document.getElementById('countdown-overlay');
+            ov.classList.add('show');
+            let c = 3;
+            ov.textContent = c;
+            const iv = setInterval(() => {
+                c--;
+                if (c <= 0) { clearInterval(iv); ov.classList.remove('show'); cb(); }
+                else ov.textContent = c;
+            }, 700);
+        }
+
+        function updateStats(statsArr) {
+            const bar = document.getElementById('stats-bar');
+            bar.innerHTML = statsArr.map(s => `<div class="stat-box">${s.label}: <span>${s.value}</span></div>`).join('');
+        }
+
+        function showResults(statsArr) {
+            gameActive = false;
+            cancelAnimationFrame(animFrame);
+            clearInterval(timerInterval);
+            const ov = document.getElementById('results-overlay');
+            const st = document.getElementById('results-stats');
+            st.innerHTML = statsArr.map(s => `<div>${s.label}: <span>${s.value}</span></div>`).join('');
+            ov.classList.add('show');
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+            ctx.clearRect(0, 0, W, H);
+            gameEngines[currentGame].update();
+            gameEngines[currentGame].draw();
+            drawParticles();
+            animFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // ============ PARTICLES ============
+        function spawnParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 4;
+                particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color, r: 2 + Math.random() * 3 });
+            }
+        }
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function showHitText(x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'hit-effect';
+            el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
+            el.textContent = text;
+            wrap.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        function showMissRing(x, y) {
+            const el = document.createElement('div');
+            el.className = 'miss-effect';
+            el.style.left = (x - 10) + 'px'; el.style.top = (y - 10) + 'px';
+            wrap.appendChild(el);
+            setTimeout(() => el.remove(), 500);
+        }
+
+        // Mouse tracking
+        wrap.addEventListener('mousemove', e => {
+            const rect = wrap.getBoundingClientRect();
+            mouseX = e.clientX - rect.left; mouseY = e.clientY - rect.top;
+        });
+
+        wrap.addEventListener('click', e => {
+            if (!gameActive) return;
+            const rect = wrap.getBoundingClientRect();
+            const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+            if (gameEngines[currentGame].click) gameEngines[currentGame].click(cx, cy);
+        });
+
+        // ============ UTILITY ============
+        function dist(x1, y1, x2, y2) { return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2); }
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function rand(a, b) { return a + Math.random() * (b - a); }
+
+        function drawTarget(x, y, r, alpha) {
+            ctx.globalAlpha = alpha || 1;
+            const colors = ['#ff2222', '#fff', '#ff2222', '#fff', '#ff2222'];
+            for (let i = 4; i >= 0; i--) {
+                ctx.fillStyle = colors[i];
+                ctx.beginPath(); ctx.arc(x, y, r * (i + 1) / 5, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(50,50,120,0.15)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+            for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+        }
+
+        // ============ GAME 1: CLASSIC TARGETS ============
+        let classicState = {};
+        const gameEngines = {};
+
+        gameEngines.classic = {
+            init() {
+                classicState = { targetsHit: 0, targetsMissed: 0, totalToSpawn: 25, spawned: 0, spawnTimer: 0 };
+                targets = []; score = 0; hits = 0; misses = 0; shots = 0;
+                this.spawnTarget();
+            },
+            spawnTarget() {
+                if (classicState.spawned >= classicState.totalToSpawn) return;
+                const r = rand(25, 50);
+                const x = rand(r + 20, W - r - 20), y = rand(r + 20, H - r - 20);
+                targets.push({ x, y, r, maxLife: 180, life: 180, born: Date.now() });
+                classicState.spawned++;
+            },
+            update() {
+                classicState.spawnTimer++;
+                if (classicState.spawnTimer > 50 && targets.length < 3 && classicState.spawned < classicState.totalToSpawn) {
+                    this.spawnTarget(); classicState.spawnTimer = 0;
+                }
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    targets[i].life--;
+                    if (targets[i].life <= 0) {
+                        classicState.targetsMissed++; targets.splice(i, 1);
+                    }
+                }
+                const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                updateStats([
+                    { label: 'Score', value: score }, { label: 'Hits', value: hits + '/' + classicState.totalToSpawn },
+                    { label: 'Accuracy', value: acc + '%' }
+                ]);
+                if (classicState.spawned >= classicState.totalToSpawn && targets.length === 0) {
+                    showResults([
+                        { label: 'Score', value: score }, { label: 'Hits', value: hits }, { label: 'Missed Targets', value: classicState.targetsMissed },
+                        { label: 'Accuracy', value: acc + '%' }
+                    ]);
+                }
+            },
+            draw() {
+                drawGrid();
+                targets.forEach(t => {
+                    const alpha = Math.min(1, t.life / 30);
+                    const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.05;
+                    drawTarget(t.x, t.y, t.r * pulse, alpha);
+                    // timer ring
+                    ctx.strokeStyle = `rgba(255,255,100,${alpha * 0.6})`;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, t.r + 5, -Math.PI / 2, -Math.PI / 2 + (t.life / t.maxLife) * Math.PI * 2);
+                    ctx.stroke();
+                });
+            },
+            click(cx, cy) {
+                shots++;
+                let hit = false;
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    const t = targets[i];
+                    const d = dist(cx, cy, t.x, t.y);
+                    if (d < t.r) {
+                        hit = true;
+                        const ring = Math.ceil((d / t.r) * 5);
+                        const pts = (6 - ring) * 10;
+                        score += pts; hits++;
+                        spawnParticles(t.x, t.y, '#ffcc00', 12);
+                        showHitText(cx, cy - 20, '+' + pts, '#ffcc00');
+                        targets.splice(i, 1);
+                        if (targets.length === 0 && classicState.spawned < classicState.totalToSpawn) {
+                            this.spawnTarget(); classicState.spawnTimer = 0;
+                        }
+                        break;
+                    }
+                }
+                if (!hit) { misses++; showMissRing(cx, cy); }
+            }
+        };
+
+        // ============ GAME 2: SPEED BLITZ ============
+        gameEngines.speed = {
+            init() {
+                targets = []; score = 0; hits = 0; misses = 0; shots = 0; timeLeft = 30;
+                this.spawnTarget();
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                        showResults([
+                            { label: 'Score', value: score }, { label: 'Hits', value: hits }, { label: 'Shots', value: shots },
+                            { label: 'Accuracy', value: acc + '%' }, { label: 'Hits/sec', value: (hits / 30).toFixed(1) }
+                        ]);
+                    }
+                }, 1000);
+                for (let i = 0; i < 3; i++) this.spawnTarget();
+            },
+            spawnTarget() {
+                const r = rand(12, 22);
+                targets.push({ x: rand(r + 10, W - r - 10), y: rand(r + 10, H - r - 10), r, alpha: 1 });
+            },
+            update() {
+                const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                updateStats([
+                    { label: '⏱️ Time', value: timeLeft + 's' }, { label: 'Score', value: score },
+                    { label: 'Hits', value: hits }, { label: 'Accuracy', value: acc + '%' }
+                ]);
+            },
+            draw() {
+                drawGrid();
+                // draw pulsing bg
+                ctx.fillStyle = `rgba(255,${Math.floor(50 + timeLeft * 6)},0,0.03)`;
+                ctx.fillRect(0, 0, W, H);
+                targets.forEach(t => {
+                    const glow = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, t.r * 2);
+                    glow.addColorStop(0, 'rgba(255,100,0,0.3)'); glow.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glow; ctx.fillRect(t.x - t.r * 2, t.y - t.r * 2, t.r * 4, t.r * 4);
+                    ctx.fillStyle = '#ff4422';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 0.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#ff4422';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 0.2, 0, Math.PI * 2); ctx.fill();
+                });
+            },
+            click(cx, cy) {
+                shots++;
+                let hit = false;
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    if (dist(cx, cy, targets[i].x, targets[i].y) < targets[i].r) {
+                        hit = true; hits++; score += 10;
+                        spawnParticles(targets[i].x, targets[i].y, '#ff8800', 8);
+                        showHitText(cx, cy - 15, '+10', '#ffaa00');
+                        targets.splice(i, 1);
+                        this.spawnTarget();
+                        if (targets.length < 3) this.spawnTarget();
+                        break;
+                    }
+                }
+                if (!hit) { misses++; showMissRing(cx, cy); }
+            }
+        };
+
+        // ============ GAME 3: DARTS ============
+        let dartsState = {};
+        gameEngines.darts = {
+            init() {
+                dartsState = { throws: 0, maxThrows: 10, dartHits: [], wobbleX: 0, wobbleY: 0, throwing: false };
+                score = 0; targets = [];
+                dartsState.boardX = W / 2; dartsState.boardY = H / 2;
+                dartsState.boardR = Math.min(W, H) * 0.35;
+            },
+            update() {
+                // Wobble crosshair
+                dartsState.wobbleX = Math.sin(Date.now() * 0.003) * 15 + Math.sin(Date.now() * 0.007) * 8;
+                dartsState.wobbleY = Math.cos(Date.now() * 0.004) * 15 + Math.cos(Date.now() * 0.006) * 8;
+                updateStats([
+                    { label: '🎯 Score', value: score },
+                    { label: 'Darts', value: dartsState.throws + '/' + dartsState.maxThrows },
+                    { label: 'Avg', value: dartsState.throws > 0 ? (score / dartsState.throws).toFixed(1) : '0' }
+                ]);
+            },
+            draw() {
+                const bx = dartsState.boardX, by = dartsState.boardY, br = dartsState.boardR;
+                // Board shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath(); ctx.arc(bx + 5, by + 5, br + 10, 0, Math.PI * 2); ctx.fill();
+                // Board rings
+                const rings = [
+                    { r: 1, c: '#1a1a2e' }, { r: 0.9, c: '#22cc44' }, { r: 0.75, c: '#cc2222' },
+                    { r: 0.55, c: '#22cc44' }, { r: 0.35, c: '#cc2222' }, { r: 0.15, c: '#22cc44' }, { r: 0.06, c: '#cc2222' }
+                ];
+                rings.forEach(ring => {
+                    ctx.fillStyle = ring.c;
+                    ctx.beginPath(); ctx.arc(bx, by, br * ring.r, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(bx, by, br * ring.r, 0, Math.PI * 2); ctx.stroke();
+                });
+                // Radial lines
+                for (let i = 0; i < 20; i++) {
+                    const a = (i / 20) * Math.PI * 2;
+                    ctx.strokeStyle = 'rgba(200,200,200,0.08)'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + Math.cos(a) * br, by + Math.sin(a) * br); ctx.stroke();
+                }
+                // Number labels
+                const nums = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+                ctx.fillStyle = '#ddd'; ctx.font = `bold ${Math.max(10, br * 0.07)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                nums.forEach((n, i) => {
+                    const a = (i / 20) * Math.PI * 2 - Math.PI / 2;
+                    ctx.fillText(n, bx + Math.cos(a) * (br + 18), by + Math.sin(a) * (br + 18));
+                });
+                // Previous dart hits
+                dartsState.dartHits.forEach(d => {
+                    ctx.fillStyle = '#888';
+                    ctx.beginPath(); ctx.arc(d.x, d.y, 4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.beginPath(); ctx.arc(d.x, d.y, 2, 0, Math.PI * 2); ctx.fill();
+                });
+                // Crosshair with wobble
+                if (dartsState.throws < dartsState.maxThrows) {
+                    const cx = mouseX + dartsState.wobbleX, cy = mouseY + dartsState.wobbleY;
+                    ctx.strokeStyle = 'rgba(255,255,0,0.8)'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(cx - 15, cy); ctx.lineTo(cx + 15, cy); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, cy - 15); ctx.lineTo(cx, cy + 15); ctx.stroke();
+                    ctx.strokeStyle = 'rgba(255,255,0,0.4)';
+                    ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2); ctx.stroke();
+                }
+            },
+            click(cx, cy) {
+                if (dartsState.throws >= dartsState.maxThrows) return;
+                const ax = cx + dartsState.wobbleX, ay = cy + dartsState.wobbleY;
+                const bx = dartsState.boardX, by = dartsState.boardY, br = dartsState.boardR;
+                const d = dist(ax, ay, bx, by);
+                let pts = 0;
+                if (d < br * 0.06) pts = 50;
+                else if (d < br * 0.15) pts = 25;
+                else if (d < br * 0.35) pts = 15;
+                else if (d < br * 0.55) pts = 10;
+                else if (d < br * 0.75) pts = 5;
+                else if (d < br * 0.9) pts = 3;
+                else if (d < br) pts = 1;
+                score += pts;
+                dartsState.throws++;
+                dartsState.dartHits.push({ x: ax, y: ay });
+                if (pts >= 25) { spawnParticles(ax, ay, '#ffcc00', 20); showHitText(ax, ay - 20, '🎯 +' + pts, '#ffcc00'); }
+                else if (pts > 0) { spawnParticles(ax, ay, '#44ff44', 8); showHitText(ax, ay - 20, '+' + pts, '#44ff44'); }
+                else { showHitText(ax, ay - 20, 'Miss!', '#ff4444'); }
+
+                if (dartsState.throws >= dartsState.maxThrows) {
+                    setTimeout(() => {
+                        showResults([
+                            { label: 'Total Score', value: score }, { label: 'Darts Thrown', value: dartsState.maxThrows },
+                            { label: 'Average', value: (score / dartsState.maxThrows).toFixed(1) },
+                            { label: 'Best Possible', value: '500' }
+                        ]);
+                    }, 500);
+                }
+            }
+        };
+
+        // ============ GAME 4: SKEET SHOOT ============
+        let skeetState = {};
+        gameEngines.skeet = {
+            init() {
+                skeetState = { spawned: 0, maxTargets: 20, spawnTimer: 0, spawnRate: 70 };
+                targets = []; score = 0; hits = 0; misses = 0; shots = 0;
+            },
+            spawnDisc() {
+                if (skeetState.spawned >= skeetState.maxTargets) return;
+                const fromLeft = Math.random() > 0.5;
+                const t = {
+                    x: fromLeft ? -30 : W + 30,
+                    y: H * rand(0.5, 0.9),
+                    vx: fromLeft ? rand(3, 7) : rand(-7, -3),
+                    vy: rand(-5, -2),
+                    r: rand(16, 24),
+                    alive: true, gravity: 0.06
+                };
+                targets.push(t);
+                skeetState.spawned++;
+            },
+            update() {
+                skeetState.spawnTimer++;
+                if (skeetState.spawnTimer >= skeetState.spawnRate && skeetState.spawned < skeetState.maxTargets) {
+                    this.spawnDisc(); skeetState.spawnTimer = 0;
+                    skeetState.spawnRate = Math.max(30, skeetState.spawnRate - 2);
+                }
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    const t = targets[i];
+                    t.x += t.vx; t.vy += t.gravity; t.y += t.vy;
+                    if (t.x < -60 || t.x > W + 60 || t.y > H + 60) {
+                        if (t.alive) misses++;
+                        targets.splice(i, 1);
+                    }
+                }
+                const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                updateStats([
+                    { label: 'Score', value: score }, { label: 'Hits', value: hits + '/' + skeetState.maxTargets },
+                    { label: 'Accuracy', value: acc + '%' }
+                ]);
+                if (skeetState.spawned >= skeetState.maxTargets && targets.length === 0) {
+                    showResults([
+                        { label: 'Score', value: score }, { label: 'Hits', value: hits }, { label: 'Missed', value: misses },
+                        { label: 'Accuracy', value: acc + '%' }
+                    ]);
+                }
+            },
+            draw() {
+                // Sky gradient
+                const grad = ctx.createLinearGradient(0, 0, 0, H);
+                grad.addColorStop(0, '#0a0a2e'); grad.addColorStop(1, '#1a1a44');
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+                // Ground
+                ctx.fillStyle = '#0d1a0d';
+                ctx.fillRect(0, H * 0.85, W, H * 0.15);
+                // Stars
+                for (let i = 0; i < 30; i++) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect((i * 137) % W, (i * 97) % Math.floor(H * 0.5), 1, 1);
+                }
+                targets.forEach(t => {
+                    if (!t.alive) return;
+                    // Disc (clay pigeon)
+                    ctx.fillStyle = '#ff8844';
+                    ctx.beginPath();
+                    ctx.ellipse(t.x, t.y, t.r, t.r * 0.5, t.vx > 0 ? 0.3 : -0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#cc5500'; ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.ellipse(t.x, t.y, t.r, t.r * 0.5, t.vx > 0 ? 0.3 : -0.3, 0, Math.PI * 2);
+                    ctx.stroke();
+                    // Glow trail
+                    ctx.fillStyle = 'rgba(255,136,0,0.15)';
+                    ctx.beginPath(); ctx.arc(t.x - t.vx * 2, t.y - t.vy * 2, t.r * 1.5, 0, Math.PI * 2); ctx.fill();
+                });
+            },
+            click(cx, cy) {
+                shots++;
+                let hit = false;
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    const t = targets[i];
+                    if (t.alive && dist(cx, cy, t.x, t.y) < t.r * 1.8) {
+                        hit = true; hits++; score += 25; t.alive = false;
+                        spawnParticles(t.x, t.y, '#ff8844', 15);
+                        showHitText(cx, cy - 15, '+25', '#ffaa44');
+                        targets.splice(i, 1);
+                        break;
+                    }
+                }
+                if (!hit) { showMissRing(cx, cy); }
+            }
+        };
+
+        // ============ GAME 5: REFLEX TEST ============
+        let reflexState = {};
+        gameEngines.reflex = {
+            init() {
+                reflexState = { round: 0, maxRounds: 15, showTime: 0, state: 'wait', waitTimer: 0, reactionTimes: [], currentTarget: null };
+                targets = []; score = 0; hits = 0; misses = 0; shots = 0;
+                this.nextRound();
+            },
+            nextRound() {
+                if (reflexState.round >= reflexState.maxRounds) {
+                    const avg = reflexState.reactionTimes.length > 0 ? Math.round(reflexState.reactionTimes.reduce((a, b) => a + b, 0) / reflexState.reactionTimes.length) : 0;
+                    const best = reflexState.reactionTimes.length > 0 ? Math.min(...reflexState.reactionTimes) : 0;
+                    showResults([
+                        { label: 'Hits', value: hits + '/' + reflexState.maxRounds },
+                        { label: 'Avg Reaction', value: avg + 'ms' },
+                        { label: 'Best Reaction', value: best + 'ms' },
+                        { label: 'Score', value: score }
+                    ]);
+                    return;
+                }
+                reflexState.state = 'wait';
+                reflexState.waitTimer = 40 + Math.random() * 80;
+                reflexState.currentTarget = null;
+            },
+            update() {
+                if (reflexState.state === 'wait') {
+                    reflexState.waitTimer--;
+                    if (reflexState.waitTimer <= 0) {
+                        const r = rand(25, 45);
+                        reflexState.currentTarget = {
+                            x: rand(r + 30, W - r - 30), y: rand(r + 30, H - r - 30), r,
+                            spawnTime: Date.now(), life: 90
+                        };
+                        reflexState.state = 'show';
+                    }
+                }
+                if (reflexState.state === 'show' && reflexState.currentTarget) {
+                    reflexState.currentTarget.life--;
+                    if (reflexState.currentTarget.life <= 0) {
+                        misses++; reflexState.round++;
+                        reflexState.state = 'wait';
+                        reflexState.currentTarget = null;
+                        this.nextRound();
+                    }
+                }
+                updateStats([
+                    { label: 'Round', value: reflexState.round + '/' + reflexState.maxRounds },
+                    { label: 'Score', value: score }, { label: 'Hits', value: hits }
+                ]);
+            },
+            draw() {
+                drawGrid();
+                if (reflexState.state === 'wait') {
+                    ctx.fillStyle = '#334'; ctx.font = `bold ${Math.max(16, W * 0.03)}px sans-serif`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('Wait for it...', W / 2, H / 2);
+                }
+                if (reflexState.state === 'show' && reflexState.currentTarget) {
+                    const t = reflexState.currentTarget;
+                    const flash = Math.sin(Date.now() * 0.02) * 0.2 + 0.8;
+                    // Glow
+                    const glow = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, t.r * 3);
+                    glow.addColorStop(0, `rgba(0,255,100,${0.2 * flash})`); glow.addColorStop(1, 'transparent');
+                    ctx.fillStyle = glow; ctx.fillRect(t.x - t.r * 3, t.y - t.r * 3, t.r * 6, t.r * 6);
+                    ctx.fillStyle = `rgba(0,255,100,${flash})`;
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 0.4, 0, Math.PI * 2); ctx.fill();
+                }
+            },
+            click(cx, cy) {
+                if (reflexState.state !== 'show' || !reflexState.currentTarget) return;
+                shots++;
+                const t = reflexState.currentTarget;
+                if (dist(cx, cy, t.x, t.y) < t.r * 1.3) {
+                    const rt = Date.now() - t.spawnTime;
+                    reflexState.reactionTimes.push(rt);
+                    hits++;
+                    const pts = Math.max(5, Math.round(100 - rt / 3));
+                    score += pts;
+                    spawnParticles(t.x, t.y, '#00ff66', 12);
+                    showHitText(cx, cy - 20, rt + 'ms', rt < 300 ? '#00ff66' : '#ffcc00');
+                } else {
+                    showMissRing(cx, cy);
+                }
+                reflexState.round++;
+                reflexState.currentTarget = null;
+                setTimeout(() => this.nextRound(), 300);
+            }
+        };
+
+        // ============ GAME 6: TRACKING SHOT ============
+        gameEngines.tracker = {
+            init() {
+                targets = []; score = 0; hits = 0; misses = 0; shots = 0; timeLeft = 30;
+                for (let i = 0; i < 4; i++) this.spawnTarget();
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                        showResults([
+                            { label: 'Score', value: score }, { label: 'Hits', value: hits }, { label: 'Shots', value: shots },
+                            { label: 'Accuracy', value: acc + '%' }
+                        ]);
+                    }
+                }, 1000);
+            },
+            spawnTarget() {
+                const r = rand(18, 32);
+                targets.push({
+                    x: rand(r + 20, W - r - 20), y: rand(r + 20, H - r - 20), r,
+                    vx: rand(-2, 2), vy: rand(-2, 2),
+                    hue: Math.floor(rand(0, 360))
+                });
+            },
+            update() {
+                targets.forEach(t => {
+                    t.x += t.vx; t.y += t.vy;
+                    if (t.x < t.r || t.x > W - t.r) t.vx *= -1;
+                    if (t.y < t.r || t.y > H - t.r) t.vy *= -1;
+                    t.x = Math.max(t.r, Math.min(W - t.r, t.x));
+                    t.y = Math.max(t.r, Math.min(H - t.r, t.y));
+                });
+                const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                updateStats([
+                    { label: '⏱️ Time', value: timeLeft + 's' }, { label: 'Score', value: score },
+                    { label: 'Hits', value: hits }, { label: 'Accuracy', value: acc + '%' }
+                ]);
+            },
+            draw() {
+                drawGrid();
+                targets.forEach(t => {
+                    // Trail
+                    ctx.fillStyle = `hsla(${t.hue},80%,50%,0.1)`;
+                    ctx.beginPath(); ctx.arc(t.x - t.vx * 3, t.y - t.vy * 3, t.r * 1.2, 0, Math.PI * 2); ctx.fill();
+                    // Orb
+                    const grad = ctx.createRadialGradient(t.x - t.r * 0.3, t.y - t.r * 0.3, 0, t.x, t.y, t.r);
+                    grad.addColorStop(0, `hsla(${t.hue},80%,70%,1)`);
+                    grad.addColorStop(1, `hsla(${t.hue},80%,40%,1)`);
+                    ctx.fillStyle = grad;
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                    // Highlight
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.beginPath(); ctx.arc(t.x - t.r * 0.25, t.y - t.r * 0.25, t.r * 0.35, 0, Math.PI * 2); ctx.fill();
+                });
+            },
+            click(cx, cy) {
+                shots++;
+                let hit = false;
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    if (dist(cx, cy, targets[i].x, targets[i].y) < targets[i].r) {
+                        hit = true; hits++; score += 15;
+                        spawnParticles(targets[i].x, targets[i].y, `hsl(${targets[i].hue},80%,60%)`, 10);
+                        showHitText(cx, cy - 15, '+15', '#88ffcc');
+                        targets.splice(i, 1);
+                        this.spawnTarget();
+                        break;
+                    }
+                }
+                if (!hit) { showMissRing(cx, cy); }
+            }
+        };
+
+        // ============ GAME 7: PRECISION SNIPER ============
+        let sniperState = {};
+        gameEngines.sniper = {
+            init() {
+                sniperState = { round: 0, maxRounds: 12, zoomLevel: 2.5 };
+                targets = []; score = 0; hits = 0; misses = 0; shots = 0;
+                this.spawnTarget();
+            },
+            spawnTarget() {
+                if (sniperState.round >= sniperState.maxRounds) {
+                    const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                    showResults([
+                        { label: 'Score', value: score }, { label: 'Hits', value: hits + '/' + sniperState.maxRounds },
+                        { label: 'Shots Fired', value: shots }, { label: 'Accuracy', value: acc + '%' }
+                    ]);
+                    return;
+                }
+                const r = rand(5, 10);
+                targets = [{ x: rand(40, W - 40), y: rand(40, H - 40), r, pulse: 0 }];
+            },
+            update() {
+                targets.forEach(t => { t.pulse = Math.sin(Date.now() * 0.005) * 0.3; });
+                const acc = shots > 0 ? Math.round(hits / shots * 100) : 0;
+                updateStats([
+                    { label: 'Target', value: (sniperState.round + 1) + '/' + sniperState.maxRounds },
+                    { label: 'Score', value: score }, { label: 'Accuracy', value: acc + '%' }
+                ]);
+            },
+            draw() {
+                // Dark environment
+                ctx.fillStyle = '#060612'; ctx.fillRect(0, 0, W, H);
+                drawGrid();
+                // Scope overlay (darken edges)
+                const scopeR = 100;
+                const scopeGrad = ctx.createRadialGradient(mouseX, mouseY, scopeR * 0.8, mouseX, mouseY, scopeR * 1.5);
+                scopeGrad.addColorStop(0, 'transparent'); scopeGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
+                ctx.fillStyle = scopeGrad; ctx.fillRect(0, 0, W, H);
+                targets.forEach(t => {
+                    // Tiny target
+                    const scale = 1 + t.pulse;
+                    ctx.fillStyle = '#ff3333';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r * scale, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 0.4 * scale, 0, Math.PI * 2); ctx.fill();
+                    // Faint glow
+                    ctx.fillStyle = 'rgba(255,50,50,0.08)';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, t.r * 4, 0, Math.PI * 2); ctx.fill();
+                });
+                // Scope crosshair
+                ctx.strokeStyle = 'rgba(0,255,0,0.5)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(mouseX - 25, mouseY); ctx.lineTo(mouseX - 8, mouseY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(mouseX + 8, mouseY); ctx.lineTo(mouseX + 25, mouseY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(mouseX, mouseY - 25); ctx.lineTo(mouseX, mouseY - 8); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(mouseX, mouseY + 8); ctx.lineTo(mouseX, mouseY + 25); ctx.stroke();
+                ctx.strokeStyle = 'rgba(0,255,0,0.2)';
+                ctx.beginPath(); ctx.arc(mouseX, mouseY, 20, 0, Math.PI * 2); ctx.stroke();
+                // Magnification inset
+                const magSize = 80;
+                const magX = W - magSize - 15, magY = 15;
+                ctx.save();
+                ctx.beginPath(); ctx.arc(magX + magSize / 2, magY + magSize / 2, magSize / 2, 0, Math.PI * 2); ctx.clip();
+                ctx.fillStyle = '#0a0a1a'; ctx.fillRect(magX, magY, magSize, magSize);
+                // Draw zoomed target
+                targets.forEach(t => {
+                    const zoom = sniperState.zoomLevel;
+                    const zx = magX + magSize / 2 + (t.x - mouseX) * zoom;
+                    const zy = magY + magSize / 2 + (t.y - mouseY) * zoom;
+                    ctx.fillStyle = '#ff3333';
+                    ctx.beginPath(); ctx.arc(zx, zy, t.r * zoom * (1 + t.pulse), 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(zx, zy, t.r * 0.4 * zoom * (1 + t.pulse), 0, Math.PI * 2); ctx.fill();
+                });
+                ctx.strokeStyle = 'rgba(0,255,0,0.4)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(magX + magSize / 2 - 15, magY + magSize / 2); ctx.lineTo(magX + magSize / 2 + 15, magY + magSize / 2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(magX + magSize / 2, magY + magSize / 2 - 15); ctx.lineTo(magX + magSize / 2, magY + magSize / 2 + 15); ctx.stroke();
+                ctx.restore();
+                ctx.strokeStyle = 'rgba(0,255,0,0.5)'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(magX + magSize / 2, magY + magSize / 2, magSize / 2, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = '#0f08'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(sniperState.zoomLevel.toFixed(1) + 'x', magX + magSize / 2, magY + magSize + 12);
+            },
+            click(cx, cy) {
+                shots++;
+                let hit = false;
+                for (let i = targets.length - 1; i >= 0; i--) {
+                    const t = targets[i];
+                    const d = dist(cx, cy, t.x, t.y);
+                    if (d < t.r * 2) {
+                        hit = true; hits++;
+                        const pts = d < t.r * 0.5 ? 100 : d < t.r ? 50 : 25;
+                        score += pts;
+                        spawnParticles(t.x, t.y, '#00ff88', 15);
+                        showHitText(cx, cy - 20, pts === 100 ? '🎯 PERFECT! +100' : '+' + pts, pts === 100 ? '#ffcc00' : '#00ff88');
+                        sniperState.round++;
+                        setTimeout(() => this.spawnTarget(), 400);
+                        targets = [];
+                        break;
+                    }
+                }
+                if (!hit) { showMissRing(cx, cy); }
+            }
+        };
+
+        // Start at menu
+        goMenu();
+    </script>
+</body>
+
+</html>

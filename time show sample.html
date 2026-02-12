@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Clock</title>
+</head>
+<body>
+    <div id="qatar-clock"></div>
+    <script>
+        function updateClocks() {
+            const options = {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            };
+
+            const qatarTime = new Date().toLocaleString("en-US", { timeZone: "Asia/Qatar", ...options });
+
+            const qatarClockElement = document.getElementById("qatar-clock");
+            if (qatarClockElement) {
+                qatarClockElement.innerText = `Qatar: ${qatarTime}`;
+            } else {
+                console.error('Element with id "qatar-clock" not found');
+            }
+        }
+
+        setInterval(updateClocks, 1000);
+        // Initial call to display the clock immediately
+        updateClocks();
+    </script>
+</body>
+</html>

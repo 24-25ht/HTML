@@ -1,0 +1,228 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Nutrition Facts Label</title>  
+    <style>  
+        body {  
+            background-color: #f9f9f9; /* Light background for contrast */  
+            display: flex;  
+            justify-content: center;  
+            align-items: center;  
+            min-height: 100vh; /* Full view height */  
+            margin: 0;  
+            font-family: 'Arial', sans-serif; /* Cleaner font */  
+        }  
+
+        .nutrition-label {  
+            background-color: #ffffff; /* White background for the label */  
+            border-radius: 8px; /* Rounded corners */  
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow */  
+            padding: 20px; /* Padding around the content */  
+            width: 400px; /* Fixed width */  
+            margin: 20px; /* Margin around the label */  
+        }  
+
+        .mm-recipes-nutrition-facts-label__button {  
+            background-color:hsl(14, 45%, 36%); 
+            color: white; /* White text */  
+            border: none;   
+            cursor: pointer;   
+            padding: 10px 15px; /* Padding for the button */  
+            margin-bottom: 20px; /* Space below the button */  
+            font-size: 18px; /* Button text size */  
+            border-radius: 5px; /* Rounded corners for the button */  
+            transition: background-color 0.3s; /* Smooth hover effect */  
+            width: 100%; /* Full width */  
+        }  
+
+        .mm-recipes-nutrition-facts-label__button:hover {  
+            background-color:hsl(14, 45%, 44%);  
+        }  
+
+        .mm-recipes-nutrition-facts-label__table {  
+            width: 100%;  
+            border-collapse: collapse;  
+            display: none; /* Initially hide the table */  
+        }  
+
+        .mm-recipes-nutrition-facts-label__table th,  
+        .mm-recipes-nutrition-facts-label__table td {  
+            border: 1px solid #dddddd; /* Light gray border */  
+            padding: 10px; /* Padding for table cells */  
+            text-align: left;  
+        }  
+
+        .mm-recipes-nutrition-facts-label__table th {  
+            background-color: #f2f2f2; /* Light gray background for headers */  
+            font-weight: bold; /* Bold header text */  
+        }  
+
+        .text-title-200 {  
+            font-size: 24px; /* Larger font size for titles */  
+            font-weight: bold; /* Bold title */  
+            margin-bottom: 10px; /* Spacing below the title */  
+        }  
+
+        .text-utility-300 {  
+            color: rgba(0, 0, 0, 0.7); /* Slightly lighter color for utility text */  
+        }  
+
+        .mntl-text-block {  
+            margin-top: 10px; /* Adds space above disclaimers */  
+            color: rgba(0, 0, 0, 0.5); /* Light color for disclaimer text */  
+            font-size: 14px; /* Smaller font size for disclaimers */  
+        }  
+    </style>  
+</head>  
+<body>  
+
+<div id="mm-recipes-nutrition-facts-label_1-0" class="comp mm-recipes-nutrition-facts-label allrecipes-nutrition-facts-label" data-click-tracked="freemarker.template.FalseTemplateBooleanModel@3bc5ed9a">  
+    <button class="mm-recipes-nutrition-facts-label__button text-body-100 mm-recipes-nutrition-facts-label__button--hide" id="toggleButton" onclick="toggleNutritionLabel()">  
+        Show Full Nutrition Label  
+    </button>  
+    <div class="mm-recipes-nutrition-facts-label__wrapper">  
+        <div class="mm-recipes-nutrition-facts-label__contents">  
+            <table class="mm-recipes-nutrition-facts-label__table" id="nutritionTable">  
+                <thead class="mm-recipes-nutrition-facts-label__table-head">  
+                    <tr>  
+                        <th class="mm-recipes-nutrition-facts-label__table-head-title text-title-200" colspan="2">Nutrition Facts</th>  
+                    </tr>  
+                    <tr class="mm-recipes-nutrition-facts-label__servings">  
+                        <th class="mm-recipes-nutrition-facts-label__table-head-subtitle" colspan="2">  
+                            <span class="mm-recipes-nutrition-facts-label__table-head-pretext">Servings Per Recipe</span>  
+                            <span>18</span>  
+                        </th>  
+                    </tr>  
+                    <tr class="mm-recipes-nutrition-facts-label__calories">  
+                        <th class="mm-recipes-nutrition-facts-label__table-head-subtitle" colspan="2">  
+                            <span class="mm-recipes-nutrition-facts-label__table-head-pretext">Calories</span>  
+                            <span>250</span>  
+                        </th>  
+                    </tr>  
+                </thead>  
+                <tbody>  
+                    <tr class="mm-recipes-nutrition-facts-label__table-dv-row text-body-100">  
+                        <td colspan="2">% Daily Value *</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Total Fat</span>  
+                            11g  
+                        </td>  
+                        <td>14%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Saturated Fat</span>  
+                            5g  
+                        </td>  
+                        <td>25%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Cholesterol</span>  
+                            20mg  
+                        </td>  
+                        <td>7%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Sodium</span>  
+                            282mg  
+                        </td>  
+                        <td>12%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Total Carbohydrate</span>  
+                            38g  
+                        </td>  
+                        <td>14%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Dietary Fiber</span>  
+                            1g  
+                        </td>  
+                        <td>5%</td>  
+                    </tr>  
+                    <tr>  
+                        <td colspan="2">  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Total Sugars</span>  
+                            26g  
+                        </td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Protein</span>  
+                            4g  
+                        </td>  
+                        <td>8%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Vitamin C</span>  
+                            0mg  
+                        </td>  
+                        <td>0%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Calcium</span>  
+                            107mg  
+                        </td>  
+                        <td>8%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Iron</span>  
+                            2mg  
+                                                </td>  
+                        <td>10%</td>  
+                    </tr>  
+                    <tr>  
+                        <td>  
+                            <span class="mm-recipes-nutrition-facts-label__nutrient-name mm-recipes-nutrition-facts-label__nutrient-name--has-postfix">Potassium</span>  
+                            241mg  
+                        </td>  
+                        <td>5%</td>  
+                    </tr>  
+                </tbody>  
+            </table>  
+            <div id="mm-recipes-nutrition-facts-label-disclaimer_1-0" class="comp mm-recipes-nutrition-facts-label-disclaimer mntl-block text-utility-300">  
+                <p id="disclaimer-1_1-0" class="comp disclaimer-1 mntl-text-block mm-recipes-nutrition-facts-label-disclaimer-info">  
+                    * Percent Daily Values are based on a 2,000 calorie diet. Your daily values may be higher or lower depending on your calorie needs.  
+                </p>  
+                <p id="mntl-text-block_1-0" class="comp mntl-text-block mm-recipes-nutrition-facts-label-disclaimer-info">  
+                    ** Nutrient information is not available for all ingredients. Amount is based on available nutrient data.  
+                </p>  
+                <p id="mntl-text-block_2-0" class="comp mntl-text-block mm-recipes-nutrition-facts-label-disclaimer-info">  
+                    (-) Information is not currently available for this nutrient. If you are following a medically restrictive diet, please consult your doctor or registered dietitian before preparing this recipe for personal consumption.  
+                </p>  
+            </div>  
+        </div>  
+    </div>  
+</div>  
+
+<script>  
+    function toggleNutritionLabel() {  
+        const nutritionTable = document.getElementById('nutritionTable');  
+        const toggleButton = document.getElementById('toggleButton');  
+
+        // Check the current display state of the table  
+        if (nutritionTable.style.display === 'none' || nutritionTable.style.display === '') {  
+            // Show the table and update button text  
+            nutritionTable.style.display = 'table'; // Use 'table' to keep the correct table formatting  
+            toggleButton.innerText = 'Hide Full Nutrition Label';  
+        } else {  
+            // Hide the table and update button text  
+            nutritionTable.style.display = 'none';  
+            toggleButton.innerText = 'Show Full Nutrition Label';  
+        }  
+    }  
+</script>  
+
+</body>  
+</html>  

@@ -1,0 +1,3913 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS COMMAND: IRON TIDE</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ============================================================
+   AEGIS COMMAND: IRON TIDE — MASTER STYLESHEET
+   ============================================================ */
+        /* --- RESET & ROOT --- */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-abyss: #050a14;
+            --bg-deep: #0a0f1e;
+            --bg-panel: rgba(8, 16, 35, 0.82);
+            --bg-panel-hover: rgba(12, 24, 50, 0.9);
+            --border-glow: rgba(0, 230, 255, 0.18);
+            --border-glow-strong: rgba(0, 230, 255, 0.4);
+            --cyan: #00e6ff;
+            --cyan-dim: #0099aa;
+            --cyan-bright: #66f0ff;
+            --red-hit: #ff2244;
+            --red-glow: rgba(255, 34, 68, 0.5);
+            --orange-fire: #ff6622;
+            --blue-miss: #2266cc;
+            --blue-splash: #4488ff;
+            --green-ok: #22ff88;
+            --gold: #ffcc00;
+            --text-primary: #d8e4f8;
+            --text-secondary: #6880a8;
+            --text-dim: #3a4a68;
+            --ship-hull: #14203a;
+            --ship-hull-light: #1c2e50;
+            --grid-line: rgba(0, 200, 255, 0.08);
+            --glass-blur: 18px;
+            --font-display: 'Orbitron', monospace, sans-serif;
+            --font-body: 'Rajdhani', 'Segoe UI', sans-serif;
+            --cell-size: 42px;
+            --grid-gap: 1px;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-abyss);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- CRT SCANLINE OVERLAY --- */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg,
+                    transparent 0px,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.08) 2px,
+                    rgba(0, 0, 0, 0.08) 4px);
+            pointer-events: none;
+            z-index: 99999;
+        }
+
+        /* --- BACKGROUND GRID PATTERN --- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 200, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 200, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- SCREEN SYSTEM --- */
+        .screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- GLASS PANEL --- */
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            box-shadow:
+                0 0 40px rgba(0, 180, 255, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03),
+                inset 0 0 40px rgba(0, 180, 255, 0.015);
+        }
+
+        /* --- TYPOGRAPHY --- */
+        .title-main {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, var(--cyan), #ffffff, var(--cyan-bright));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            filter: drop-shadow(0 0 20px rgba(0, 230, 255, 0.3));
+            text-align: center;
+        }
+
+        .title-sub {
+            font-family: var(--font-display);
+            font-size: clamp(0.65rem, 1.5vw, 0.9rem);
+            font-weight: 400;
+            letter-spacing: 8px;
+            color: var(--cyan-dim);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            text-transform: uppercase;
+        }
+
+        h3 {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 14px 36px;
+            border: 1px solid var(--border-glow);
+            border-radius: 6px;
+            background: rgba(0, 200, 255, 0.06);
+            color: var(--cyan);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 230, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            background: rgba(0, 200, 255, 0.15);
+            border-color: var(--border-glow-strong);
+            box-shadow: 0 0 25px rgba(0, 200, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(0, 200, 255, 0.2), rgba(0, 150, 255, 0.1));
+            border-color: var(--cyan-dim);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+        }
+
+        .btn-danger {
+            border-color: rgba(255, 34, 68, 0.3);
+            color: var(--red-hit);
+            background: rgba(255, 34, 68, 0.06);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 34, 68, 0.15);
+            border-color: rgba(255, 34, 68, 0.5);
+            box-shadow: 0 0 25px rgba(255, 34, 68, 0.15);
+        }
+
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+        }
+
+        .btn-gold {
+            border-color: rgba(255, 204, 0, 0.3);
+            color: var(--gold);
+            background: rgba(255, 204, 0, 0.06);
+        }
+
+        .btn-gold:hover {
+            background: rgba(255, 204, 0, 0.15);
+            border-color: rgba(255, 204, 0, 0.5);
+        }
+
+        /* --- MENU SCREEN --- */
+        #screen-menu {
+            background: radial-gradient(ellipse at center, #0c1528 0%, var(--bg-abyss) 70%);
+        }
+
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 40px;
+        }
+
+        .menu-logo {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .menu-logo .emblem {
+            font-size: 4rem;
+            color: var(--cyan);
+            margin-bottom: 16px;
+            filter: drop-shadow(0 0 30px rgba(0, 230, 255, 0.4));
+            animation: emblem-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes emblem-pulse {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 20px rgba(0, 230, 255, 0.3));
+                opacity: 0.9;
+            }
+
+            50% {
+                filter: drop-shadow(0 0 40px rgba(0, 230, 255, 0.6));
+                opacity: 1;
+            }
+        }
+
+        .menu-stats {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .menu-stats .rank-badge {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 280px;
+        }
+
+        .menu-buttons .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        /* --- MODE SELECT --- */
+        #screen-mode {
+            background: radial-gradient(ellipse at center, #0c1528 0%, var(--bg-abyss) 70%);
+        }
+
+        .mode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .mode-options {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mode-card {
+            flex: 1;
+            min-width: 200px;
+            max-width: 260px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-card:hover {
+            border-color: var(--border-glow-strong);
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.12);
+        }
+
+        .mode-card.selected {
+            border-color: var(--cyan);
+            background: rgba(0, 200, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.15);
+        }
+
+        .mode-card i {
+            font-size: 2.2rem;
+            color: var(--cyan);
+            margin-bottom: 12px;
+        }
+
+        .mode-card h3 {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .mode-card p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .diff-btn {
+            padding: 10px 20px;
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 1px solid var(--border-glow);
+            border-radius: 6px;
+            background: rgba(0, 200, 255, 0.04);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .diff-btn:hover {
+            border-color: var(--border-glow-strong);
+            color: var(--text-primary);
+        }
+
+        .diff-btn.selected {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 200, 255, 0.12);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 24px;
+            background: rgba(0, 200, 255, 0.1);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.on {
+            background: rgba(0, 200, 255, 0.25);
+            border-color: var(--cyan);
+        }
+
+        .toggle-switch.on::after {
+            left: 27px;
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        /* --- SETUP SCREEN --- */
+        #screen-setup {
+            background: radial-gradient(ellipse at 30% 50%, #0c1a30 0%, var(--bg-abyss) 70%);
+        }
+
+        .setup-container {
+            display: flex;
+            gap: 30px;
+            padding: 20px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .setup-ships-panel {
+            width: 220px;
+            padding: 20px;
+            flex-shrink: 0;
+        }
+
+        .ship-select-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ship-select-item:hover {
+            background: rgba(0, 200, 255, 0.05);
+        }
+
+        .ship-select-item.active {
+            border-color: var(--cyan);
+            background: rgba(0, 200, 255, 0.08);
+        }
+
+        .ship-select-item.placed {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .ship-select-item .ship-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .ship-select-item .ship-dot {
+            width: 14px;
+            height: 14px;
+            background: var(--ship-hull-light);
+            border: 1px solid var(--border-glow);
+            border-radius: 2px;
+        }
+
+        .ship-select-item.active .ship-dot {
+            background: rgba(0, 230, 255, 0.2);
+            border-color: var(--cyan);
+        }
+
+        .ship-select-name {
+            font-family: var(--font-display);
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .ship-select-item.active .ship-select-name {
+            color: var(--cyan);
+        }
+
+        .setup-grid-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .setup-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* --- BATTLE GRID --- */
+        .grid-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .grid-label {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--cyan-dim);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .grid-coords-top,
+        .grid-coords-left {
+            display: flex;
+            font-family: var(--font-display);
+            font-size: 0.55rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .grid-coords-top {
+            margin-left: calc(var(--cell-size) * 0.5 + 4px);
+            margin-bottom: 2px;
+        }
+
+        .grid-coords-top span {
+            width: var(--cell-size);
+            text-align: center;
+        }
+
+        .grid-row-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .grid-coords-left span {
+            width: calc(var(--cell-size) * 0.5);
+            text-align: center;
+            margin-right: 4px;
+        }
+
+        .battle-grid {
+            display: grid;
+            grid-template-columns: repeat(10, var(--cell-size));
+            grid-template-rows: repeat(10, var(--cell-size));
+            gap: var(--grid-gap);
+            background: rgba(0, 180, 255, 0.02);
+            border: 1px solid var(--border-glow);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            background: rgba(6, 14, 30, 0.9);
+            border: 1px solid var(--grid-line);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .grid-cell:hover {
+            background: rgba(0, 200, 255, 0.08);
+            border-color: rgba(0, 200, 255, 0.2);
+        }
+
+        .grid-cell.ship-cell {
+            background: var(--ship-hull);
+            border-color: rgba(0, 200, 255, 0.12);
+        }
+
+        .grid-cell.ship-cell::after {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 1px solid rgba(0, 200, 255, 0.08);
+            border-radius: 1px;
+            background: repeating-linear-gradient(45deg,
+                    transparent 0px,
+                    transparent 4px,
+                    rgba(0, 200, 255, 0.03) 4px,
+                    rgba(0, 200, 255, 0.03) 5px);
+        }
+
+        .grid-cell.preview {
+            background: rgba(0, 230, 255, 0.15) !important;
+            border-color: var(--cyan) !important;
+            box-shadow: inset 0 0 12px rgba(0, 230, 255, 0.1);
+        }
+
+        .grid-cell.preview-invalid {
+            background: rgba(255, 34, 68, 0.15) !important;
+            border-color: var(--red-hit) !important;
+        }
+
+        .grid-cell.hit {
+            background: rgba(255, 34, 68, 0.2) !important;
+            border-color: rgba(255, 34, 68, 0.4) !important;
+        }
+
+        .grid-cell.hit::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 18px;
+            height: 18px;
+            transform: translate(-50%, -50%);
+            background: var(--red-hit);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--red-glow), 0 0 24px var(--red-glow);
+            animation: hit-pulse 1.5s ease-in-out infinite;
+        }
+
+        .grid-cell.miss::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            border: 2px solid var(--blue-miss);
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .grid-cell.sunk-cell {
+            background: rgba(255, 34, 68, 0.35) !important;
+        }
+
+        .grid-cell.sunk-cell::before {
+            background: #cc1133;
+            animation: none;
+        }
+
+        .grid-cell.target-highlight {
+            box-shadow: inset 0 0 15px rgba(255, 102, 34, 0.3);
+            border-color: var(--orange-fire) !important;
+        }
+
+        .grid-cell.salvo-target::after {
+            content: '\f05b';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--orange-fire);
+            font-size: 1.2rem;
+            z-index: 2;
+        }
+
+        @keyframes hit-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px var(--red-glow);
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                box-shadow: 0 0 20px var(--red-glow), 0 0 35px rgba(255, 34, 68, 0.3);
+                transform: translate(-50%, -50%) scale(1.15);
+            }
+        }
+
+        /* --- RADAR SWEEP --- */
+        .radar-sweep {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 0deg at 50% 50%,
+                    transparent 0deg,
+                    rgba(0, 230, 255, 0.06) 15deg,
+                    rgba(0, 230, 255, 0.12) 25deg,
+                    rgba(0, 230, 255, 0.06) 35deg,
+                    transparent 50deg);
+            animation: radar-rotate 5s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        @keyframes radar-rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- BATTLE SCREEN --- */
+        #screen-battle {
+            background: radial-gradient(ellipse at 50% 30%, #0c1a30 0%, var(--bg-abyss) 70%);
+            padding: 10px;
+        }
+
+        .battle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .battle-header {
+            width: 100%;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .turn-indicator {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .turn-indicator.player-turn {
+            color: var(--cyan);
+        }
+
+        .turn-indicator.enemy-turn {
+            color: var(--red-hit);
+        }
+
+        .battle-message {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 20px;
+            letter-spacing: 1px;
+        }
+
+        .battle-grids {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .fleet-status-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            padding: 10px 20px;
+        }
+
+        .fleet-status-section {
+            text-align: center;
+        }
+
+        .fleet-status-section h3 {
+            margin-bottom: 8px;
+        }
+
+        .fleet-ship-icons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .fleet-ship-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .fleet-ship-status.alive {
+            border-color: rgba(0, 200, 255, 0.1);
+        }
+
+        .fleet-ship-status.sunk {
+            border-color: rgba(255, 34, 68, 0.2);
+            opacity: 0.4;
+        }
+
+        .fleet-ship-status.sunk .ship-status-name {
+            text-decoration: line-through;
+            color: var(--red-hit);
+        }
+
+        .ship-status-name {
+            font-family: var(--font-display);
+            font-size: 0.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        .ship-status-pips {
+            display: flex;
+            gap: 2px;
+        }
+
+        .ship-pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 1px;
+            background: var(--ship-hull-light);
+            border: 1px solid var(--border-glow);
+            transition: all 0.3s;
+        }
+
+        .ship-pip.damaged {
+            background: var(--red-hit);
+            border-color: var(--red-hit);
+            box-shadow: 0 0 6px var(--red-glow);
+        }
+
+        /* --- SALVO FIRE BUTTON --- */
+        .fire-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-fire {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            padding: 14px 40px;
+            border: 2px solid var(--red-hit);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 34, 68, 0.2), rgba(255, 100, 34, 0.1));
+            color: var(--red-hit);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-fire:hover {
+            background: linear-gradient(135deg, rgba(255, 34, 68, 0.35), rgba(255, 100, 34, 0.2));
+            box-shadow: 0 0 30px rgba(255, 34, 68, 0.2);
+            transform: scale(1.05);
+        }
+
+        .btn-fire:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- LOCKDOWN SCREEN --- */
+        #screen-lockdown {
+            background: rgba(5, 10, 20, 0.97);
+            backdrop-filter: blur(30px);
+            z-index: 50;
+        }
+
+        .lockdown-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .lockdown-icon {
+            font-size: 4rem;
+            color: var(--cyan);
+            animation: lock-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes lock-pulse {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        .lockdown-text {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        /* --- GAME OVER --- */
+        #screen-gameover {
+            background: rgba(5, 10, 20, 0.95);
+            z-index: 55;
+        }
+
+        .gameover-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 40px;
+            max-width: 500px;
+        }
+
+        .gameover-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+        }
+
+        .gameover-title.victory {
+            color: var(--cyan);
+            text-shadow: 0 0 30px rgba(0, 230, 255, 0.5);
+        }
+
+        .gameover-title.defeat {
+            color: var(--red-hit);
+            text-shadow: 0 0 30px var(--red-glow);
+        }
+
+        .gameover-stats {
+            width: 100%;
+            padding: 20px;
+        }
+
+        .gameover-stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+            font-size: 0.85rem;
+        }
+
+        .gameover-stat-row span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .gameover-stat-row span:last-child {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .gameover-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* --- TUTORIAL MODAL --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 6, 14, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 540px;
+            width: 90%;
+            padding: 32px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 16px;
+        }
+
+        .modal-content p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .modal-content .step-indicator {
+            font-family: var(--font-display);
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+        }
+
+        /* --- SETTINGS MODAL --- */
+        .settings-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 200, 255, 0.05);
+        }
+
+        .settings-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- SHIP SVG CONTAINER --- */
+        .ship-svg-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ship-svg-wrapper svg {
+            filter: drop-shadow(0 0 8px rgba(0, 230, 255, 0.15));
+        }
+
+        .ship-svg-wrapper.damaged svg .hull-intact {
+            opacity: 0.3;
+        }
+
+        .ship-svg-wrapper.damaged svg .damage-layer {
+            opacity: 1;
+        }
+
+        .damage-layer {
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* --- EXPLOSION ANIMATION --- */
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(2.5);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .explosion-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff, var(--orange-fire), var(--red-hit), transparent);
+            animation: explode 0.6s ease-out forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- SPLASH ANIMATION --- */
+        @keyframes splash-anim {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(3);
+                opacity: 0;
+            }
+        }
+
+        .splash-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid var(--blue-splash);
+            background: transparent;
+            animation: splash-anim 0.7s ease-out forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- SCREEN SHAKE --- */
+        @keyframes screen-shake {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0);
+            }
+
+            10% {
+                transform: translate(-6px, -4px) rotate(-0.5deg);
+            }
+
+            20% {
+                transform: translate(6px, 3px) rotate(0.5deg);
+            }
+
+            30% {
+                transform: translate(-4px, 6px) rotate(-0.3deg);
+            }
+
+            40% {
+                transform: translate(4px, -6px) rotate(0.3deg);
+            }
+
+            50% {
+                transform: translate(-6px, 4px) rotate(-0.5deg);
+            }
+
+            60% {
+                transform: translate(5px, -3px) rotate(0.4deg);
+            }
+
+            70% {
+                transform: translate(-3px, 5px) rotate(-0.2deg);
+            }
+
+            80% {
+                transform: translate(3px, -4px) rotate(0.2deg);
+            }
+
+            90% {
+                transform: translate(-4px, -5px) rotate(-0.3deg);
+            }
+        }
+
+        body.shake-active {
+            animation: screen-shake 0.45s ease-out;
+        }
+
+        /* --- CHROMATIC ABERRATION --- */
+        @keyframes chromatic-hit {
+            0% {
+                filter: none;
+            }
+
+            25% {
+                filter: drop-shadow(-3px 0 rgba(255, 0, 0, 0.7)) drop-shadow(3px 0 rgba(0, 255, 255, 0.7));
+            }
+
+            50% {
+                filter: drop-shadow(-5px 0 rgba(255, 0, 0, 0.5)) drop-shadow(5px 0 rgba(0, 255, 255, 0.5));
+            }
+
+            100% {
+                filter: none;
+            }
+        }
+
+        .chromatic-active {
+            animation: chromatic-hit 0.35s ease-out;
+        }
+
+        /* --- MISSILE TRAIL --- */
+        @keyframes missile-trail {
+            0% {
+                top: -20px;
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 50%;
+                opacity: 0;
+            }
+        }
+
+        .missile-trail {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 14px;
+            background: linear-gradient(to bottom, transparent, var(--orange-fire), #fff);
+            border-radius: 2px;
+            animation: missile-trail 0.35s ease-in forwards;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 8px var(--orange-fire);
+        }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            animation: toast-in 0.3s ease-out, toast-out 0.3s ease-in 2.7s forwards;
+            max-width: 300px;
+        }
+
+        .toast-info {
+            background: rgba(0, 200, 255, 0.15);
+            border: 1px solid rgba(0, 200, 255, 0.3);
+            color: var(--cyan);
+        }
+
+        .toast-danger {
+            background: rgba(255, 34, 68, 0.15);
+            border: 1px solid rgba(255, 34, 68, 0.3);
+            color: var(--red-hit);
+        }
+
+        .toast-success {
+            background: rgba(34, 255, 136, 0.15);
+            border: 1px solid rgba(34, 255, 136, 0.3);
+            color: var(--green-ok);
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* --- VOLUME SLIDER --- */
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100px;
+            height: 4px;
+            background: rgba(0, 200, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--cyan);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 230, 255, 0.4);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            :root {
+                --cell-size: 34px;
+            }
+
+            .battle-grids {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .setup-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .setup-ships-panel {
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            :root {
+                --cell-size: 28px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.65rem;
+            }
+        }
+
+        /* --- HEATMAP OVERLAY --- */
+        .grid-cell .heat-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .show-heatmap .grid-cell .heat-overlay {
+            opacity: 0.6;
+        }
+
+        /* --- SUNK SHIP OVERLAY TEXT --- */
+        .sunk-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-family: var(--font-display);
+            font-size: 0.55rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--red-hit);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--red-glow);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 5;
+            animation: sunk-appear 0.5s ease-out;
+        }
+
+        @keyframes sunk-appear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) rotate(-15deg) scale(2);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) rotate(-15deg) scale(1);
+            }
+        }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--cyan-dim);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--cyan);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+    <div class="toast-container" id="toast-container"></div>
+    <!-- ============================================================
+     SCREEN: MAIN MENU
+     ============================================================ -->
+    <div class="screen active" id="screen-menu">
+        <div class="menu-container">
+            <div class="menu-logo">
+                <div class="emblem"><i class="fas fa-shield-halved"></i></div>
+                <div class="title-main">Aegis Command</div>
+                <div class="title-sub">Iron Tide</div>
+            </div>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="UI.startNewGame()">
+                    <i class="fas fa-crosshairs"></i>&ensp;New Campaign
+                </button>
+                <button class="btn" id="btn-continue" onclick="UI.continueGame()" style="display:none">
+                    <i class="fas fa-play"></i>&ensp;Continue
+                </button>
+                <button class="btn" onclick="UI.showTutorial()">
+                    <i class="fas fa-graduation-cap"></i>&ensp;Briefing
+                </button>
+                <button class="btn" onclick="UI.showSettings()">
+                    <i class="fas fa-gear"></i>&ensp;Settings
+                </button>
+            </div>
+            <div class="menu-stats glass-panel" style="padding:16px 24px; margin-top:10px;">
+                <span class="rank-badge" id="menu-rank">SEAMAN</span>
+                <span id="menu-stats-text">Wins: 0 | Accuracy: 0%</span>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     SCREEN: MODE SELECT
+     ============================================================ -->
+    <div class="screen" id="screen-mode">
+        <div class="mode-container">
+            <h2><i class="fas fa-sliders"></i>&ensp;Mission Parameters</h2>
+            <div class="mode-options">
+                <div class="mode-card glass-panel selected" data-mode="solo" onclick="UI.selectMode('solo')">
+                    <i class="fas fa-robot"></i>
+                    <h3>Solo Ops</h3>
+                    <p>Engage the AEGIS AI in tactical warfare</p>
+                </div>
+                <div class="mode-card glass-panel" data-mode="local" onclick="UI.selectMode('local')">
+                    <i class="fas fa-users"></i>
+                    <h3>Local Skirmish</h3>
+                    <p>Pass-and-play against a human opponent</p>
+                </div>
+            </div>
+            <div id="difficulty-section">
+                <h3 style="margin-bottom:10px; text-align:center;">AI Difficulty</h3>
+                <div class="difficulty-selector">
+                    <button class="diff-btn" data-diff="recruit" onclick="UI.selectDifficulty('recruit')">
+                        <i class="fas fa-anchor"></i>&ensp;Recruit
+                    </button>
+                    <button class="diff-btn selected" data-diff="commander" onclick="UI.selectDifficulty('commander')">
+                        <i class="fas fa-star"></i>&ensp;Commander
+                    </button>
+                    <button class="diff-btn" data-diff="admiral" onclick="UI.selectDifficulty('admiral')">
+                        <i class="fas fa-crown"></i>&ensp;Grand Admiral
+                    </button>
+                </div>
+            </div>
+            <div class="toggle-row">
+                <span>Salvo Mode</span>
+                <div class="toggle-switch" id="toggle-salvo" onclick="UI.toggleSalvo()"></div>
+                <span style="font-size:0.6rem; color:var(--text-dim);">Fire shots = ships alive</span>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:10px;">
+                <button class="btn btn-sm" onclick="UI.showScreen('screen-menu')">
+                    <i class="fas fa-arrow-left"></i>&ensp;Back
+                </button>
+                <button class="btn btn-primary" onclick="UI.beginSetup()">
+                    <i class="fas fa-rocket"></i>&ensp;Deploy
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     SCREEN: SETUP (Ship Placement)
+     ============================================================ -->
+    <div class="screen" id="screen-setup">
+        <div class="setup-container">
+            <div class="setup-ships-panel glass-panel">
+                <h3 style="margin-bottom:12px;"><i class="fas fa-ship"></i>&ensp;Fleet Roster</h3>
+                <div id="ship-select-list"></div>
+                <div style="margin-top:16px; text-align:center;">
+                    <div
+                        style="font-family:var(--font-display); font-size:0.55rem; letter-spacing:2px; color:var(--text-dim); margin-bottom:4px; text-transform:uppercase;">
+                        Orientation
+                    </div>
+                    <div id="orientation-display"
+                        style="font-family:var(--font-display); font-size:0.7rem; color:var(--cyan); letter-spacing:2px;">
+                        HORIZONTAL
+                    </div>
+                </div>
+                <!-- SHIP SVG PREVIEWS -->
+                <div id="ship-svg-preview" class="ship-svg-wrapper" style="margin-top:16px; min-height:60px;"></div>
+            </div>
+            <div class="setup-grid-area">
+                <h2 id="setup-title"><i class="fas fa-map-marked-alt"></i>&ensp;Deploy Your Fleet</h2>
+                <div id="setup-grid-container"></div>
+                <div class="setup-controls">
+                    <button class="btn btn-sm" onclick="Game.rotateShip()">
+                        <i class="fas fa-rotate"></i>&ensp;Rotate (R)
+                    </button>
+                    <button class="btn btn-sm" onclick="Game.autoPlace()">
+                        <i class="fas fa-wand-magic-sparkles"></i>&ensp;Auto Deploy
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="Game.resetPlacement()">
+                        <i class="fas fa-trash"></i>&ensp;Clear
+                    </button>
+                    <button class="btn btn-primary btn-sm" id="btn-ready" onclick="Game.confirmPlacement()" disabled>
+                        <i class="fas fa-check"></i>&ensp;Ready
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     SCREEN: BATTLE
+     ============================================================ -->
+    <div class="screen" id="screen-battle">
+        <div class="battle-container">
+            <div class="battle-header glass-panel">
+                <div class="turn-indicator player-turn" id="turn-indicator">
+                    <i class="fas fa-crosshairs"></i>&ensp;<span id="turn-text">YOUR TURN</span>
+                </div>
+                <div class="battle-message" id="battle-message">Select a target on enemy waters</div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn btn-sm" onclick="UI.showSettings()" title="Settings">
+                        <i class="fas fa-gear"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="Game.surrender()" title="Surrender">
+                        <i class="fas fa-flag"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="battle-grids">
+                <div>
+                    <div class="grid-label"><i class="fas fa-shield-halved"></i>&ensp;Your Fleet</div>
+                    <div class="grid-wrapper" id="player-grid-wrapper"></div>
+                </div>
+                <div>
+                    <div class="grid-label"><i class="fas fa-crosshairs"></i>&ensp;Enemy Waters</div>
+                    <div class="grid-wrapper" id="enemy-grid-wrapper"></div>
+                </div>
+            </div>
+            <div class="fleet-status-bar glass-panel">
+                <div class="fleet-status-section">
+                    <h3><i class="fas fa-shield-halved"></i>&ensp;Your Fleet</h3>
+                    <div class="fleet-ship-icons" id="player-fleet-status"></div>
+                </div>
+                <div class="fleet-status-section">
+                    <h3><i class="fas fa-skull-crossbones"></i>&ensp;Enemy Fleet</h3>
+                    <div class="fleet-ship-icons" id="enemy-fleet-status"></div>
+                </div>
+            </div>
+            <div class="fire-section" id="fire-section" style="display:none;">
+                <button class="btn-fire" id="btn-fire-salvo" onclick="Game.fireSalvo()" disabled>
+                    <i class="fas fa-explosion"></i>&ensp;Fire Salvo (<span id="salvo-count">0</span>/<span
+                        id="salvo-max">5</span>)
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     SCREEN: LOCKDOWN (Pass & Play)
+     ============================================================ -->
+    <div class="screen" id="screen-lockdown">
+        <div class="lockdown-container">
+            <div class="lockdown-icon"><i class="fas fa-lock"></i></div>
+            <div class="lockdown-text" id="lockdown-text">Secure Channel — Player 2</div>
+            <p style="color:var(--text-dim); max-width:300px; text-align:center; font-size:0.85rem;">
+                Pass the device to the next commander. Press authenticate when ready.
+            </p>
+            <button class="btn btn-primary" onclick="Game.authenticate()">
+                <i class="fas fa-fingerprint"></i>&ensp;Authenticate
+            </button>
+        </div>
+    </div>
+    <!-- ============================================================
+     SCREEN: GAME OVER
+     ============================================================ -->
+    <div class="screen" id="screen-gameover">
+        <div class="gameover-container glass-panel">
+            <div class="gameover-title" id="gameover-title">VICTORY</div>
+            <div class="gameover-stats" id="gameover-stats"></div>
+            <div class="gameover-buttons">
+                <button class="btn btn-primary" onclick="UI.startNewGame()">
+                    <i class="fas fa-redo"></i>&ensp;New Campaign
+                </button>
+                <button class="btn" onclick="UI.showScreen('screen-menu')">
+                    <i class="fas fa-home"></i>&ensp;Command Center
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     MODAL: TUTORIAL
+     ============================================================ -->
+    <div class="modal-overlay" id="modal-tutorial">
+        <div class="modal-content glass-panel">
+            <div class="step-indicator" id="tutorial-step-indicator">STEP 1 OF 6</div>
+            <h2 id="tutorial-title">Welcome, Commander</h2>
+            <div id="tutorial-body"></div>
+            <div class="modal-footer">
+                <button class="btn btn-sm" id="tutorial-prev" onclick="UI.tutorialPrev()">
+                    <i class="fas fa-arrow-left"></i>&ensp;Back
+                </button>
+                <button class="btn btn-sm btn-primary" id="tutorial-next" onclick="UI.tutorialNext()">
+                    Next&ensp;<i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     MODAL: SETTINGS
+     ============================================================ -->
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-content glass-panel">
+            <h2><i class="fas fa-gear"></i>&ensp;Settings</h2>
+            <div class="settings-grid">
+                <div class="settings-row">
+                    <span class="settings-label"><i class="fas fa-volume-high"></i>&ensp;Sound Volume</span>
+                    <input type="range" class="volume-slider" id="setting-volume" min="0" max="100" value="60"
+                        oninput="Audio.setVolume(this.value/100)">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label"><i class="fas fa-music"></i>&ensp;Sound Effects</span>
+                    <div class="toggle-switch on" id="toggle-sfx" onclick="UI.toggleSFX()"></div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label"><i class="fas fa-tv"></i>&ensp;CRT Scanlines</span>
+                    <div class="toggle-switch on" id="toggle-crt" onclick="UI.toggleCRT()"></div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label"><i class="fas fa-satellite-dish"></i>&ensp;Radar Sweep</span>
+                    <div class="toggle-switch on" id="toggle-radar" onclick="UI.toggleRadar()"></div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label"><i class="fas fa-fire"></i>&ensp;Screen Shake</span>
+                    <div class="toggle-switch on" id="toggle-shake" onclick="UI.toggleShake()"></div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label"><i class="fas fa-trash-can"></i>&ensp;Reset All Data</span>
+                    <button class="btn btn-sm btn-danger" onclick="Persistence.resetAll()">Reset</button>
+                </div>
+            </div>
+            <div style="margin-top:24px; text-align:center;">
+                <button class="btn btn-sm" onclick="UI.closeSettings()">
+                    <i class="fas fa-times"></i>&ensp;Close
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================
+     MAIN GAME SCRIPT
+     ============================================================ -->
+    <script>
+        /* ============================================================
+           AEGIS COMMAND: IRON TIDE — MASTER GAME ENGINE
+           2500+ lines of pure tactical supremacy
+           ============================================================ */
+        // ============================================================
+        // SECTION 1: CONFIGURATION & CONSTANTS
+        // ============================================================
+        const CONFIG = {
+            GRID_SIZE: 10,
+            COLS: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+            SHIPS: [
+                { id: 'carrier', name: 'Carrier', size: 5, icon: 'fa-jet-fighter' },
+                { id: 'battleship', name: 'Battleship', size: 4, icon: 'fa-ship' },
+                { id: 'destroyer', name: 'Destroyer', size: 3, icon: 'fa-wind' },
+                { id: 'submarine', name: 'Submarine', size: 3, icon: 'fa-water' },
+                { id: 'patrol', name: 'Patrol Boat', size: 2, icon: 'fa-sailboat' }
+            ],
+            TOTAL_SHIP_CELLS: 17,
+            AI_THINK_DELAY: 800,
+            AI_SHOT_DELAY: 500,
+            ANIMATION_DELAY: 600,
+            RANKS: [
+                { name: 'Seaman', minWins: 0 },
+                { name: 'Petty Officer', minWins: 3 },
+                { name: 'Ensign', minWins: 7 },
+                { name: 'Lieutenant', minWins: 12 },
+                { name: 'Lt. Commander', minWins: 18 },
+                { name: 'Commander', minWins: 25 },
+                { name: 'Captain', minWins: 33 },
+                { name: 'Rear Admiral', minWins: 42 },
+                { name: 'Vice Admiral', minWins: 55 },
+                { name: 'Admiral', minWins: 70 },
+                { name: 'Fleet Admiral', minWins: 90 }
+            ]
+        };
+        // ============================================================
+        // SECTION 2: SHIP SVG BLUEPRINTS
+        // ============================================================
+        const ShipSVGs = {
+            carrier: function (damageArray) {
+                const w = 200, h = 50;
+                let svg = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`;
+                // Hull
+                svg += `<path class="hull-intact" d="M10,40 L5,30 L5,20 L15,10 L185,10 L195,20 L195,30 L190,40 Z" fill="#1a2a4a" stroke="#00e6ff" stroke-width="0.8" opacity="0.9"/>`;
+                // Flight deck lines
+                svg += `<line x1="20" y1="15" x2="180" y2="15" stroke="#00e6ff" stroke-width="0.3" opacity="0.3"/>`;
+                svg += `<line x1="20" y1="35" x2="180" y2="35" stroke="#00e6ff" stroke-width="0.3" opacity="0.3"/>`;
+                // Deck markings
+                svg += `<line x1="30" y1="20" x2="170" y2="20" stroke="#00e6ff" stroke-width="0.5" opacity="0.2" stroke-dasharray="8,4"/>`;
+                svg += `<line x1="40" y1="30" x2="160" y2="30" stroke="#00e6ff" stroke-width="0.5" opacity="0.2" stroke-dasharray="8,4"/>`;
+                // Island/Tower
+                svg += `<rect x="130" y="14" width="20" height="12" rx="2" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.6" opacity="0.8"/>`;
+                svg += `<rect x="134" y="11" width="4" height="3" fill="#00e6ff" opacity="0.4"/>`;
+                svg += `<line x1="136" y1="8" x2="136" y2="11" stroke="#00e6ff" stroke-width="0.5" opacity="0.5"/>`;
+                // Aircraft outlines on deck
+                for (let i = 0; i < 3; i++) {
+                    const ax = 30 + i * 30;
+                    svg += `<polygon points="${ax},23 ${ax + 8},25 ${ax + 4},28 ${ax - 4},28 ${ax - 8},25" fill="none" stroke="#00e6ff" stroke-width="0.3" opacity="0.25"/>`;
+                }
+                // Catapult tracks
+                svg += `<line x1="15" y1="25" x2="25" y2="15" stroke="#00e6ff" stroke-width="0.4" opacity="0.2"/>`;
+                svg += `<line x1="15" y1="28" x2="28" y2="15" stroke="#00e6ff" stroke-width="0.4" opacity="0.2"/>`;
+                // Damage layers for each section (5 sections)
+                if (damageArray) {
+                    for (let i = 0; i < 5; i++) {
+                        if (damageArray[i]) {
+                            const dx = 10 + i * 36;
+                            svg += `<g class="damage-layer" style="opacity:1">`;
+                            svg += `<line x1="${dx}" y1="12" x2="${dx + 30}" y2="38" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<line x1="${dx + 30}" y1="12" x2="${dx}" y2="38" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<circle cx="${dx + 15}" cy="25" r="8" fill="none" stroke="#ff2244" stroke-width="0.8" opacity="0.5" stroke-dasharray="3,2"/>`;
+                            svg += `<text x="${dx + 15}" y="27" text-anchor="middle" font-size="7" fill="#ff2244" opacity="0.8" font-family="Orbitron">DMG</text>`;
+                            svg += `</g>`;
+                        }
+                    }
+                }
+                svg += `</svg>`;
+                return svg;
+            },
+            battleship: function (damageArray) {
+                const w = 170, h = 50;
+                let svg = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`;
+                // Hull
+                svg += `<path class="hull-intact" d="M8,38 L3,28 L8,14 L162,14 L167,28 L162,38 Z" fill="#1a2a4a" stroke="#00e6ff" stroke-width="0.8" opacity="0.9"/>`;
+                // Armor belt
+                svg += `<line x1="12" y1="36" x2="158" y2="36" stroke="#00e6ff" stroke-width="0.4" opacity="0.3"/>`;
+                svg += `<line x1="10" y1="16" x2="160" y2="16" stroke="#00e6ff" stroke-width="0.4" opacity="0.3"/>`;
+                // Main gun turrets (fore and aft)
+                svg += `<rect x="20" y="20" width="16" height="12" rx="3" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.7" opacity="0.8"/>`;
+                svg += `<line x1="22" y1="26" x2="12" y2="22" stroke="#00e6ff" stroke-width="1.2" opacity="0.5"/>`;
+                svg += `<line x1="28" y1="26" x2="12" y2="26" stroke="#00e6ff" stroke-width="1.2" opacity="0.5"/>`;
+                svg += `<rect x="50" y="20" width="16" height="12" rx="3" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.7" opacity="0.8"/>`;
+                svg += `<line x1="52" y1="26" x2="42" y2="22" stroke="#00e6ff" stroke-width="1.2" opacity="0.5"/>`;
+                svg += `<line x1="58" y1="26" x2="42" y2="26" stroke="#00e6ff" stroke-width="1.2" opacity="0.5"/>`;
+                // Superstructure / Bridge
+                svg += `<rect x="85" y="17" width="24" height="18" rx="2" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.7" opacity="0.8"/>`;
+                svg += `<rect x="90" y="13" width="14" height="4" rx="1" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.5" opacity="0.6"/>`;
+                svg += `<line x1="97" y1="9" x2="97" y2="13" stroke="#00e6ff" stroke-width="0.6" opacity="0.4"/>`;
+                svg += `<circle cx="97" cy="8" r="1.5" fill="#00e6ff" opacity="0.5"/>`;
+                // Aft turret
+                svg += `<rect x="125" y="20" width="16" height="12" rx="3" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.7" opacity="0.8"/>`;
+                svg += `<line x1="133" y1="26" x2="148" y2="22" stroke="#00e6ff" stroke-width="1.2" opacity="0.5"/>`;
+                svg += `<line x1="139" y1="26" x2="148" y2="26" stroke="#00e6ff" stroke-width="1.2" opacity="0.5"/>`;
+                // Damage
+                if (damageArray) {
+                    for (let i = 0; i < 4; i++) {
+                        if (damageArray[i]) {
+                            const dx = 8 + i * 40;
+                            svg += `<g class="damage-layer" style="opacity:1">`;
+                            svg += `<line x1="${dx}" y1="15" x2="${dx + 35}" y2="37" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<line x1="${dx + 35}" y1="15" x2="${dx}" y2="37" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<circle cx="${dx + 17}" cy="26" r="7" fill="none" stroke="#ff2244" stroke-width="0.8" opacity="0.5"/>`;
+                            svg += `</g>`;
+                        }
+                    }
+                }
+                svg += `</svg>`;
+                return svg;
+            },
+            destroyer: function (damageArray) {
+                const w = 140, h = 45;
+                let svg = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`;
+                // Sleek hull
+                svg += `<path class="hull-intact" d="M5,32 L3,24 L10,14 L130,14 L137,24 L135,32 Z" fill="#1a2a4a" stroke="#00e6ff" stroke-width="0.8" opacity="0.9"/>`;
+                // Waterline
+                svg += `<line x1="8" y1="30" x2="132" y2="30" stroke="#00e6ff" stroke-width="0.3" opacity="0.25"/>`;
+                // Forward gun
+                svg += `<circle cx="25" cy="23" r="6" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.6" opacity="0.8"/>`;
+                svg += `<line x1="25" y1="23" x2="10" y2="18" stroke="#00e6ff" stroke-width="1" opacity="0.5"/>`;
+                // Bridge
+                svg += `<rect x="55" y="16" width="18" height="14" rx="2" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.6" opacity="0.8"/>`;
+                svg += `<rect x="59" y="12" width="10" height="4" rx="1" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.4" opacity="0.6"/>`;
+                svg += `<line x1="64" y1="9" x2="64" y2="12" stroke="#00e6ff" stroke-width="0.5" opacity="0.4"/>`;
+                // Torpedo tubes
+                svg += `<rect x="90" y="20" width="12" height="6" rx="1" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.5" opacity="0.7"/>`;
+                svg += `<line x1="102" y1="22" x2="110" y2="22" stroke="#00e6ff" stroke-width="0.6" opacity="0.3"/>`;
+                svg += `<line x1="102" y1="24" x2="110" y2="24" stroke="#00e6ff" stroke-width="0.6" opacity="0.3"/>`;
+                // Aft gun
+                svg += `<circle cx="120" cy="23" r="5" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.6" opacity="0.8"/>`;
+                svg += `<line x1="120" y1="23" x2="130" y2="19" stroke="#00e6ff" stroke-width="0.8" opacity="0.5"/>`;
+                if (damageArray) {
+                    for (let i = 0; i < 3; i++) {
+                        if (damageArray[i]) {
+                            const dx = 8 + i * 43;
+                            svg += `<g class="damage-layer" style="opacity:1">`;
+                            svg += `<line x1="${dx}" y1="14" x2="${dx + 38}" y2="32" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<line x1="${dx + 38}" y1="14" x2="${dx}" y2="32" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `</g>`;
+                        }
+                    }
+                }
+                svg += `</svg>`;
+                return svg;
+            },
+            submarine: function (damageArray) {
+                const w = 140, h = 45;
+                let svg = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`;
+                // Cylindrical hull
+                svg += `<ellipse class="hull-intact" cx="70" cy="26" rx="65" ry="12" fill="#1a2a4a" stroke="#00e6ff" stroke-width="0.8" opacity="0.9"/>`;
+                // Pressure hull lines
+                svg += `<ellipse cx="70" cy="26" rx="55" ry="9" fill="none" stroke="#00e6ff" stroke-width="0.3" opacity="0.2"/>`;
+                // Conning tower / Sail
+                svg += `<rect x="55" y="12" width="22" height="14" rx="3" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.7" opacity="0.8"/>`;
+                svg += `<rect x="60" y="8" width="12" height="4" rx="1" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.5" opacity="0.6"/>`;
+                // Periscope
+                svg += `<line x1="66" y1="4" x2="66" y2="8" stroke="#00e6ff" stroke-width="0.6" opacity="0.5"/>`;
+                svg += `<rect x="64" y="2" width="4" height="3" rx="0.5" fill="#00e6ff" opacity="0.3"/>`;
+                // Torpedo tubes (bow)
+                svg += `<circle cx="12" cy="24" r="2" fill="none" stroke="#00e6ff" stroke-width="0.5" opacity="0.4"/>`;
+                svg += `<circle cx="12" cy="28" r="2" fill="none" stroke="#00e6ff" stroke-width="0.5" opacity="0.4"/>`;
+                // Propeller (stern)
+                svg += `<ellipse cx="132" cy="26" rx="3" ry="7" fill="none" stroke="#00e6ff" stroke-width="0.5" opacity="0.4"/>`;
+                svg += `<line x1="130" y1="26" x2="135" y2="26" stroke="#00e6ff" stroke-width="0.5" opacity="0.3"/>`;
+                // Dive planes
+                svg += `<line x1="20" y1="19" x2="10" y2="16" stroke="#00e6ff" stroke-width="0.8" opacity="0.4"/>`;
+                svg += `<line x1="20" y1="33" x2="10" y2="36" stroke="#00e6ff" stroke-width="0.8" opacity="0.4"/>`;
+                svg += `<line x1="115" y1="19" x2="125" y2="16" stroke="#00e6ff" stroke-width="0.8" opacity="0.4"/>`;
+                svg += `<line x1="115" y1="33" x2="125" y2="36" stroke="#00e6ff" stroke-width="0.8" opacity="0.4"/>`;
+                if (damageArray) {
+                    for (let i = 0; i < 3; i++) {
+                        if (damageArray[i]) {
+                            const dx = 10 + i * 43;
+                            svg += `<g class="damage-layer" style="opacity:1">`;
+                            svg += `<line x1="${dx}" y1="15" x2="${dx + 38}" y2="37" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<line x1="${dx + 38}" y1="15" x2="${dx}" y2="37" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<circle cx="${dx + 19}" cy="26" r="6" fill="#ff2244" opacity="0.15"/>`;
+                            svg += `</g>`;
+                        }
+                    }
+                }
+                svg += `</svg>`;
+                return svg;
+            },
+            patrol: function (damageArray) {
+                const w = 100, h = 40;
+                let svg = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">`;
+                // Small fast hull
+                svg += `<path class="hull-intact" d="M5,28 L3,22 L12,12 L88,12 L97,22 L95,28 Z" fill="#1a2a4a" stroke="#00e6ff" stroke-width="0.8" opacity="0.9"/>`;
+                // Waterline
+                svg += `<line x1="8" y1="26" x2="92" y2="26" stroke="#00e6ff" stroke-width="0.3" opacity="0.25"/>`;
+                // Small gun
+                svg += `<circle cx="25" cy="19" r="4" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.5" opacity="0.8"/>`;
+                svg += `<line x1="25" y1="19" x2="14" y2="15" stroke="#00e6ff" stroke-width="0.8" opacity="0.5"/>`;
+                // Small bridge
+                svg += `<rect x="45" y="14" width="14" height="10" rx="2" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.5" opacity="0.8"/>`;
+                svg += `<line x1="52" y1="10" x2="52" y2="14" stroke="#00e6ff" stroke-width="0.5" opacity="0.4"/>`;
+                // Engine exhaust
+                svg += `<rect x="72" y="16" width="10" height="8" rx="1" fill="#0d1a30" stroke="#00e6ff" stroke-width="0.4" opacity="0.6"/>`;
+                // Wake lines
+                svg += `<line x1="90" y1="20" x2="98" y2="18" stroke="#00e6ff" stroke-width="0.4" opacity="0.2"/>`;
+                svg += `<line x1="90" y1="24" x2="98" y2="26" stroke="#00e6ff" stroke-width="0.4" opacity="0.2"/>`;
+                if (damageArray) {
+                    for (let i = 0; i < 2; i++) {
+                        if (damageArray[i]) {
+                            const dx = 8 + i * 45;
+                            svg += `<g class="damage-layer" style="opacity:1">`;
+                            svg += `<line x1="${dx}" y1="12" x2="${dx + 40}" y2="28" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `<line x1="${dx + 40}" y1="12" x2="${dx}" y2="28" stroke="#ff2244" stroke-width="1.5" opacity="0.7"/>`;
+                            svg += `</g>`;
+                        }
+                    }
+                }
+                svg += `</svg>`;
+                return svg;
+            }
+        };
+        // ============================================================
+        // SECTION 3: WEB AUDIO ENGINE
+        // ============================================================
+        const Audio = {
+            ctx: null,
+            masterGain: null,
+            volume: 0.6,
+            enabled: true,
+            init() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.value = this.volume;
+                    this.masterGain.connect(this.ctx.destination);
+                } catch (e) {
+                    console.warn('Web Audio API not available:', e);
+                    this.enabled = false;
+                }
+            },
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            setVolume(v) {
+                this.volume = Math.max(0, Math.min(1, v));
+                if (this.masterGain) {
+                    this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+                }
+            },
+            sonarPulse() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                // Primary tone
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(1400, t);
+                osc1.frequency.exponentialRampToValueAtTime(900, t + 0.25);
+                gain1.gain.setValueAtTime(0.25, t);
+                gain1.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+                osc1.connect(gain1);
+                gain1.connect(this.masterGain);
+                osc1.start(t);
+                osc1.stop(t + 1.8);
+                // Secondary harmonic
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(2100, t);
+                osc2.frequency.exponentialRampToValueAtTime(1350, t + 0.2);
+                gain2.gain.setValueAtTime(0.08, t);
+                gain2.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+                osc2.connect(gain2);
+                gain2.connect(this.masterGain);
+                osc2.start(t);
+                osc2.stop(t + 1.2);
+            },
+            launch() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.5;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+                }
+                const source = this.ctx.createBufferSource();
+                source.buffer = buffer;
+                // Bandpass for whoosh
+                const bandpass = this.ctx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.setValueAtTime(2000, t);
+                bandpass.frequency.exponentialRampToValueAtTime(500, t + 0.4);
+                bandpass.Q.value = 1.5;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.35, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+                source.connect(bandpass);
+                bandpass.connect(gain);
+                gain.connect(this.masterGain);
+                source.start(t);
+                source.stop(t + 0.5);
+            },
+            impact() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                // Explosion noise
+                const bufferSize = this.ctx.sampleRate * 0.8;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const env = Math.exp(-i / (this.ctx.sampleRate * 0.15));
+                    data[i] = (Math.random() * 2 - 1) * env;
+                }
+                const source = this.ctx.createBufferSource();
+                source.buffer = buffer;
+                const lowpass = this.ctx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.setValueAtTime(800, t);
+                lowpass.frequency.exponentialRampToValueAtTime(150, t + 0.6);
+                lowpass.Q.value = 2;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.5, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+                source.connect(lowpass);
+                lowpass.connect(gain);
+                gain.connect(this.masterGain);
+                source.start(t);
+                source.stop(t + 0.8);
+                // Sub-bass thud
+                const osc = this.ctx.createOscillator();
+                const oscGain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(80, t);
+                osc.frequency.exponentialRampToValueAtTime(30, t + 0.3);
+                oscGain.gain.setValueAtTime(0.4, t);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                osc.connect(oscGain);
+                oscGain.connect(this.masterGain);
+                osc.start(t);
+                osc.stop(t + 0.35);
+            },
+            splash() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.4;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const env = Math.exp(-i / (this.ctx.sampleRate * 0.08));
+                    data[i] = (Math.random() * 2 - 1) * env;
+                }
+                const source = this.ctx.createBufferSource();
+                source.buffer = buffer;
+                const highpass = this.ctx.createBiquadFilter();
+                highpass.type = 'highpass';
+                highpass.frequency.setValueAtTime(3000, t);
+                highpass.Q.value = 0.8;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                source.connect(highpass);
+                highpass.connect(gain);
+                gain.connect(this.masterGain);
+                source.start(t);
+                source.stop(t + 0.4);
+                // Bubble tones
+                for (let b = 0; b < 3; b++) {
+                    const bOsc = this.ctx.createOscillator();
+                    const bGain = this.ctx.createGain();
+                    bOsc.type = 'sine';
+                    const startFreq = 600 + Math.random() * 800;
+                    bOsc.frequency.setValueAtTime(startFreq, t + b * 0.06);
+                    bOsc.frequency.exponentialRampToValueAtTime(startFreq * 0.5, t + b * 0.06 + 0.15);
+                    bGain.gain.setValueAtTime(0.06, t + b * 0.06);
+                    bGain.gain.exponentialRampToValueAtTime(0.001, t + b * 0.06 + 0.15);
+                    bOsc.connect(bGain);
+                    bGain.connect(this.masterGain);
+                    bOsc.start(t + b * 0.06);
+                    bOsc.stop(t + b * 0.06 + 0.15);
+                }
+            },
+            sunkAlarm() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                for (let i = 0; i < 3; i++) {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(440 + i * 110, t + i * 0.15);
+                    gain.gain.setValueAtTime(0.12, t + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.15 + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t + i * 0.15);
+                    osc.stop(t + i * 0.15 + 0.12);
+                }
+            },
+            victory() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t + i * 0.2);
+                    gain.gain.setValueAtTime(0.2, t + i * 0.2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.2 + 0.5);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t + i * 0.2);
+                    osc.stop(t + i * 0.2 + 0.5);
+                });
+            },
+            defeat() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const notes = [392, 349.23, 293.66, 261.63];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t + i * 0.3);
+                    gain.gain.setValueAtTime(0.2, t + i * 0.3);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.3 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t + i * 0.3);
+                    osc.stop(t + i * 0.3 + 0.6);
+                });
+            },
+            click() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1800, t);
+                gain.gain.setValueAtTime(0.08, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(t);
+                osc.stop(t + 0.05);
+            },
+            place() {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, t);
+                osc.frequency.exponentialRampToValueAtTime(900, t + 0.08);
+                gain.gain.setValueAtTime(0.12, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(t);
+                osc.stop(t + 0.12);
+            }
+        };
+        // ============================================================
+        // SECTION 4: PERSISTENCE MANAGER
+        // ============================================================
+        const Persistence = {
+            KEYS: {
+                STATS: 'aegis_stats',
+                GAME_STATE: 'aegis_save',
+                SETTINGS: 'aegis_settings'
+            },
+            defaultStats() {
+                return {
+                    totalWins: 0,
+                    totalLosses: 0,
+                    totalShots: 0,
+                    totalHits: 0,
+                    winStreak: 0,
+                    bestStreak: 0,
+                    gamesPlayed: 0,
+                    rankIndex: 0
+                };
+            },
+            loadStats() {
+                try {
+                    const raw = localStorage.getItem(this.KEYS.STATS);
+                    if (raw) return JSON.parse(raw);
+                } catch (e) { }
+                return this.defaultStats();
+            },
+            saveStats(stats) {
+                try {
+                    localStorage.setItem(this.KEYS.STATS, JSON.stringify(stats));
+                } catch (e) { }
+            },
+            saveGameState(state) {
+                try {
+                    localStorage.setItem(this.KEYS.GAME_STATE, JSON.stringify(state));
+                } catch (e) { }
+            },
+            loadGameState() {
+                try {
+                    const raw = localStorage.getItem(this.KEYS.GAME_STATE);
+                    if (raw) return JSON.parse(raw);
+                } catch (e) { }
+                return null;
+            },
+            clearGameState() {
+                try { localStorage.removeItem(this.KEYS.GAME_STATE); } catch (e) { }
+            },
+            saveSettings(settings) {
+                try { localStorage.setItem(this.KEYS.SETTINGS, JSON.stringify(settings)); } catch (e) { }
+            },
+            loadSettings() {
+                try {
+                    const raw = localStorage.getItem(this.KEYS.SETTINGS);
+                    if (raw) return JSON.parse(raw);
+                } catch (e) { }
+                return { volume: 0.6, sfx: true, crt: true, radar: true, shake: true };
+            },
+            resetAll() {
+                try {
+                    localStorage.removeItem(this.KEYS.STATS);
+                    localStorage.removeItem(this.KEYS.GAME_STATE);
+                    localStorage.removeItem(this.KEYS.SETTINGS);
+                } catch (e) { }
+                UI.showToast('All data has been reset', 'danger');
+                Game.playerStats = Persistence.defaultStats();
+                UI.updateMenuStats();
+            },
+            getRank(wins) {
+                let rank = CONFIG.RANKS[0];
+                for (let i = CONFIG.RANKS.length - 1; i >= 0; i--) {
+                    if (wins >= CONFIG.RANKS[i].minWins) {
+                        rank = CONFIG.RANKS[i];
+                        break;
+                    }
+                }
+                return rank;
+            }
+        };
+        // ============================================================
+        // SECTION 5: AI ENGINE — RECRUIT, COMMANDER, GRAND ADMIRAL
+        // ============================================================
+        class AIEngine {
+            constructor(difficulty) {
+                this.difficulty = difficulty; // 'recruit', 'commander', 'admiral'
+                this.shotBoard = null;
+                this.remainingShips = [];
+                this.huntStack = [];
+                this.hitChain = [];
+                this.lastHit = null;
+                this.probMap = [];
+                this.targetedCells = new Set();
+                this.parityPhase = true;
+                this.patternWeights = { cluster: 0.5, spread: 0.5 };
+                this.totalPlayerShipCells = CONFIG.TOTAL_SHIP_CELLS;
+                this.hitsLanded = 0;
+            }
+            initialize(playerShips) {
+                this.shotBoard = this.createEmptyGrid();
+                this.remainingShips = CONFIG.SHIPS.map(s => ({ ...s, alive: true }));
+                this.huntStack = [];
+                this.hitChain = [];
+                this.lastHit = null;
+                this.probMap = this.createEmptyGrid();
+                this.targetedCells.clear();
+                this.hitsLanded = 0;
+            }
+            createEmptyGrid() {
+                return Array.from({ length: CONFIG.GRID_SIZE }, () => Array(CONFIG.GRID_SIZE).fill(0));
+            }
+            markShot(r, c, isHit) {
+                this.shotBoard[r][c] = isHit ? 2 : 1;
+                this.targetedCells.add(`${r},${c}`);
+                if (isHit) {
+                    this.hitsLanded++;
+                    this.lastHit = { r, c };
+                    this.hitChain.push({ r, c });
+                }
+            }
+            markSunk(shipId) {
+                const ship = this.remainingShips.find(s => s.id === shipId);
+                if (ship) ship.alive = false;
+                // Clear hunt stack entries related to sunk ship
+                this.cleanupAfterSink();
+            }
+            cleanupAfterSink() {
+                // Reset hit chain if all hits in chain belong to sunk ships
+                // This is a simplified cleanup — remove resolved hits from hunt
+                this.hitChain = [];
+                this.huntStack = [];
+                // Re-scan board for unresolved hits (hits that aren't part of a sunk ship)
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] === 2) {
+                            // Check if this hit is "unresolved" — we need the game to tell us
+                            // For simplicity, we leave hitChain and huntStack empty
+                            // The probability map will naturally handle unresolved hits
+                        }
+                    }
+                }
+            }
+            addUnresolvedHits(unresolvedHits) {
+                // Called after sinking to re-add any unresolved hit clusters
+                this.hitChain = unresolvedHits.slice();
+                if (this.hitChain.length > 0) {
+                    this.generateHuntTargets();
+                }
+            }
+            generateHuntTargets() {
+                this.huntStack = [];
+                const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                for (const hit of this.hitChain) {
+                    for (const [dr, dc] of dirs) {
+                        const nr = hit.r + dr;
+                        const nc = hit.c + dc;
+                        if (this.isValidTarget(nr, nc)) {
+                            const key = `${nr},${nc}`;
+                            if (!this.huntStack.some(h => h.r === nr && h.c === nc)) {
+                                this.huntStack.push({ r: nr, c: nc });
+                            }
+                        }
+                    }
+                }
+                // If hit chain is linear, prioritize extending the line
+                if (this.hitChain.length >= 2) {
+                    const h1 = this.hitChain[0];
+                    const h2 = this.hitChain[this.hitChain.length - 1];
+                    if (h1.r === h2.r) {
+                        // Horizontal line — prioritize left and right ends
+                        const minC = Math.min(...this.hitChain.map(h => h.c));
+                        const maxC = Math.max(...this.hitChain.map(h => h.c));
+                        const prioritized = [];
+                        if (this.isValidTarget(h1.r, minC - 1)) prioritized.push({ r: h1.r, c: minC - 1 });
+                        if (this.isValidTarget(h1.r, maxC + 1)) prioritized.push({ r: h1.r, c: maxC + 1 });
+                        if (prioritized.length > 0) {
+                            this.huntStack = [...prioritized, ...this.huntStack.filter(h =>
+                                !prioritized.some(p => p.r === h.r && p.c === h.c)
+                            )];
+                        }
+                    } else if (h1.c === h2.c) {
+                        // Vertical line
+                        const minR = Math.min(...this.hitChain.map(h => h.r));
+                        const maxR = Math.max(...this.hitChain.map(h => h.r));
+                        const prioritized = [];
+                        if (this.isValidTarget(minR - 1, h1.c)) prioritized.push({ r: minR - 1, c: h1.c });
+                        if (this.isValidTarget(maxR + 1, h1.c)) prioritized.push({ r: maxR + 1, c: h1.c });
+                        if (prioritized.length > 0) {
+                            this.huntStack = [...prioritized, ...this.huntStack.filter(h =>
+                                !prioritized.some(p => p.r === h.r && p.c === h.c)
+                            )];
+                        }
+                    }
+                }
+            }
+            isValidTarget(r, c) {
+                return r >= 0 && r < CONFIG.GRID_SIZE && c >= 0 && c < CONFIG.GRID_SIZE
+                    && this.shotBoard[r][c] === 0;
+            }
+            // ------ RECRUIT: Pure random ------
+            getRecruitShot() {
+                const available = [];
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] === 0) {
+                            available.push({ r, c });
+                        }
+                    }
+                }
+                if (available.length === 0) return null;
+                return available[Math.floor(Math.random() * available.length)];
+            }
+            // ------ COMMANDER: Hunt & Target ------
+            getCommanderShot() {
+                // If we have hunt targets, use them
+                while (this.huntStack.length > 0) {
+                    const target = this.huntStack.shift();
+                    if (this.isValidTarget(target.r, target.c)) {
+                        return target;
+                    }
+                }
+                // Otherwise, random with checkerboard pattern preference
+                const available = [];
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] === 0) {
+                            // Checkerboard: (r+c) % 2 === 0 gives better coverage
+                            if ((r + c) % 2 === 0) {
+                                available.push({ r, c, priority: 2 });
+                            } else {
+                                available.push({ r, c, priority: 1 });
+                            }
+                        }
+                    }
+                }
+                if (available.length === 0) return null;
+                // Prefer checkerboard cells
+                const highPriority = available.filter(a => a.priority === 2);
+                if (highPriority.length > 0) {
+                    return highPriority[Math.floor(Math.random() * highPriority.length)];
+                }
+                return available[Math.floor(Math.random() * available.length)];
+            }
+            // ------ GRAND ADMIRAL: Probability Density Function ------
+            getAdmiralShot() {
+                // If we have confirmed hit chain targets, consider them with probability weighting
+                if (this.huntStack.length > 0) {
+                    // Still use probability to choose best hunt target
+                    this.calculateProbabilityMap();
+                    let bestTarget = null;
+                    let bestProb = -1;
+                    for (const target of this.huntStack) {
+                        if (this.isValidTarget(target.r, target.c)) {
+                            const prob = this.probMap[target.r][target.c];
+                            if (prob > bestProb) {
+                                bestProb = prob;
+                                bestTarget = target;
+                            }
+                        }
+                    }
+                    if (bestTarget) {
+                        this.huntStack = this.huntStack.filter(h => h.r !== bestTarget.r || h.c !== bestTarget.c);
+                        return bestTarget;
+                    }
+                    this.huntStack = [];
+                }
+                // Full probability density calculation
+                this.calculateProbabilityMap();
+                // Find the cell with maximum probability
+                let maxProb = 0;
+                let candidates = [];
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] !== 0) continue;
+                        const p = this.probMap[r][c];
+                        if (p > maxProb) {
+                            maxProb = p;
+                            candidates = [{ r, c }];
+                        } else if (p === maxProb && p > 0) {
+                            candidates.push({ r, c });
+                        }
+                    }
+                }
+                if (candidates.length === 0) return this.getRecruitShot();
+                // Slight randomization among top candidates to avoid being too predictable
+                return candidates[Math.floor(Math.random() * candidates.length)];
+            }
+            calculateProbabilityMap() {
+                // Reset probability map
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        this.probMap[r][c] = 0;
+                    }
+                }
+                const aliveShips = this.remainingShips.filter(s => s.alive);
+                for (const ship of aliveShips) {
+                    // Try all horizontal placements
+                    for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                        for (let c = 0; c <= CONFIG.GRID_SIZE - ship.size; c++) {
+                            if (this.canPlaceForProb(r, c, ship.size, 'H')) {
+                                const hasAdjacentHit = this.placementTouchesHit(r, c, ship.size, 'H');
+                                const weight = hasAdjacentHit ? 5 : 1;
+                                for (let i = 0; i < ship.size; i++) {
+                                    if (this.shotBoard[r][c + i] === 0) {
+                                        this.probMap[r][c + i] += weight;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Try all vertical placements
+                    for (let r = 0; r <= CONFIG.GRID_SIZE - ship.size; r++) {
+                        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                            if (this.canPlaceForProb(r, c, ship.size, 'V')) {
+                                const hasAdjacentHit = this.placementTouchesHit(r, c, ship.size, 'V');
+                                const weight = hasAdjacentHit ? 5 : 1;
+                                for (let i = 0; i < ship.size; i++) {
+                                    if (this.shotBoard[r + i][c] === 0) {
+                                        this.probMap[r + i][c] += weight;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Zero out cells already shot
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] !== 0) {
+                            this.probMap[r][c] = 0;
+                        }
+                    }
+                }
+                // Boost cells adjacent to unresolved hits
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] === 2) {
+                            // Check if this hit might be unresolved
+                            const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                            for (const [dr, dc] of dirs) {
+                                const nr = r + dr, nc = c + dc;
+                                if (nr >= 0 && nr < CONFIG.GRID_SIZE && nc >= 0 && nc < CONFIG.GRID_SIZE) {
+                                    if (this.shotBoard[nr][nc] === 0) {
+                                        this.probMap[nr][nc] *= 2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Adaptive: Apply pattern weighting based on history
+                this.applyAdaptiveWeights();
+            }
+            canPlaceForProb(r, c, size, orient) {
+                for (let i = 0; i < size; i++) {
+                    const cr = orient === 'V' ? r + i : r;
+                    const cc = orient === 'H' ? c + i : c;
+                    if (cr >= CONFIG.GRID_SIZE || cc >= CONFIG.GRID_SIZE) return false;
+                    // A miss blocks placement
+                    if (this.shotBoard[cr][cc] === 1) return false;
+                    // A hit is OK (ship could pass through known hit)
+                }
+                return true;
+            }
+            placementTouchesHit(r, c, size, orient) {
+                for (let i = 0; i < size; i++) {
+                    const cr = orient === 'V' ? r + i : r;
+                    const cc = orient === 'H' ? c + i : c;
+                    if (this.shotBoard[cr][cc] === 2) return true;
+                }
+                return false;
+            }
+            applyAdaptiveWeights() {
+                // Analyze player pattern from previous hits
+                // If hits are clustered, boost center of board slightly
+                // If hits are spread, boost edges
+                const hitCells = [];
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        if (this.shotBoard[r][c] === 2) hitCells.push({ r, c });
+                    }
+                }
+                if (hitCells.length < 3) return;
+                // Calculate centroid of hits
+                const avgR = hitCells.reduce((s, h) => s + h.r, 0) / hitCells.length;
+                const avgC = hitCells.reduce((s, h) => s + h.c, 0) / hitCells.length;
+                // Calculate variance (spread measure)
+                const variance = hitCells.reduce((s, h) => s + Math.pow(h.r - avgR, 2) + Math.pow(h.c - avgC, 2), 0) / hitCells.length;
+                if (variance < 8) {
+                    // Clustered — boost area around centroid
+                    for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                            const dist = Math.sqrt(Math.pow(r - avgR, 2) + Math.pow(c - avgC, 2));
+                            if (dist < 4 && this.probMap[r][c] > 0) {
+                                this.probMap[r][c] *= (1 + 0.3 * (4 - dist) / 4);
+                            }
+                        }
+                    }
+                } else {
+                    // Spread — slight boost to less-explored regions
+                    for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                            const dist = Math.sqrt(Math.pow(r - avgR, 2) + Math.pow(c - avgC, 2));
+                            if (dist > 3 && this.probMap[r][c] > 0) {
+                                this.probMap[r][c] *= 1.15;
+                            }
+                        }
+                    }
+                }
+            }
+            getShot() {
+                switch (this.difficulty) {
+                    case 'recruit': return this.getRecruitShot();
+                    case 'commander': return this.getCommanderShot();
+                    case 'admiral': return this.getAdmiralShot();
+                    default: return this.getRecruitShot();
+                }
+            }
+            // Called when AI hits a player ship
+            processHitResult(r, c, sunkShipId) {
+                this.markShot(r, c, true);
+                if (sunkShipId) {
+                    this.markSunk(sunkShipId);
+                } else {
+                    // Add to hit chain and generate hunt targets
+                    if (!this.hitChain.some(h => h.r === r && h.c === c)) {
+                        this.hitChain.push({ r, c });
+                    }
+                    this.generateHuntTargets();
+                }
+            }
+            processMissResult(r, c) {
+                this.markShot(r, c, false);
+            }
+            getSalvoShots(count) {
+                const shots = [];
+                for (let i = 0; i < count; i++) {
+                    const shot = this.getShot();
+                    if (!shot) break;
+                    shots.push(shot);
+                    // Temporarily mark as targeted so we don't pick the same cell
+                    this.shotBoard[shot.r][shot.c] = -1; // temporary marker
+                }
+                // Restore temporary markers
+                shots.forEach(s => {
+                    this.shotBoard[s.r][s.c] = 0;
+                });
+                return shots;
+            }
+        }
+        // ============================================================
+        // SECTION 6: CORE GAME ENGINE
+        // ============================================================
+        const Game = {
+            // ---- State Variables ----
+            phase: 'menu',
+            mode: 'solo',
+            difficulty: 'commander',
+            salvoMode: false,
+            currentPlayer: 1,
+            setupPlayer: 1,
+            orientation: 'H',
+            currentShipIndex: 0,
+            // Boards: playerBoard[player][r][c] = 0 or shipIndex+1
+            playerBoards: { 1: null, 2: null },
+            // Shots fired at each player: shotBoards[target][r][c] = 0/1(miss)/2(hit)
+            shotBoards: { 1: null, 2: null },
+            // Ships placed per player
+            playerShips: { 1: [], 2: [] },
+            // Battle stats
+            battleStats: {
+                1: { shots: 0, hits: 0, shipsSunk: 0 },
+                2: { shots: 0, hits: 0, shipsSunk: 0 }
+            },
+            // Salvo targets
+            salvoTargets: [],
+            // AI
+            ai: null,
+            // Persistent stats
+            playerStats: null,
+            // Processing flag
+            isProcessing: false,
+            // Settings
+            settings: { volume: 0.6, sfx: true, crt: true, radar: true, shake: true },
+            // ---- Initialization ----
+            init() {
+                this.playerStats = Persistence.loadStats();
+                this.settings = Persistence.loadSettings();
+                this.applySettings();
+                UI.updateMenuStats();
+                // Check for saved game
+                const saved = Persistence.loadGameState();
+                if (saved && saved.phase === 'battle') {
+                    document.getElementById('btn-continue').style.display = '';
+                }
+                // Keyboard listener
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'r' || e.key === 'R') {
+                        if (this.phase === 'setup') this.rotateShip();
+                    }
+                    if (e.key === 'Escape') {
+                        UI.closeAllModals();
+                    }
+                });
+            },
+            applySettings() {
+                Audio.setVolume(this.settings.volume);
+                Audio.enabled = this.settings.sfx;
+                document.getElementById('setting-volume').value = this.settings.volume * 100;
+                // CRT
+                document.body.style.setProperty('--crt-opacity', this.settings.crt ? '1' : '0');
+                if (!this.settings.crt) document.body.classList.add('no-crt');
+                else document.body.classList.remove('no-crt');
+                // Apply toggle states
+                this.updateToggleState('toggle-sfx', this.settings.sfx);
+                this.updateToggleState('toggle-crt', this.settings.crt);
+                this.updateToggleState('toggle-radar', this.settings.radar);
+                this.updateToggleState('toggle-shake', this.settings.shake);
+            },
+            updateToggleState(id, state) {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (state) el.classList.add('on');
+                    else el.classList.remove('on');
+                }
+            },
+            // ---- Board Helpers ----
+            createEmptyGrid() {
+                return Array.from({ length: CONFIG.GRID_SIZE }, () => Array(CONFIG.GRID_SIZE).fill(0));
+            },
+            // ---- New Game Flow ----
+            startNew() {
+                this.phase = 'mode-select';
+                this.playerBoards = { 1: this.createEmptyGrid(), 2: this.createEmptyGrid() };
+                this.shotBoards = { 1: this.createEmptyGrid(), 2: this.createEmptyGrid() };
+                this.playerShips = { 1: [], 2: [] };
+                this.battleStats = {
+                    1: { shots: 0, hits: 0, shipsSunk: 0 },
+                    2: { shots: 0, hits: 0, shipsSunk: 0 }
+                };
+                this.salvoTargets = [];
+                this.currentPlayer = 1;
+                this.isProcessing = false;
+                Persistence.clearGameState();
+                UI.showScreen('screen-mode');
+            },
+            // ---- Setup Phase ----
+            beginSetup(player) {
+                this.phase = 'setup';
+                this.setupPlayer = player || 1;
+                this.currentShipIndex = 0;
+                this.orientation = 'H';
+                this.playerBoards[this.setupPlayer] = this.createEmptyGrid();
+                this.playerShips[this.setupPlayer] = [];
+                const title = document.getElementById('setup-title');
+                if (this.mode === 'local') {
+                    title.innerHTML = `<i class="fas fa-map-marked-alt"></i>&ensp;Player ${this.setupPlayer} — Deploy Fleet`;
+                } else {
+                    title.innerHTML = `<i class="fas fa-map-marked-alt"></i>&ensp;Deploy Your Fleet`;
+                }
+                UI.renderSetupGrid();
+                UI.renderShipSelectList();
+                UI.updateShipSVGPreview();
+                UI.showScreen('screen-setup');
+                document.getElementById('btn-ready').disabled = true;
+            },
+            rotateShip() {
+                this.orientation = this.orientation === 'H' ? 'V' : 'H';
+                document.getElementById('orientation-display').textContent =
+                    this.orientation === 'H' ? 'HORIZONTAL' : 'VERTICAL';
+                Audio.click();
+                UI.clearPreview();
+            },
+            getShipCells(r, c, size, orient) {
+                const cells = [];
+                for (let i = 0; i < size; i++) {
+                    const cr = orient === 'V' ? r + i : r;
+                    const cc = orient === 'H' ? c + i : c;
+                    cells.push({ r: cr, c: cc });
+                }
+                return cells;
+            },
+            canPlaceShip(player, r, c, size, orient) {
+                const cells = this.getShipCells(r, c, size, orient);
+                for (const cell of cells) {
+                    if (cell.r < 0 || cell.r >= CONFIG.GRID_SIZE || cell.c < 0 || cell.c >= CONFIG.GRID_SIZE) return false;
+                    if (this.playerBoards[player][cell.r][cell.c] !== 0) return false;
+                }
+                return true;
+            },
+            placeShipAt(player, r, c, shipDef, orient) {
+                const cells = this.getShipCells(r, c, shipDef.size, orient);
+                const ship = {
+                    ...shipDef,
+                    cells: cells,
+                    orientation: orient,
+                    hits: Array(shipDef.size).fill(false),
+                    sunk: false
+                };
+                cells.forEach(cell => {
+                    this.playerBoards[player][cell.r][cell.c] = this.playerShips[player].length + 1;
+                });
+                this.playerShips[player].push(ship);
+                return ship;
+            },
+            handleSetupCellClick(r, c) {
+                if (this.currentShipIndex >= CONFIG.SHIPS.length) return;
+                const shipDef = CONFIG.SHIPS[this.currentShipIndex];
+                if (!this.canPlaceShip(this.setupPlayer, r, c, shipDef.size, this.orientation)) {
+                    UI.showToast('Invalid placement position', 'danger');
+                    return;
+                }
+                this.placeShipAt(this.setupPlayer, r, c, shipDef, this.orientation);
+                Audio.place();
+                this.currentShipIndex++;
+                UI.renderSetupGrid();
+                UI.renderShipSelectList();
+                UI.updateShipSVGPreview();
+                if (this.currentShipIndex >= CONFIG.SHIPS.length) {
+                    document.getElementById('btn-ready').disabled = false;
+                }
+            },
+            handleSetupCellHover(r, c) {
+                UI.clearPreview();
+                if (this.currentShipIndex >= CONFIG.SHIPS.length) return;
+                const shipDef = CONFIG.SHIPS[this.currentShipIndex];
+                const cells = this.getShipCells(r, c, shipDef.size, this.orientation);
+                const valid = this.canPlaceShip(this.setupPlayer, r, c, shipDef.size, this.orientation);
+                cells.forEach(cell => {
+                    if (cell.r >= 0 && cell.r < CONFIG.GRID_SIZE && cell.c >= 0 && cell.c < CONFIG.GRID_SIZE) {
+                        const el = document.querySelector(`#setup-grid .grid-cell[data-r="${cell.r}"][data-c="${cell.c}"]`);
+                        if (el) {
+                            el.classList.add(valid ? 'preview' : 'preview-invalid');
+                        }
+                    }
+                });
+            },
+            autoPlace() {
+                this.playerBoards[this.setupPlayer] = this.createEmptyGrid();
+                this.playerShips[this.setupPlayer] = [];
+                this.currentShipIndex = 0;
+                for (const shipDef of CONFIG.SHIPS) {
+                    let placed = false;
+                    let attempts = 0;
+                    while (!placed && attempts < 200) {
+                        const orient = Math.random() < 0.5 ? 'H' : 'V';
+                        const maxR = orient === 'V' ? CONFIG.GRID_SIZE - shipDef.size : CONFIG.GRID_SIZE - 1;
+                        const maxC = orient === 'H' ? CONFIG.GRID_SIZE - shipDef.size : CONFIG.GRID_SIZE - 1;
+                        const r = Math.floor(Math.random() * (maxR + 1));
+                        const c = Math.floor(Math.random() * (maxC + 1));
+                        if (this.canPlaceShip(this.setupPlayer, r, c, shipDef.size, orient)) {
+                            this.placeShipAt(this.setupPlayer, r, c, shipDef, orient);
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                    this.currentShipIndex++;
+                }
+                Audio.place();
+                UI.renderSetupGrid();
+                UI.renderShipSelectList();
+                UI.updateShipSVGPreview();
+                document.getElementById('btn-ready').disabled = false;
+            },
+            resetPlacement() {
+                this.playerBoards[this.setupPlayer] = this.createEmptyGrid();
+                this.playerShips[this.setupPlayer] = [];
+                this.currentShipIndex = 0;
+                this.orientation = 'H';
+                document.getElementById('orientation-display').textContent = 'HORIZONTAL';
+                document.getElementById('btn-ready').disabled = true;
+                Audio.click();
+                UI.renderSetupGrid();
+                UI.renderShipSelectList();
+                UI.updateShipSVGPreview();
+            },
+            confirmPlacement() {
+                if (this.playerShips[this.setupPlayer].length < CONFIG.SHIPS.length) return;
+                Audio.sonarPulse();
+                if (this.mode === 'solo') {
+                    // AI places ships
+                    this.setupPlayer = 2;
+                    this.autoPlaceAI();
+                    this.startBattle();
+                } else {
+                    // Local multiplayer
+                    if (this.setupPlayer === 1) {
+                        // Show lockdown, then player 2 setup
+                        this.setupPlayer = 2;
+                        UI.showLockdown(2, 'setup');
+                    } else {
+                        this.startBattle();
+                    }
+                }
+            },
+            autoPlaceAI() {
+                this.playerBoards[2] = this.createEmptyGrid();
+                this.playerShips[2] = [];
+                let idx = 0;
+                for (const shipDef of CONFIG.SHIPS) {
+                    let placed = false;
+                    let attempts = 0;
+                    while (!placed && attempts < 500) {
+                        const orient = Math.random() < 0.5 ? 'H' : 'V';
+                        const maxR = orient === 'V' ? CONFIG.GRID_SIZE - shipDef.size : CONFIG.GRID_SIZE - 1;
+                        const maxC = orient === 'H' ? CONFIG.GRID_SIZE - shipDef.size : CONFIG.GRID_SIZE - 1;
+                        const r = Math.floor(Math.random() * (maxR + 1));
+                        const c = Math.floor(Math.random() * (maxC + 1));
+                        if (this.canPlaceShip(2, r, c, shipDef.size, orient)) {
+                            this.placeShipAt(2, r, c, shipDef, orient);
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                    idx++;
+                }
+            },
+            authenticate() {
+                Audio.click();
+                if (this.phase === 'setup') {
+                    this.beginSetup(2);
+                } else if (this.phase === 'battle') {
+                    UI.showScreen('screen-battle');
+                    UI.renderBattle();
+                }
+            },
+            // ---- Battle Phase ----
+            startBattle() {
+                this.phase = 'battle';
+                this.currentPlayer = 1;
+                this.salvoTargets = [];
+                this.isProcessing = false;
+                if (this.mode === 'solo') {
+                    this.ai = new AIEngine(this.difficulty);
+                    this.ai.initialize(this.playerShips[1]);
+                }
+                UI.showScreen('screen-battle');
+                UI.renderBattle();
+                UI.updateBattleUI();
+                this.saveCurrentState();
+            },
+            handleBattleCellClick(r, c) {
+                if (this.isProcessing) return;
+                const target = this.mode === 'solo' ? 2 : (this.currentPlayer === 1 ? 2 : 1);
+                const attacker = this.currentPlayer;
+                // Check if cell already shot
+                if (this.shotBoards[target][r][c] !== 0) {
+                    UI.showToast('Already targeted this position', 'info');
+                    return;
+                }
+                if (this.salvoMode) {
+                    this.handleSalvoTarget(r, c, target);
+                } else {
+                    this.fireShot(attacker, target, r, c);
+                }
+            },
+            handleSalvoTarget(r, c, target) {
+                const maxShots = this.getSalvoCount(this.currentPlayer);
+                const key = `${r},${c}`;
+                const existingIdx = this.salvoTargets.findIndex(t => t.r === r && t.c === c);
+                if (existingIdx >= 0) {
+                    // Deselect
+                    this.salvoTargets.splice(existingIdx, 1);
+                    Audio.click();
+                } else {
+                    if (this.salvoTargets.length >= maxShots) {
+                        UI.showToast(`Maximum ${maxShots} targets for salvo`, 'info');
+                        return;
+                    }
+                    this.salvoTargets.push({ r, c });
+                    Audio.click();
+                }
+                UI.renderBattle();
+                UI.updateSalvoUI();
+            },
+            getSalvoCount(player) {
+                return this.playerShips[player].filter(s => !s.sunk).length;
+            },
+            async fireSalvo() {
+                if (this.isProcessing) return;
+                const target = this.mode === 'solo' ? 2 : (this.currentPlayer === 1 ? 2 : 1);
+                const attacker = this.currentPlayer;
+                if (this.salvoTargets.length === 0) return;
+                this.isProcessing = true;
+                document.getElementById('btn-fire-salvo').disabled = true;
+                for (const shot of this.salvoTargets) {
+                    await this.processSingleShot(attacker, target, shot.r, shot.c);
+                    await this.delay(CONFIG.ANIMATION_DELAY);
+                    if (this.phase !== 'battle') return;
+                }
+                this.salvoTargets = [];
+                this.isProcessing = false;
+                if (this.phase === 'battle') {
+                    this.endTurn();
+                }
+            },
+            async fireShot(attacker, target, r, c) {
+                this.isProcessing = true;
+                await this.processSingleShot(attacker, target, r, c);
+                this.isProcessing = false;
+                if (this.phase === 'battle') {
+                    await this.delay(300);
+                    this.endTurn();
+                }
+            },
+            async processSingleShot(attacker, target, r, c) {
+                this.battleStats[attacker].shots++;
+                // Launch sound
+                Audio.launch();
+                // Missile animation
+                const cell = this.getEnemyGridCell(r, c);
+                if (cell) {
+                    const missile = document.createElement('div');
+                    missile.className = 'missile-trail';
+                    cell.appendChild(missile);
+                    await this.delay(350);
+                    missile.remove();
+                }
+                // Check hit
+                const boardValue = this.playerBoards[target][r][c];
+                const isHit = boardValue > 0;
+                if (isHit) {
+                    this.shotBoards[target][r][c] = 2;
+                    this.battleStats[attacker].hits++;
+                    // Mark ship hit
+                    const shipIdx = boardValue - 1;
+                    const ship = this.playerShips[target][shipIdx];
+                    const cellIdx = ship.cells.findIndex(cell => cell.r === r && cell.c === c);
+                    if (cellIdx >= 0) ship.hits[cellIdx] = true;
+                    // Sound & effects
+                    Audio.impact();
+                    if (this.settings.shake) {
+                        document.body.classList.add('shake-active');
+                        setTimeout(() => document.body.classList.remove('shake-active'), 450);
+                    }
+                    // Visual
+                    if (cell) {
+                        cell.classList.add('hit');
+                        const explosion = document.createElement('div');
+                        explosion.className = 'explosion-effect';
+                        cell.appendChild(explosion);
+                        setTimeout(() => explosion.remove(), 600);
+                        // Chromatic aberration on battle container
+                        const bc = document.querySelector('.battle-container');
+                        if (bc) {
+                            bc.classList.add('chromatic-active');
+                            setTimeout(() => bc.classList.remove('chromatic-active'), 350);
+                        }
+                    }
+                    // Check if sunk
+                    const isSunk = ship.hits.every(h => h);
+                    if (isSunk) {
+                        ship.sunk = true;
+                        this.battleStats[attacker].shipsSunk++;
+                        Audio.sunkAlarm();
+                        // Mark sunk cells
+                        await this.delay(200);
+                        ship.cells.forEach(sc => {
+                            const sCell = this.getEnemyGridCell(sc.r, sc.c);
+                            if (sCell) sCell.classList.add('sunk-cell');
+                        });
+                        UI.showToast(`${ship.name} destroyed!`, 'danger');
+                        UI.updateFleetStatus();
+                        UI.updateShipSVGsInStatus();
+                        // Check victory
+                        const allSunk = this.playerShips[target].every(s => s.sunk);
+                        if (allSunk) {
+                            await this.delay(500);
+                            this.endGame(attacker);
+                            return;
+                        }
+                    }
+                    UI.setBattleMessage(isHit ? (isSunk ? `${ship.name} SUNK!` : 'DIRECT HIT!') : 'MISS!');
+                } else {
+                    this.shotBoards[target][r][c] = 1;
+                    Audio.splash();
+                    if (cell) {
+                        cell.classList.add('miss');
+                        const splash = document.createElement('div');
+                        splash.className = 'splash-effect';
+                        cell.appendChild(splash);
+                        setTimeout(() => splash.remove(), 700);
+                    }
+                    UI.setBattleMessage('Miss — shot fell in open water');
+                }
+                UI.updateBattleUI();
+                UI.renderBattle();
+                this.saveCurrentState();
+            },
+            getEnemyGridCell(r, c) {
+                const gridId = (this.mode === 'solo' || this.currentPlayer === 1) ? 'enemy-grid' : 'player-grid';
+                return document.querySelector(`#${gridId} .grid-cell[data-r="${r}"][data-c="${c}"]`);
+            },
+            endTurn() {
+                if (this.mode === 'solo') {
+                    // AI turn
+                    this.currentPlayer = 2;
+                    UI.updateBattleUI();
+                    UI.setBattleMessage('Enemy calculating firing solution...');
+                    setTimeout(() => this.executeAITurn(), CONFIG.AI_THINK_DELAY);
+                } else {
+                    // Local multiplayer — show lockdown
+                    this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+                    this.salvoTargets = [];
+                    UI.showLockdown(this.currentPlayer, 'battle');
+                }
+            },
+            async executeAITurn() {
+                this.isProcessing = true;
+                const target = 1; // AI attacks player 1
+                if (this.salvoMode) {
+                    const shotCount = this.getSalvoCount(2);
+                    const shots = [];
+                    for (let i = 0; i < shotCount; i++) {
+                        const shot = this.ai.getShot();
+                        if (!shot) break;
+                        // Temporarily mark to avoid duplicates
+                        this.ai.shotBoard[shot.r][shot.c] = -1;
+                        shots.push(shot);
+                    }
+                    // Reset temp marks
+                    shots.forEach(s => { if (this.ai.shotBoard[s.r][s.c] === -1) this.ai.shotBoard[s.r][s.c] = 0; });
+                    for (const shot of shots) {
+                        await this.processAISingleShot(shot.r, shot.c);
+                        await this.delay(CONFIG.AI_SHOT_DELAY);
+                        if (this.phase !== 'battle') return;
+                    }
+                } else {
+                    const shot = this.ai.getShot();
+                    if (shot) {
+                        await this.processAISingleShot(shot.r, shot.c);
+                    }
+                }
+                this.isProcessing = false;
+                if (this.phase === 'battle') {
+                    await this.delay(400);
+                    this.currentPlayer = 1;
+                    this.salvoTargets = [];
+                    UI.updateBattleUI();
+                    UI.setBattleMessage('Your turn — select a target');
+                    UI.renderBattle();
+                }
+            },
+            async processAISingleShot(r, c) {
+                this.battleStats[2].shots++;
+                // Get cell on player grid
+                const cell = document.querySelector(`#player-grid .grid-cell[data-r="${r}"][data-c="${c}"]`);
+                Audio.launch();
+                if (cell) {
+                    const missile = document.createElement('div');
+                    missile.className = 'missile-trail';
+                    cell.appendChild(missile);
+                    await this.delay(350);
+                    missile.remove();
+                }
+                const boardValue = this.playerBoards[1][r][c];
+                const isHit = boardValue > 0;
+                if (isHit) {
+                    this.shotBoards[1][r][c] = 2;
+                    this.battleStats[2].hits++;
+                    const shipIdx = boardValue - 1;
+                    const ship = this.playerShips[1][shipIdx];
+                    const cellIdx = ship.cells.findIndex(cell => cell.r === r && cell.c === c);
+                    if (cellIdx >= 0) ship.hits[cellIdx] = true;
+                    Audio.impact();
+                    if (this.settings.shake) {
+                        document.body.classList.add('shake-active');
+                        setTimeout(() => document.body.classList.remove('shake-active'), 450);
+                    }
+                    if (cell) {
+                        cell.classList.add('hit');
+                        const explosion = document.createElement('div');
+                        explosion.className = 'explosion-effect';
+                        cell.appendChild(explosion);
+                        setTimeout(() => explosion.remove(), 600);
+                    }
+                    const isSunk = ship.hits.every(h => h);
+                    if (isSunk) {
+                        ship.sunk = true;
+                        this.battleStats[2].shipsSunk++;
+                        Audio.sunkAlarm();
+                        await this.delay(200);
+                        ship.cells.forEach(sc => {
+                            const sCell = document.querySelector(`#player-grid .grid-cell[data-r="${sc.r}"][data-c="${sc.c}"]`);
+                            if (sCell) sCell.classList.add('sunk-cell');
+                        });
+                        UI.showToast(`Your ${ship.name} has been sunk!`, 'danger');
+                        this.ai.processHitResult(r, c, ship.id);
+                        const allSunk = this.playerShips[1].every(s => s.sunk);
+                        if (allSunk) {
+                            await this.delay(500);
+                            this.endGame(2);
+                            return;
+                        }
+                    } else {
+                        this.ai.processHitResult(r, c, null);
+                    }
+                    UI.setBattleMessage(isSunk ? `Your ${ship.name} is SUNK!` : 'Enemy scored a HIT!');
+                } else {
+                    this.shotBoards[1][r][c] = 1;
+                    Audio.splash();
+                    this.ai.processMissResult(r, c);
+                    if (cell) {
+                        cell.classList.add('miss');
+                        const splash = document.createElement('div');
+                        splash.className = 'splash-effect';
+                        cell.appendChild(splash);
+                        setTimeout(() => splash.remove(), 700);
+                    }
+                    UI.setBattleMessage('Enemy shot missed');
+                }
+                UI.updateFleetStatus();
+                UI.updateShipSVGsInStatus();
+                UI.renderBattle();
+                this.saveCurrentState();
+            },
+            endGame(winner) {
+                this.phase = 'gameover';
+                Persistence.clearGameState();
+                const isPlayerWin = (this.mode === 'solo' && winner === 1) ||
+                    (this.mode === 'local' && winner === this.currentPlayer);
+                // Update persistent stats (only for solo mode)
+                if (this.mode === 'solo') {
+                    this.playerStats.gamesPlayed++;
+                    this.playerStats.totalShots += this.battleStats[1].shots;
+                    this.playerStats.totalHits += this.battleStats[1].hits;
+                    if (winner === 1) {
+                        this.playerStats.totalWins++;
+                        this.playerStats.winStreak++;
+                        if (this.playerStats.winStreak > this.playerStats.bestStreak) {
+                            this.playerStats.bestStreak = this.playerStats.winStreak;
+                        }
+                        Audio.victory();
+                    } else {
+                        this.playerStats.totalLosses++;
+                        this.playerStats.winStreak = 0;
+                        Audio.defeat();
+                    }
+                    Persistence.saveStats(this.playerStats);
+                } else {
+                    if (winner === 1) Audio.victory();
+                    else Audio.defeat();
+                }
+                UI.showGameOver(winner);
+                UI.updateMenuStats();
+            },
+            surrender() {
+                if (this.phase !== 'battle') return;
+                if (!confirm('Are you sure you want to surrender?')) return;
+                const winner = this.mode === 'solo' ? 2 : (this.currentPlayer === 1 ? 2 : 1);
+                this.endGame(winner);
+            },
+            saveCurrentState() {
+                if (this.phase !== 'battle') return;
+                const state = {
+                    phase: this.phase,
+                    mode: this.mode,
+                    difficulty: this.difficulty,
+                    salvoMode: this.salvoMode,
+                    currentPlayer: this.currentPlayer,
+                    playerBoards: this.playerBoards,
+                    shotBoards: this.shotBoards,
+                    playerShips: this.playerShips,
+                    battleStats: this.battleStats
+                };
+                Persistence.saveGameState(state);
+            },
+            loadSavedGame() {
+                const state = Persistence.loadGameState();
+                if (!state || state.phase !== 'battle') return false;
+                this.phase = state.phase;
+                this.mode = state.mode;
+                this.difficulty = state.difficulty;
+                this.salvoMode = state.salvoMode;
+                this.currentPlayer = state.currentPlayer;
+                this.playerBoards = state.playerBoards;
+                this.shotBoards = state.shotBoards;
+                this.playerShips = state.playerShips;
+                this.battleStats = state.battleStats;
+                this.salvoTargets = [];
+                this.isProcessing = false;
+                if (this.mode === 'solo') {
+                    this.ai = new AIEngine(this.difficulty);
+                    this.ai.initialize(this.playerShips[1]);
+                    // Reconstruct AI knowledge from shot board
+                    for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                        for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                            if (this.shotBoards[1][r][c] === 2) {
+                                this.ai.markShot(r, c, true);
+                            } else if (this.shotBoards[1][r][c] === 1) {
+                                this.ai.markShot(r, c, false);
+                            }
+                        }
+                    }
+                    // Mark sunk ships
+                    this.playerShips[1].forEach(ship => {
+                        if (ship.sunk) this.ai.markSunk(ship.id);
+                    });
+                }
+                UI.showScreen('screen-battle');
+                UI.renderBattle();
+                UI.updateBattleUI();
+                return true;
+            },
+            // ---- Utility ----
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        };
+        // ============================================================
+        // SECTION 7: UI MANAGER
+        // ============================================================
+        const UI = {
+            tutorialStep: 0,
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                const screen = document.getElementById(id);
+                if (screen) screen.classList.add('active');
+            },
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            },
+            // ---- Menu ----
+            updateMenuStats() {
+                const stats = Game.playerStats || Persistence.defaultStats();
+                const rank = Persistence.getRank(stats.totalWins);
+                const accuracy = stats.totalShots > 0
+                    ? Math.round((stats.totalHits / stats.totalShots) * 100)
+                    : 0;
+                document.getElementById('menu-rank').textContent = rank.name.toUpperCase();
+                document.getElementById('menu-stats-text').textContent =
+                    `Wins: ${stats.totalWins} | Streak: ${stats.winStreak} | Accuracy: ${accuracy}%`;
+                // Show continue button if save exists
+                const saved = Persistence.loadGameState();
+                document.getElementById('btn-continue').style.display = saved ? '' : 'none';
+            },
+            startNewGame() {
+                Audio.resume();
+                if (!Audio.ctx) Audio.init();
+                Game.startNew();
+            },
+            continueGame() {
+                Audio.resume();
+                if (!Audio.ctx) Audio.init();
+                if (!Game.loadSavedGame()) {
+                    this.showToast('No saved game found', 'danger');
+                }
+            },
+            // ---- Mode Select ----
+            selectMode(mode) {
+                Game.mode = mode;
+                document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+                document.querySelector(`.mode-card[data-mode="${mode}"]`).classList.add('selected');
+                document.getElementById('difficulty-section').style.display = mode === 'solo' ? '' : 'none';
+                Audio.click();
+            },
+            selectDifficulty(diff) {
+                Game.difficulty = diff;
+                document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+                document.querySelector(`.diff-btn[data-diff="${diff}"]`).classList.add('selected');
+                Audio.click();
+            },
+            toggleSalvo() {
+                Game.salvoMode = !Game.salvoMode;
+                const toggle = document.getElementById('toggle-salvo');
+                if (Game.salvoMode) toggle.classList.add('on');
+                else toggle.classList.remove('on');
+                Audio.click();
+            },
+            beginSetup() {
+                Game.beginSetup(1);
+            },
+            // ---- Setup Grid ----
+            renderSetupGrid() {
+                const container = document.getElementById('setup-grid-container');
+                container.innerHTML = '';
+                const wrapper = document.createElement('div');
+                wrapper.className = 'grid-wrapper';
+                // Top coords
+                const topCoords = document.createElement('div');
+                topCoords.className = 'grid-coords-top';
+                CONFIG.COLS.forEach(col => {
+                    const span = document.createElement('span');
+                    span.textContent = col;
+                    topCoords.appendChild(span);
+                });
+                wrapper.appendChild(topCoords);
+                // Grid with left coords
+                const grid = document.createElement('div');
+                grid.id = 'setup-grid';
+                grid.className = 'battle-grid';
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.dataset.r = r;
+                        cell.dataset.c = c;
+                        if (Game.playerBoards[Game.setupPlayer][r][c] > 0) {
+                            cell.classList.add('ship-cell');
+                        }
+                        cell.addEventListener('click', () => Game.handleSetupCellClick(r, c));
+                        cell.addEventListener('mouseenter', () => Game.handleSetupCellHover(r, c));
+                        grid.appendChild(cell);
+                    }
+                }
+                // Radar sweep
+                if (Game.settings.radar) {
+                    const radar = document.createElement('div');
+                    radar.className = 'radar-sweep';
+                    grid.appendChild(radar);
+                }
+                // Create row wrapper with left coordinates
+                const gridArea = document.createElement('div');
+                // Add left coords by overlaying
+                const leftCoordContainer = document.createElement('div');
+                leftCoordContainer.style.position = 'absolute';
+                leftCoordContainer.style.left = '-20px';
+                leftCoordContainer.style.top = '0';
+                leftCoordContainer.style.display = 'flex';
+                leftCoordContainer.style.flexDirection = 'column';
+                leftCoordContainer.style.fontFamily = 'var(--font-display)';
+                leftCoordContainer.style.fontSize = '0.55rem';
+                leftCoordContainer.style.color = 'var(--text-dim)';
+                leftCoordContainer.style.letterSpacing = '1px';
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    const span = document.createElement('span');
+                    span.textContent = r + 1;
+                    span.style.height = 'var(--cell-size)';
+                    span.style.display = 'flex';
+                    span.style.alignItems = 'center';
+                    span.style.justifyContent = 'center';
+                    span.style.width = '18px';
+                    leftCoordContainer.appendChild(span);
+                }
+                wrapper.style.position = 'relative';
+                wrapper.style.paddingLeft = '22px';
+                wrapper.appendChild(leftCoordContainer);
+                wrapper.appendChild(grid);
+                container.appendChild(wrapper);
+            },
+            clearPreview() {
+                document.querySelectorAll('.grid-cell.preview, .grid-cell.preview-invalid').forEach(c => {
+                    c.classList.remove('preview', 'preview-invalid');
+                });
+            },
+            renderShipSelectList() {
+                const container = document.getElementById('ship-select-list');
+                container.innerHTML = '';
+                CONFIG.SHIPS.forEach((ship, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'ship-select-item';
+                    if (idx === Game.currentShipIndex) item.classList.add('active');
+                    if (idx < Game.currentShipIndex) item.classList.add('placed');
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'ship-select-name';
+                    nameEl.textContent = `${ship.name} (${ship.size})`;
+                    const dots = document.createElement('div');
+                    dots.className = 'ship-dots';
+                    for (let i = 0; i < ship.size; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'ship-dot';
+                        dots.appendChild(dot);
+                    }
+                    item.appendChild(dots);
+                    item.appendChild(nameEl);
+                    container.appendChild(item);
+                });
+            },
+            updateShipSVGPreview() {
+                const container = document.getElementById('ship-svg-preview');
+                if (Game.currentShipIndex < CONFIG.SHIPS.length) {
+                    const shipDef = CONFIG.SHIPS[Game.currentShipIndex];
+                    const svgFn = ShipSVGs[shipDef.id];
+                    if (svgFn) {
+                        container.innerHTML = svgFn(null);
+                    } else {
+                        container.innerHTML = '';
+                    }
+                } else {
+                    container.innerHTML = '<span style="color:var(--green-ok); font-family:var(--font-display); font-size:0.7rem; letter-spacing:2px;">ALL SHIPS DEPLOYED</span>';
+                }
+            },
+            // ---- Lockdown Screen ----
+            showLockdown(player, nextPhase) {
+                document.getElementById('lockdown-text').textContent =
+                    `SECURE CHANNEL — PLAYER ${player}`;
+                Game._lockdownNextPhase = nextPhase;
+                this.showScreen('screen-lockdown');
+            },
+            // ---- Battle Rendering ----
+            renderBattle() {
+                this.renderPlayerGrid();
+                this.renderEnemyGrid();
+                this.updateFleetStatus();
+                this.updateShipSVGsInStatus();
+            },
+            renderPlayerGrid() {
+                const wrapper = document.getElementById('player-grid-wrapper');
+                wrapper.innerHTML = '';
+                const topCoords = document.createElement('div');
+                topCoords.className = 'grid-coords-top';
+                CONFIG.COLS.forEach(col => {
+                    const span = document.createElement('span');
+                    span.textContent = col;
+                    topCoords.appendChild(span);
+                });
+                wrapper.style.position = 'relative';
+                wrapper.style.paddingLeft = '22px';
+                wrapper.appendChild(topCoords);
+                const leftCoords = document.createElement('div');
+                leftCoords.style.cssText = 'position:absolute;left:0;top:calc(0.55rem + 8px);display:flex;flex-direction:column;font-family:var(--font-display);font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;';
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    const span = document.createElement('span');
+                    span.textContent = r + 1;
+                    span.style.cssText = 'height:var(--cell-size);display:flex;align-items:center;justify-content:center;width:18px;';
+                    leftCoords.appendChild(span);
+                }
+                wrapper.appendChild(leftCoords);
+                const grid = document.createElement('div');
+                grid.id = 'player-grid';
+                grid.className = 'battle-grid';
+                const player = this.getViewingPlayer();
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.dataset.r = r;
+                        cell.dataset.c = c;
+                        // Show ships for viewing player
+                        if (Game.playerBoards[player][r][c] > 0) {
+                            cell.classList.add('ship-cell');
+                        }
+                        // Show shots received
+                        const shotVal = Game.shotBoards[player][r][c];
+                        if (shotVal === 2) {
+                            cell.classList.add('hit');
+                            // Check if part of sunk ship
+                            const shipIdx = Game.playerBoards[player][r][c] - 1;
+                            if (shipIdx >= 0 && Game.playerShips[player][shipIdx] && Game.playerShips[player][shipIdx].sunk) {
+                                cell.classList.add('sunk-cell');
+                            }
+                        }
+                        if (shotVal === 1) cell.classList.add('miss');
+                        grid.appendChild(cell);
+                    }
+                }
+                if (Game.settings.radar) {
+                    const radar = document.createElement('div');
+                    radar.className = 'radar-sweep';
+                    grid.appendChild(radar);
+                }
+                wrapper.appendChild(grid);
+            },
+            renderEnemyGrid() {
+                const wrapper = document.getElementById('enemy-grid-wrapper');
+                wrapper.innerHTML = '';
+                const topCoords = document.createElement('div');
+                topCoords.className = 'grid-coords-top';
+                CONFIG.COLS.forEach(col => {
+                    const span = document.createElement('span');
+                    span.textContent = col;
+                    topCoords.appendChild(span);
+                });
+                wrapper.style.position = 'relative';
+                wrapper.style.paddingLeft = '22px';
+                wrapper.appendChild(topCoords);
+                const leftCoords = document.createElement('div');
+                leftCoords.style.cssText = 'position:absolute;left:0;top:calc(0.55rem + 8px);display:flex;flex-direction:column;font-family:var(--font-display);font-size:0.55rem;color:var(--text-dim);letter-spacing:1px;';
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    const span = document.createElement('span');
+                    span.textContent = r + 1;
+                    span.style.cssText = 'height:var(--cell-size);display:flex;align-items:center;justify-content:center;width:18px;';
+                    leftCoords.appendChild(span);
+                }
+                wrapper.appendChild(leftCoords);
+                const grid = document.createElement('div');
+                grid.id = 'enemy-grid';
+                grid.className = 'battle-grid';
+                const target = this.getTargetPlayer();
+                const isPlayerTurn = Game.currentPlayer === this.getViewingPlayer();
+                for (let r = 0; r < CONFIG.GRID_SIZE; r++) {
+                    for (let c = 0; c < CONFIG.GRID_SIZE; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.dataset.r = r;
+                        cell.dataset.c = c;
+                        const shotVal = Game.shotBoards[target][r][c];
+                        if (shotVal === 2) {
+                            cell.classList.add('hit');
+                            const shipIdx = Game.playerBoards[target][r][c] - 1;
+                            if (shipIdx >= 0 && Game.playerShips[target][shipIdx] && Game.playerShips[target][shipIdx].sunk) {
+                                cell.classList.add('sunk-cell');
+                            }
+                        }
+                        if (shotVal === 1) cell.classList.add('miss');
+                        // Salvo target highlight
+                        if (Game.salvoMode && Game.salvoTargets.some(t => t.r === r && t.c === c)) {
+                            cell.classList.add('salvo-target');
+                        }
+                        // Heat overlay for admiral difficulty visualization
+                        const heat = document.createElement('div');
+                        heat.className = 'heat-overlay';
+                        cell.appendChild(heat);
+                        if (isPlayerTurn && !Game.isProcessing && shotVal === 0) {
+                            cell.addEventListener('click', () => Game.handleBattleCellClick(r, c));
+                            cell.style.cursor = 'crosshair';
+                        } else {
+                            cell.style.cursor = 'default';
+                        }
+                        grid.appendChild(cell);
+                    }
+                }
+                if (Game.settings.radar) {
+                    const radar = document.createElement('div');
+                    radar.className = 'radar-sweep';
+                    grid.appendChild(radar);
+                }
+                wrapper.appendChild(grid);
+            },
+            getViewingPlayer() {
+                if (Game.mode === 'solo') return 1;
+                return Game.currentPlayer;
+            },
+            getTargetPlayer() {
+                if (Game.mode === 'solo') return 2;
+                return Game.currentPlayer === 1 ? 2 : 1;
+            },
+            updateBattleUI() {
+                const indicator = document.getElementById('turn-indicator');
+                const turnText = document.getElementById('turn-text');
+                const fireSection = document.getElementById('fire-section');
+                if (Game.mode === 'solo') {
+                    if (Game.currentPlayer === 1) {
+                        indicator.className = 'turn-indicator player-turn';
+                        turnText.textContent = 'YOUR TURN';
+                    } else {
+                        indicator.className = 'turn-indicator enemy-turn';
+                        turnText.textContent = 'ENEMY TURN';
+                    }
+                } else {
+                    indicator.className = 'turn-indicator player-turn';
+                    turnText.textContent = `PLAYER ${Game.currentPlayer} TURN`;
+                }
+                // Salvo UI
+                if (Game.salvoMode) {
+                    fireSection.style.display = 'flex';
+                    this.updateSalvoUI();
+                } else {
+                    fireSection.style.display = 'none';
+                }
+            },
+            updateSalvoUI() {
+                const countEl = document.getElementById('salvo-count');
+                const maxEl = document.getElementById('salvo-max');
+                const fireBtn = document.getElementById('btn-fire-salvo');
+                const max = Game.getSalvoCount(Game.currentPlayer);
+                countEl.textContent = Game.salvoTargets.length;
+                maxEl.textContent = max;
+                fireBtn.disabled = Game.salvoTargets.length === 0 || Game.isProcessing;
+            },
+            updateFleetStatus() {
+                this.renderFleetStatusForPlayer('player-fleet-status', this.getViewingPlayer());
+                this.renderFleetStatusForPlayer('enemy-fleet-status', this.getTargetPlayer());
+            },
+            renderFleetStatusForPlayer(containerId, player) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                Game.playerShips[player].forEach(ship => {
+                    const status = document.createElement('div');
+                    status.className = `fleet-ship-status ${ship.sunk ? 'sunk' : 'alive'}`;
+                    const name = document.createElement('div');
+                    name.className = 'ship-status-name';
+                    name.textContent = ship.name;
+                    const pips = document.createElement('div');
+                    pips.className = 'ship-status-pips';
+                    for (let i = 0; i < ship.size; i++) {
+                        const pip = document.createElement('div');
+                        pip.className = `ship-pip ${ship.hits[i] ? 'damaged' : ''}`;
+                        pips.appendChild(pip);
+                    }
+                    status.appendChild(name);
+                    status.appendChild(pips);
+                    container.appendChild(status);
+                });
+            },
+            updateShipSVGsInStatus() {
+                // Update SVGs in fleet status (optional enhanced view)
+                // For now, the pip system serves this purpose
+            },
+            setBattleMessage(msg) {
+                document.getElementById('battle-message').textContent = msg;
+            },
+            // ---- Game Over ----
+            showGameOver(winner) {
+                const title = document.getElementById('gameover-title');
+                const statsEl = document.getElementById('gameover-stats');
+                let isVictory;
+                if (Game.mode === 'solo') {
+                    isVictory = winner === 1;
+                } else {
+                    isVictory = true; // Both players have a result
+                }
+                if (Game.mode === 'local') {
+                    title.textContent = `PLAYER ${winner} WINS`;
+                    title.className = 'gameover-title victory';
+                } else if (isVictory) {
+                    title.textContent = 'VICTORY';
+                    title.className = 'gameover-title victory';
+                } else {
+                    title.textContent = 'DEFEAT';
+                    title.className = 'gameover-title defeat';
+                }
+                const p1Stats = Game.battleStats[1];
+                const p2Stats = Game.battleStats[2];
+                const p1Acc = p1Stats.shots > 0 ? Math.round((p1Stats.hits / p1Stats.shots) * 100) : 0;
+                const p2Acc = p2Stats.shots > 0 ? Math.round((p2Stats.hits / p2Stats.shots) * 100) : 0;
+                let statsHTML = '';
+                if (Game.mode === 'solo') {
+                    statsHTML = `
+        <div class="gameover-stat-row"><span>Your Shots</span><span>${p1Stats.shots}</span></div>
+        <div class="gameover-stat-row"><span>Your Hits</span><span>${p1Stats.hits}</span></div>
+        <div class="gameover-stat-row"><span>Your Accuracy</span><span>${p1Acc}%</span></div>
+        <div class="gameover-stat-row"><span>Ships Sunk</span><span>${p1Stats.shipsSunk}/5</span></div>
+        <div class="gameover-stat-row" style="margin-top:8px; border-top:1px solid rgba(0,200,255,0.1); padding-top:8px;">
+          <span>Enemy Shots</span><span>${p2Stats.shots}</span></div>
+        <div class="gameover-stat-row"><span>Enemy Accuracy</span><span>${p2Acc}%</span></div>
+        <div class="gameover-stat-row"><span>AI Difficulty</span><span style="text-transform:capitalize;">${Game.difficulty}</span></div>
+      `;
+                    const rank = Persistence.getRank(Game.playerStats.totalWins);
+                    statsHTML += `<div class="gameover-stat-row" style="margin-top:8px; border-top:1px solid rgba(255,204,0,0.2); padding-top:8px;">
+        <span>Current Rank</span><span style="color:var(--gold);">${rank.name}</span></div>`;
+                    statsHTML += `<div class="gameover-stat-row"><span>Win Streak</span><span>${Game.playerStats.winStreak}</span></div>`;
+                } else {
+                    statsHTML = `
+        <div class="gameover-stat-row"><span>P1 Shots / Hits</span><span>${p1Stats.shots} / ${p1Stats.hits} (${p1Acc}%)</span></div>
+        <div class="gameover-stat-row"><span>P2 Shots / Hits</span><span>${p2Stats.shots} / ${p2Stats.hits} (${p2Acc}%)</span></div>
+      `;
+                }
+                statsEl.innerHTML = statsHTML;
+                this.showScreen('screen-gameover');
+            },
+            // ---- Tutorial ----
+            tutorialSteps: [
+                {
+                    title: 'Welcome, Commander',
+                    body: `<p>Welcome to <strong style="color:var(--cyan);">AEGIS COMMAND: IRON TIDE</strong> — the definitive naval warfare tactical system.</p>
+      <p>You are about to assume command of a fleet of warships. Your mission: locate and destroy the enemy fleet before they destroy yours.</p>
+      <p>This briefing will prepare you for combat operations.</p>`
+                },
+                {
+                    title: 'Fleet Deployment',
+                    body: `<p><i class="fas fa-ship" style="color:var(--cyan);"></i>&ensp;During the deployment phase, you will place 5 ships on your 10×10 tactical grid:</p>
+      <p><strong>Carrier</strong> (5 cells) — <strong>Battleship</strong> (4 cells) — <strong>Destroyer</strong> (3 cells) — <strong>Submarine</strong> (3 cells) — <strong>Patrol Boat</strong> (2 cells)</p>
+      <p>Click on the grid to place each ship. Press <strong style="color:var(--cyan);">R</strong> to rotate between horizontal and vertical orientation.</p>
+      <p>Use <strong>Auto Deploy</strong> for random placement, or <strong>Clear</strong> to start over.</p>`
+                },
+                {
+                    title: 'Combat Operations',
+                    body: `<p><i class="fas fa-crosshairs" style="color:var(--red-hit);"></i>&ensp;During battle, you and your opponent take turns firing at each other's grid.</p>
+      <p>Click on the <strong>Enemy Waters</strong> grid to fire. A <span style="color:var(--red-hit);">red marker</span> indicates a hit. A <span style="color:var(--blue-miss);">blue circle</span> indicates a miss.</p>
+      <p>Sink all 5 enemy ships to achieve victory. The fleet status panel shows the condition of all ships.</p>`
+                },
+                {
+                    title: 'AI Adversaries',
+                    body: `<p><i class="fas fa-robot" style="color:var(--cyan);"></i>&ensp;Three AI difficulty tiers are available:</p>
+      <p><strong style="color:var(--green-ok);">Recruit</strong> — Fires randomly. Good for learning the ropes.</p>
+      <p><strong style="color:var(--gold);">Commander</strong> — Uses Hunt & Target strategy. When it hits a ship, it systematically searches adjacent cells.</p>
+      <p><strong style="color:var(--red-hit);">Grand Admiral</strong> — Employs Probability Density analysis. Calculates the statistical likelihood of ship positions and fires at the most probable cell. Terrifying.</p>`
+                },
+                {
+                    title: 'Salvo Mode & Local Play',
+                    body: `<p><i class="fas fa-explosion" style="color:var(--orange-fire);"></i>&ensp;<strong>Salvo Mode</strong> — When enabled, you fire multiple shots per turn equal to your surviving ships. Select targets, then press FIRE SALVO.</p>
+      <p><i class="fas fa-users" style="color:var(--cyan);"></i>&ensp;<strong>Local Skirmish</strong> — Pass-and-play mode with a secure lockdown screen between turns. Perfect for head-to-head battles.</p>`
+                },
+                {
+                    title: 'Rank & Progression',
+                    body: `<p><i class="fas fa-medal" style="color:var(--gold);"></i>&ensp;Your performance is tracked across sessions. Win battles to climb the ranks:</p>
+      <p>Seaman → Petty Officer → Ensign → Lieutenant → Commander → Captain → Rear Admiral → Vice Admiral → Admiral → <strong style="color:var(--gold);">Fleet Admiral</strong></p>
+      <p>Your accuracy, win streak, and total victories are permanently recorded.</p>
+      <p style="margin-top:16px; color:var(--cyan); font-family:var(--font-display); font-size:0.75rem; letter-spacing:2px;">GOOD LUCK, COMMANDER. DISMISSED.</p>`
+                }
+            ],
+            showTutorial() {
+                this.tutorialStep = 0;
+                this.renderTutorialStep();
+                document.getElementById('modal-tutorial').classList.add('active');
+            },
+            renderTutorialStep() {
+                const step = this.tutorialSteps[this.tutorialStep];
+                document.getElementById('tutorial-step-indicator').textContent =
+                    `STEP ${this.tutorialStep + 1} OF ${this.tutorialSteps.length}`;
+                document.getElementById('tutorial-title').textContent = step.title;
+                document.getElementById('tutorial-body').innerHTML = step.body;
+                document.getElementById('tutorial-prev').style.visibility =
+                    this.tutorialStep === 0 ? 'hidden' : 'visible';
+                const nextBtn = document.getElementById('tutorial-next');
+                if (this.tutorialStep === this.tutorialSteps.length - 1) {
+                    nextBtn.innerHTML = 'Dismiss&ensp;<i class="fas fa-check"></i>';
+                } else {
+                    nextBtn.innerHTML = 'Next&ensp;<i class="fas fa-arrow-right"></i>';
+                }
+            },
+            tutorialNext() {
+                Audio.click();
+                if (this.tutorialStep < this.tutorialSteps.length - 1) {
+                    this.tutorialStep++;
+                    this.renderTutorialStep();
+                } else {
+                    document.getElementById('modal-tutorial').classList.remove('active');
+                }
+            },
+            tutorialPrev() {
+                Audio.click();
+                if (this.tutorialStep > 0) {
+                    this.tutorialStep--;
+                    this.renderTutorialStep();
+                }
+            },
+            // ---- Settings ----
+            showSettings() {
+                document.getElementById('modal-settings').classList.add('active');
+            },
+            closeSettings() {
+                document.getElementById('modal-settings').classList.remove('active');
+                Persistence.saveSettings(Game.settings);
+            },
+            toggleSFX() {
+                Game.settings.sfx = !Game.settings.sfx;
+                Audio.enabled = Game.settings.sfx;
+                Game.updateToggleState('toggle-sfx', Game.settings.sfx);
+                Persistence.saveSettings(Game.settings);
+            },
+            toggleCRT() {
+                Game.settings.crt = !Game.settings.crt;
+                Game.updateToggleState('toggle-crt', Game.settings.crt);
+                if (!Game.settings.crt) document.body.classList.add('no-crt');
+                else document.body.classList.remove('no-crt');
+                Persistence.saveSettings(Game.settings);
+            },
+            toggleRadar() {
+                Game.settings.radar = !Game.settings.radar;
+                Game.updateToggleState('toggle-radar', Game.settings.radar);
+                document.querySelectorAll('.radar-sweep').forEach(r => {
+                    r.style.display = Game.settings.radar ? '' : 'none';
+                });
+                Persistence.saveSettings(Game.settings);
+            },
+            toggleShake() {
+                Game.settings.shake = !Game.settings.shake;
+                Game.updateToggleState('toggle-shake', Game.settings.shake);
+                Persistence.saveSettings(Game.settings);
+            },
+            closeAllModals() {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+                Persistence.saveSettings(Game.settings);
+            }
+        };
+        // ============================================================
+        // SECTION 8: CSS DYNAMIC OVERRIDES
+        // ============================================================
+        const StyleOverrides = document.createElement('style');
+        StyleOverrides.textContent = `
+  body.no-crt::after { display: none !important; }
+`;
+        document.head.appendChild(StyleOverrides);
+        // ============================================================
+        // SECTION 9: INITIALIZATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            Audio.init();
+            Game.init();
+            // Periodic sonar pulse on menu
+            let sonarInterval = null;
+            const startSonar = () => {
+                if (sonarInterval) clearInterval(sonarInterval);
+                sonarInterval = setInterval(() => {
+                    if (Game.phase === 'menu' || document.getElementById('screen-menu').classList.contains('active')) {
+                        // Subtle sonar on menu (reduced volume)
+                    }
+                }, 8000);
+            };
+            startSonar();
+            // First click initializes audio context
+            document.addEventListener('click', () => {
+                Audio.resume();
+            }, { once: true });
+        });
+    </script>
+</body>
+
+</html>

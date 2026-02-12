@@ -1,0 +1,187 @@
+
+<!-- saved from url=(0074)file:///C:/Users/camp/Downloads/Tic%20Tac%20Toe%20By%20A.K.%20v%201.1.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <title>Tic Tac Toe By A.K.</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        td {
+            width: 100px;
+            height: 100px;
+            border: 3px solid #ccc;
+            text-align: center;
+            font-size: 60px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        td:hover {
+            background-color: #f5f5f5;
+        }
+
+        .player-x {
+            color: #007bff;
+        }
+
+        .player-o {
+            color: #dc3545;
+        }
+
+        #game-status {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            position: relative;
+            left: 100px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #win-counters {
+            text-align: center;
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <table>
+            <tbody><tr>
+                <td data-index="0" class=""></td>
+                <td data-index="1" class=""></td>
+                <td data-index="2" class=""></td>
+            </tr>
+            <tr>
+                <td data-index="3" class=""></td>
+                <td data-index="4" class=""></td>
+                <td data-index="5" class=""></td>
+            </tr>
+            <tr>
+                <td data-index="6"></td>
+                <td data-index="7"></td>
+                <td data-index="8" class=""></td>
+            </tr>
+        </tbody></table>
+        <div id="game-status">Player X's turn</div>
+        <div id="win-counters">X Wins: 0 | O Wins: 0</div>
+        <button onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let xWins = 0;
+        let oWins = 0;
+
+        const cells = document.querySelectorAll('td');
+        const gameStatus = document.getElementById('game-status');
+        const winCounters = document.getElementById('win-counters');
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', handleClick);
+        });
+
+        function handleClick(e) {
+            const index = parseInt(e.target.dataset.index);
+
+            if (gameBoard[index] === '' && gameActive) {
+                gameBoard[index] = currentPlayer;
+                e.target.textContent = currentPlayer;
+                e.target.classList.add(`player-${currentPlayer.toLowerCase()}`);
+                
+                if (checkWin()) {
+                    gameStatus.textContent = `Player ${currentPlayer} wins!`;
+                    updateWinCount();
+                    gameActive = false;
+                } else if (isBoardFull()) {
+                    gameStatus.textContent = "It's a tie!, play again?"
+                    gameActive = false;
+                } else {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                    gameStatus.textContent = `Player ${currentPlayer}'s turn`;
+                }
+            }
+        }
+
+        function checkWin() {
+            const winConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+
+            return winConditions.some(condition => {
+                return gameBoard[condition[0]] !== '' &&
+                       gameBoard[condition[0]] === gameBoard[condition[1]] &&
+                       gameBoard[condition[1]] === gameBoard[condition[2]];
+            });
+        }
+
+        function isBoardFull() {
+            return gameBoard.every(cell => cell !== '');
+        }
+
+        function updateWinCount() {
+            if (currentPlayer === 'X') {
+                xWins++;
+            } else {
+                oWins++;
+            }
+            winCounters.textContent = `X Wins: ${xWins} | O Wins: ${oWins}`;
+        }
+
+        function resetGame() {
+            currentPlayer = 'X';
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            gameStatus.textContent = `Player ${currentPlayer}'s turn`;
+
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('player-x', 'player-o');
+            });
+        }
+    </script>
+
+
+</body></html>

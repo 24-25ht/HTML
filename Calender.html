@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celestial Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --hijri-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --dark-bg: #0f0f1a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --accent-gold: #ffd700;
+            --accent-purple: #a855f7;
+            --accent-teal: #2dd4bf;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .nebula {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.3;
+            z-index: 0;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .nebula-1 {
+            top: -200px;
+            right: -200px;
+            background: radial-gradient(circle, #667eea, transparent);
+        }
+
+        .nebula-2 {
+            bottom: -200px;
+            left: -200px;
+            background: radial-gradient(circle, #764ba2, transparent);
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(30px, 30px) rotate(180deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .moon-icon {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .moon-icon::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .moon-icon::after {
+            content: '';
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--dark-bg);
+            top: -5px;
+            right: -5px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #a855f7 50%, #2dd4bf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(168, 85, 247, 0.3);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .calendar-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .toggle-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .toggle-btn.gregorian::before {
+            background: var(--primary-gradient);
+        }
+
+        .toggle-btn.hijri::before {
+            background: var(--hijri-gradient);
+        }
+
+        .toggle-btn.active {
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .toggle-btn.active::before {
+            opacity: 1;
+        }
+
+        .toggle-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .toggle-btn:hover:not(.active) {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .calendar-section {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .calendar-section.hijri-mode::before {
+            background: var(--hijri-gradient);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .month-year {
+            text-align: center;
+        }
+
+        .month-year h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .month-year .year {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .weekday {
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            color: var(--accent-purple);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hijri-mode .weekday {
+            color: var(--accent-teal);
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: transparent;
+            border: 1px solid transparent;
+            min-height: 60px;
+        }
+
+        .day:hover:not(.empty) {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .day.today {
+            background: var(--primary-gradient);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .hijri-mode .day.today {
+            background: var(--hijri-gradient);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .day.selected {
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+        }
+
+        .day.has-scientific::before {
+            content: '✦';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.6rem;
+            color: var(--accent-teal);
+        }
+
+        .day-number {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .day.other-month {
+            opacity: 0.3;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card h3 .icon {
+            font-size: 1.5rem;
+        }
+
+        .current-date-display {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .current-date-display .big-date {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold), #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .current-date-display .date-details {
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        .events-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .events-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .events-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .events-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .event-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent-purple);
+            transition: all 0.3s;
+        }
+
+        .event-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .event-item.holiday {
+            border-left-color: #f5576c;
+        }
+
+        .event-item.scientific {
+            border-left-color: var(--accent-teal);
+        }
+
+        .event-item.islamic {
+            border-left-color: #38ef7d;
+        }
+
+        .event-item .event-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .event-item .event-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .event-item .event-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .phenomena-card {
+            background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(168, 85, 247, 0.1));
+        }
+
+        .phenomena-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .phenomena-icon {
+            font-size: 2rem;
+        }
+
+        .phenomena-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .phenomena-info p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .moon-phase {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .moon-visual {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            position: relative;
+            background: linear-gradient(90deg, #1a1a2e 50%, #ffd700 50%);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .moon-visual::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #1a1a2e;
+            transition: transform 0.5s;
+        }
+
+        .moon-phase-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .moon-illumination {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .conversion-display {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        .conversion-display .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .conversion-display .converted-date {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .calendar-toggle {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .toggle-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+
+            .calendar-header {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .month-year h2 {
+                font-size: 1.5rem;
+            }
+
+            .day {
+                min-height: 45px;
+            }
+
+            .day-number {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="nebula nebula-1"></div>
+    <div class="nebula nebula-2"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="moon-icon"></div>
+                <h1>Celestial Calendar</h1>
+            </div>
+            <p class="subtitle">Navigate Time Across Cultures & Cosmos</p>
+        </header>
+
+        <div class="calendar-toggle">
+            <button class="toggle-btn gregorian active" onclick="setCalendarType('gregorian')">
+                <span>☀️ Gregorian</span>
+            </button>
+            <button class="toggle-btn hijri" onclick="setCalendarType('hijri')">
+                <span>🌙 Hijri</span>
+            </button>
+        </div>
+
+        <div class="main-content">
+            <div class="calendar-section" id="calendarSection">
+                <div class="calendar-header">
+                    <button class="nav-btn" onclick="navigateMonth(-1)">←</button>
+                    <div class="month-year">
+                        <h2 id="currentMonth">January</h2>
+                        <div class="year" id="currentYear">2026</div>
+                    </div>
+                    <button class="nav-btn" onclick="navigateMonth(1)">→</button>
+                </div>
+
+                <div class="weekdays" id="weekdays">
+                    <div class="weekday">Sun</div>
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                    <div class="weekday">Sat</div>
+                </div>
+
+                <div class="days-grid" id="daysGrid">
+                    <!-- Days will be generated here -->
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="info-card">
+                    <h3><span class="icon">📅</span> Selected Date</h3>
+                    <div class="current-date-display">
+                        <div class="big-date" id="selectedDay">28</div>
+                        <div class="date-details" id="selectedDateFull">Wednesday, January 28, 2026</div>
+                    </div>
+                    <div class="conversion-display">
+                        <div class="label" id="conversionLabel">Hijri Date</div>
+                        <div class="converted-date" id="convertedDate">28 Rajab 1447</div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">🌙</span> Moon Phase</h3>
+                    <div class="moon-phase">
+                        <div class="moon-visual" id="moonVisual"></div>
+                        <div class="moon-phase-name" id="moonPhaseName">Waxing Crescent</div>
+                        <div class="moon-illumination" id="moonIllumination">15% Illuminated</div>
+                    </div>
+                </div>
+
+                <div class="info-card phenomena-card">
+                    <h3><span class="icon">🔭</span> Astronomical Events</h3>
+                    <div id="phenomenaList">
+                        <div class="phenomena-item">
+                            <div class="phenomena-icon">🌅</div>
+                            <div class="phenomena-info">
+                                <h4>Sunrise</h4>
+                                <p id="sunriseTime">6:42 AM</p>
+                            </div>
+                        </div>
+                        <div class="phenomena-item">
+                            <div class="phenomena-icon">🌇</div>
+                            <div class="phenomena-info">
+                                <h4>Sunset</h4>
+                                <p id="sunsetTime">5:18 PM</p>
+                            </div>
+                        </div>
+                        <div class="phenomena-item">
+                            <div class="phenomena-icon">⭐</div>
+                            <div class="phenomena-info">
+                                <h4>Next Meteor Shower</h4>
+                                <p id="meteorShower">Lyrids - Apr 22</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">🎉</span> Events & Holidays</h3>
+                    <div class="events-list" id="eventsList">
+                        <!-- Events will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let state = {
+            calendarType: 'gregorian',
+            currentDate: new Date(),
+            selectedDate: new Date(),
+            viewYear: new Date().getFullYear(),
+            viewMonth: new Date().getMonth(),
+            hijriViewYear: 1447,
+            hijriViewMonth: 6 // Rajab (0-indexed)
+        };
+
+        
+
+        // Hijri calendar data
+        const hijriMonths = [
+            'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
+            'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Shaban',
+            'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah'
+        ];
+
+        const gregorianMonths = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        const weekdaysGregorian = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const weekdaysHijri = ['Ahad', 'Ithnayn', 'Thulatha', 'Arbia', 'Khamis', 'Jumua', 'Sabt'];
+
+        // Comprehensive events database
+        const gregorianEvents = {
+            '1-1': { name: "New Year's Day", type: 'holiday' },
+            '1-6': { name: "Epiphany", type: 'cultural' },
+            '1-26': { name: "Australia Day", type: 'holiday' },
+            '2-2': { name: "Groundhog Day", type: 'cultural' },
+            '2-11': { name: "International Day of Women and Girls in Science", type: 'observance' },
+            '2-14': { name: "Valentine's Day", type: 'cultural' },
+            '2-22': { name: "World Thinking Day", type: 'observance' },
+            '3-8': { name: "International Women's Day", type: 'observance' },
+            '3-14': { name: "Pi Day", type: 'cultural' },
+            '3-17': { name: "St. Patrick's Day", type: 'cultural' },
+            '3-20': { name: "March Equinox", type: 'scientific' },
+            '3-21': { name: "World Poetry Day", type: 'observance' },
+            '4-1': { name: "April Fools' Day", type: 'cultural' },
+            '4-22': { name: "Earth Day / Lyrids Meteor Shower Peak", type: 'scientific' },
+            '4-23': { name: "St. George's Day", type: 'cultural' },
+            '5-1': { name: "International Workers' Day", type: 'holiday' },
+            '5-4': { name: "Star Wars Day", type: 'cultural' },
+            '5-5': { name: "Cinco de Mayo / Eta Aquarids Peak", type: 'cultural' },
+            '5-9': { name: "Europe Day", type: 'observance' },
+            '6-1': { name: "International Children's Day", type: 'observance' },
+            '6-5': { name: "World Environment Day", type: 'observance' },
+            '6-19': { name: "(replaced) -- Reserved", type: 'observance' },
+            '6-21': { name: "June Solstice", type: 'scientific' },
+            '7-1': { name: "Canada Day", type: 'holiday' },
+            '7-4': { name: "(replaced) -- Reserved", type: 'holiday' },
+            '7-14': { name: "Bastille Day", type: 'holiday' },
+            '7-28': { name: "Delta Aquarids Meteor Shower", type: 'scientific' },
+            '8-12': { name: "Perseids Meteor Shower Peak", type: 'scientific' },
+            '8-15': { name: "Assumption of Mary / National Holiday (varies)", type: 'observance' },
+            '9-21': { name: "International Day of Peace", type: 'observance' },
+            '9-22': { name: "September Equinox", type: 'scientific' },
+            '10-1': { name: "International Coffee Day", type: 'cultural' },
+            '10-8': { name: "Draconids Meteor Shower", type: 'scientific' },
+            '10-21': { name: "Orionids Meteor Shower Peak", type: 'scientific' },
+            '10-31': { name: "Halloween", type: 'cultural' },
+            '11-1': { name: "All Saints' Day", type: 'observance' },
+            '11-5': { name: "Guy Fawkes Day", type: 'cultural' },
+            '11-11': { name: "(replaced) -- Reserved", type: 'holiday' },
+            '11-26': { name: "(replaced) -- Reserved", type: 'cultural' },
+            '11-17': { name: "Leonids Meteor Shower Peak", type: 'scientific' },
+            '12-13': { name: "Geminids Meteor Shower Peak", type: 'scientific' },
+            '12-21': { name: "December Solstice", type: 'scientific' },
+            '12-24': { name: "Christmas Eve", type: 'cultural' },
+            '12-25': { name: "Christmas Day", type: 'holiday' },
+            '12-31': { name: "New Year's Eve", type: 'cultural' }
+        };
+
+        // Add major Bangladeshi (Bengali) events (inserted after the gregorianEvents object)
+        gregorianEvents['2-21'] = { name: "International Mother Language Day (Ekushey)", type: 'Bengali' };
+        gregorianEvents['3-26'] = { name: "Independence Day (Bangladesh)", type: 'Bengali' };
+        gregorianEvents['4-14'] = { name: "Pohela Boishakh (Bengali New Year)", type: 'Bengali' };
+        gregorianEvents['5-02'] = { name: "Shishu Dibosh / Children's Day (Bangladesh)", type: 'Bengali' };
+        gregorianEvents['8-15'] = { name: "National Mourning Day (Bangladesh)", type: 'Bengali' };
+        gregorianEvents['12-14'] = { name: "Martyred Intellectuals Day (Bangladesh)", type: 'Bengali' };
+        gregorianEvents['12-16'] = { name: "Victory Day (Bangladesh)", type: 'Bengali' };
+
+        // Add major Qatari events (note: some Qatar holidays vary each year; variable items are marked)
+        gregorianEvents['12-18'] = { name: "Qatar National Day", type: 'qatari' };
+        // Qatar National Sports Day is observed on the second Tuesday of February (variable); use a placeholder key
+        gregorianEvents['2-10'] = { name: "Qatar National Sports Day (variable: 2nd Tue of Feb)", type: 'qatari' };
+        // Founder's Day (variable/observed) - approximate key
+        gregorianEvents['9-03'] = { name: "Qatar Founder's Day (observed - date may vary)", type: 'qatari' };
+        gregorianEvents['6-18'] = { name: "Qatar National Heritage/Culture Observance (approx)", type: 'qatari' };
+        gregorianEvents['4-08'] = { name: "Doha Cultural Festival (approx)", type: 'qatari' };
+
+        // Note: religious holidays (Eid, Ramadan, etc.) follow the Hijri calendar and are shown via `hijriEvents`.
+
+        const hijriEvents = {
+            '1-1': { name: "Islamic New Year (Hijri)", type: 'islamic' },
+            '1-3': { name: "Tasu'a (9th Muharram observance)", type: 'islamic' },
+            '1-9': { name: "Tasu'a (observed by some communities)", type: 'islamic' },
+            '1-10': { name: "Day of Ashura", type: 'islamic' },
+            '2-1': { name: "Start of Safar (observance)", type: 'islamic' },
+            '2-20': { name: "Arba'een (40th day after Ashura)", type: 'islamic' },
+            '3-1': { name: "Start of Rabi' al-Awwal (observance)", type: 'islamic' },
+            '3-12': { name: "Mawlid al-Nabi (Prophet's Birthday)", type: 'islamic' },
+            '4-1': { name: "Start of Rabi' al-Thani (observance)", type: 'islamic' },
+            '5-1': { name: "Start of Jumada al-Awwal (observance)", type: 'islamic' },
+            '6-1': { name: "Start of Sha'ban (observance)", type: 'islamic' },
+            '6-15': { name: "Mid-Sha'ban (Shab-e-Barat / observed)", type: 'islamic' },
+            '7-1': { name: "Start of Ramadan preparations (observance)", type: 'islamic' },
+            '7-27': { name: "Isra and Mi'raj", type: 'islamic' },
+            '8-1': { name: "Start of Rajab (observance)", type: 'islamic' },
+            '8-15': { name: "Shab-e-Barat (Mid-Shaban)", type: 'islamic' },
+            '9-1': { name: "First Day of Ramadan", type: 'islamic' },
+            '9-15': { name: "Mid-Ramadan (halfway)", type: 'islamic' },
+            '9-21': { name: "Nisfu Sha'ban (observed in some regions)", type: 'islamic' },
+            '9-27': { name: "Laylat al-Qadr (Night of Power)", type: 'islamic' },
+            '10-1': { name: "Eid al-Fitr", type: 'islamic' },
+            '10-2': { name: "Eid al-Fitr (Day 2)", type: 'islamic' },
+            '10-3': { name: "Eid al-Fitr (Day 3)", type: 'islamic' },
+            '11-1': { name: "Start of Dhu al-Qadah (observance)", type: 'islamic' },
+            '11-10': { name: "Start of Hajj season (observance)", type: 'islamic' },
+            '12-8': { name: "Day of Tarwiyah", type: 'islamic' },
+            '12-9': { name: "Day of Arafah", type: 'islamic' },
+            '12-10': { name: "Eid al-Adha", type: 'islamic' },
+            '12-11': { name: "Eid al-Adha (Day 2)", type: 'islamic' },
+            '12-12': { name: "Eid al-Adha (Day 3)", type: 'islamic' },
+            '12-13': { name: "Eid al-Adha (Day 4)", type: 'islamic' }
+        };
+
+        // Scientific phenomena by month
+        const scientificPhenomena = {
+            1: [
+                { name: "Quadrantids Meteor Shower", date: "Jan 3-4", icon: "☄️" },
+                { name: "Perihelion", date: "Jan 3", icon: "☀️" }
+            ],
+            4: [
+                { name: "Lyrids Meteor Shower", date: "Apr 16-25", icon: "☄️" },
+                { name: "Total Solar Eclipse", date: "Variable", icon: "🌑" }
+            ],
+            5: [
+                { name: "Eta Aquarids", date: "May 4-5", icon: "☄️" }
+            ],
+            7: [
+                { name: "Aphelion", date: "Jul 4", icon: "☀️" },
+                { name: "Delta Aquarids", date: "Jul 28-29", icon: "☄️" }
+            ],
+            8: [
+                { name: "Perseids Meteor Shower", date: "Aug 12-13", icon: "☄️" }
+            ],
+            10: [
+                { name: "Draconids", date: "Oct 8-9", icon: "☄️" },
+                { name: "Orionids", date: "Oct 21-22", icon: "☄️" }
+            ],
+            11: [
+                { name: "Leonids", date: "Nov 17-18", icon: "☄️" }
+            ],
+            12: [
+                { name: "Geminids", date: "Dec 13-14", icon: "☄️" },
+                { name: "Winter Solstice", date: "Dec 21", icon: "❄️" }
+            ]
+        };
+
+        // Initialize stars background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Hijri date conversion (simplified algorithm)
+        function gregorianToHijri(gYear, gMonth, gDay) {
+            const jd = gregorianToJD(gYear, gMonth + 1, gDay);
+            return jdToHijri(jd);
+        }
+
+        function hijriToGregorian(hYear, hMonth, hDay) {
+            const jd = hijriToJD(hYear, hMonth + 1, hDay);
+            return jdToGregorian(jd);
+        }
+
+        function gregorianToJD(year, month, day) {
+            if (month <= 2) {
+                year -= 1;
+                month += 12;
+            }
+            const A = Math.floor(year / 100);
+            const B = 2 - A + Math.floor(A / 4);
+            return Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
+        }
+
+        function jdToGregorian(jd) {
+            const Z = Math.floor(jd + 0.5);
+            const F = jd + 0.5 - Z;
+            let A = Z;
+            if (Z >= 2299161) {
+                const alpha = Math.floor((Z - 1867216.25) / 36524.25);
+                A = Z + 1 + alpha - Math.floor(alpha / 4);
+            }
+            const B = A + 1524;
+            const C = Math.floor((B - 122.1) / 365.25);
+            const D = Math.floor(365.25 * C);
+            const E = Math.floor((B - D) / 30.6001);
+            const day = B - D - Math.floor(30.6001 * E);
+            const month = E < 14 ? E - 1 : E - 13;
+            const year = month > 2 ? C - 4716 : C - 4715;
+            return { year, month: month - 1, day };
+        }
+
+        function hijriToJD(year, month, day) {
+            return Math.floor((11 * year + 3) / 30) + 354 * year + 30 * month - Math.floor((month - 1) / 2) + day + 1948440 - 385;
+        }
+
+        function jdToHijri(jd) {
+            const L = Math.floor(jd - 1948440 + 10632);
+            const N = Math.floor((L - 1) / 10631);
+            const L2 = L - 10631 * N + 354;
+            const J = Math.floor((10985 - L2) / 5316) * Math.floor((50 * L2) / 17719) + Math.floor(L2 / 5670) * Math.floor((43 * L2) / 15238);
+            const L3 = L2 - Math.floor((30 - J) / 15) * Math.floor((17719 * J) / 50) - Math.floor(J / 16) * Math.floor((15238 * J) / 43) + 29;
+            const month = Math.floor((24 * L3) / 709);
+            const day = L3 - Math.floor((709 * month) / 24);
+            const year = 30 * N + J - 30;
+            return { year, month: month - 1, day };
+        }
+
+        function getHijriMonthDays(year, month) {
+            // Simplified: alternating 30 and 29 days
+            // Leap year calculation for Hijri
+            const isLeapYear = (11 * year + 14) % 30 < 11;
+            if (month === 11 && isLeapYear) return 30;
+            return month % 2 === 0 ? 30 : 29;
+        }
+
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        function getFirstDayOfMonth(year, month) {
+            return new Date(year, month, 1).getDay();
+        }
+
+        function getHijriFirstDayOfMonth(year, month) {
+            const greg = hijriToGregorian(year, month, 1);
+            return new Date(greg.year, greg.month, greg.day).getDay();
+        }
+
+        // Moon phase calculation
+        function getMoonPhase(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+
+            let c = 0, e = 0, jd = 0, b = 0;
+
+            if (month < 3) {
+                c = year - 1;
+                e = month + 12;
+            } else {
+                c = year;
+                e = month;
+            }
+
+            jd = Math.floor(365.25 * c) + Math.floor(30.6001 * (e + 1)) + day - 694039.09;
+            jd /= 29.5305882;
+            b = Math.floor(jd);
+            jd -= b;
+            const phase = Math.round(jd * 8);
+
+            const phases = [
+                { name: 'New Moon', illumination: 0 },
+                { name: 'Waxing Crescent', illumination: 12.5 },
+                { name: 'First Quarter', illumination: 25 },
+                { name: 'Waxing Gibbous', illumination: 37.5 },
+                { name: 'Full Moon', illumination: 50 },
+                { name: 'Waning Gibbous', illumination: 62.5 },
+                { name: 'Last Quarter', illumination: 75 },
+                { name: 'Waning Crescent', illumination: 87.5 }
+            ];
+
+            return phases[phase % 8];
+        }
+
+        // Calculate sunrise/sunset (simplified)
+        function getSunTimes(date, lat = 40.7128, lon = -74.0060) {
+            const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+            const sunrise = 6 + Math.sin((dayOfYear - 80) * Math.PI / 182.5) * 1.5;
+            const sunset = 18 - Math.sin((dayOfYear - 80) * Math.PI / 182.5) * 1.5;
+
+            return {
+                sunrise: formatTime(sunrise),
+                sunset: formatTime(sunset)
+            };
+        }
+
+        function formatTime(decimalHours) {
+            const hours = Math.floor(decimalHours);
+            const minutes = Math.round((decimalHours - hours) * 60);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours > 12 ? hours - 12 : hours;
+            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+        }
+
+        // Set calendar type
+        function setCalendarType(type) {
+            state.calendarType = type;
+            
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.toggle-btn.${type}`).classList.add('active');
+
+            const calendarSection = document.getElementById('calendarSection');
+            if (type === 'hijri') {
+                calendarSection.classList.add('hijri-mode');
+                updateWeekdays(weekdaysHijri);
+            } else {
+                calendarSection.classList.remove('hijri-mode');
+                updateWeekdays(weekdaysGregorian);
+            }
+
+            renderCalendar();
+            updateSidebar();
+        }
+
+        function updateWeekdays(days) {
+            const weekdaysEl = document.getElementById('weekdays');
+            weekdaysEl.innerHTML = days.map(day => `<div class="weekday">${day}</div>`).join('');
+        }
+
+        // Navigate months
+        function navigateMonth(delta) {
+            if (state.calendarType === 'gregorian') {
+                state.viewMonth += delta;
+                if (state.viewMonth > 11) {
+                    state.viewMonth = 0;
+                    state.viewYear++;
+                } else if (state.viewMonth < 0) {
+                    state.viewMonth = 11;
+                    state.viewYear--;
+                }
+            } else {
+                state.hijriViewMonth += delta;
+                if (state.hijriViewMonth > 11) {
+                    state.hijriViewMonth = 0;
+                    state.hijriViewYear++;
+                } else if (state.hijriViewMonth < 0) {
+                    state.hijriViewMonth = 11;
+                    state.hijriViewYear--;
+                }
+            }
+            renderCalendar();
+            updateEvents();
+        }
+
+        // Render calendar grid
+        function renderCalendar() {
+            const daysGrid = document.getElementById('daysGrid');
+            const monthEl = document.getElementById('currentMonth');
+            const yearEl = document.getElementById('currentYear');
+
+            if (state.calendarType === 'gregorian') {
+                renderGregorianCalendar(daysGrid, monthEl, yearEl);
+            } else {
+                renderHijriCalendar(daysGrid, monthEl, yearEl);
+            }
+        }
+
+        function renderGregorianCalendar(daysGrid, monthEl, yearEl) {
+            const year = state.viewYear;
+            const month = state.viewMonth;
+            const daysInMonth = getDaysInMonth(year, month);
+            const firstDay = getFirstDayOfMonth(year, month);
+            const today = new Date();
+
+            monthEl.textContent = gregorianMonths[month];
+            yearEl.textContent = year;
+
+            let html = '';
+
+            // Previous month days
+            const prevMonthDays = getDaysInMonth(year, month - 1);
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="day other-month"><span class="day-number">${prevMonthDays - i}</span></div>`;
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                const isSelected = day === state.selectedDate.getDate() && month === state.selectedDate.getMonth() && year === state.selectedDate.getFullYear();
+                const eventKey = `${month + 1}-${day}`;
+                const hasEvent = gregorianEvents[eventKey];
+                const hasScientific = hasEvent && hasEvent.type === 'scientific';
+
+                let classes = 'day';
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' selected';
+                if (hasEvent) classes += ' has-event';
+                if (hasScientific) classes += ' has-scientific';
+
+                html += `<div class="${classes}" onclick="selectDate(${year}, ${month}, ${day})">
+                    <span class="day-number">${day}</span>
+                </div>`;
+            }
+
+            // Next month days
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = 42 - totalCells;
+            for (let i = 1; i <= remainingCells; i++) {
+                html += `<div class="day other-month"><span class="day-number">${i}</span></div>`;
+            }
+
+            daysGrid.innerHTML = html;
+        }
+
+        function renderHijriCalendar(daysGrid, monthEl, yearEl) {
+            const year = state.hijriViewYear;
+            const month = state.hijriViewMonth;
+            const daysInMonth = getHijriMonthDays(year, month);
+            const firstDay = getHijriFirstDayOfMonth(year, month);
+            
+            const todayHijri = gregorianToHijri(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                new Date().getDate()
+            );
+
+            monthEl.textContent = hijriMonths[month];
+            yearEl.textContent = `${year} AH`;
+
+            let html = '';
+
+            // Previous month days
+            const prevMonthDays = getHijriMonthDays(year, month === 0 ? 11 : month - 1);
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="day other-month"><span class="day-number">${prevMonthDays - i}</span></div>`;
+            }
+
+            // Current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === todayHijri.day && month === todayHijri.month && year === todayHijri.year;
+                const eventKey = `${month + 1}-${day}`;
+                const hasEvent = hijriEvents[eventKey];
+
+                let classes = 'day';
+                if (isToday) classes += ' today';
+                if (hasEvent) classes += ' has-event';
+
+                html += `<div class="${classes}" onclick="selectHijriDate(${year}, ${month}, ${day})">
+                    <span class="day-number">${day}</span>
+                </div>`;
+            }
+
+            // Next month days
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = 42 - totalCells;
+            for (let i = 1; i <= remainingCells; i++) {
+                html += `<div class="day other-month"><span class="day-number">${i}</span></div>`;
+            }
+
+            daysGrid.innerHTML = html;
+        }
+
+        // Select date
+        function selectDate(year, month, day) {
+            state.selectedDate = new Date(year, month, day);
+            renderCalendar();
+            updateSidebar();
+        }
+
+        function selectHijriDate(year, month, day) {
+            const greg = hijriToGregorian(year, month, day);
+            state.selectedDate = new Date(greg.year, greg.month, greg.day);
+            renderCalendar();
+            updateSidebar();
+        }
+
+        // Update sidebar
+        function updateSidebar() {
+            const date = state.selectedDate;
+            
+                // Update selected date display
+                if (state.calendarType === 'gregorian') {
+                    // Main display: Gregorian
+                    document.getElementById('selectedDay').textContent = date.getDate();
+                    document.getElementById('selectedDateFull').textContent = date.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Smaller conversion: Hijri
+                    const hijri = gregorianToHijri(date.getFullYear(), date.getMonth(), date.getDate());
+                    document.getElementById('conversionLabel').textContent = 'Hijri Date';
+                    document.getElementById('convertedDate').textContent = `${hijri.day} ${hijriMonths[hijri.month]} ${hijri.year} AH`;
+                } else {
+                    // Main display: Hijri
+                    const hijri = gregorianToHijri(date.getFullYear(), date.getMonth(), date.getDate());
+                    document.getElementById('selectedDay').textContent = hijri.day;
+                    document.getElementById('selectedDateFull').textContent = `${hijriMonths[hijri.month]} ${hijri.year} AH`;
+
+                    // Smaller conversion: Gregorian
+                    document.getElementById('conversionLabel').textContent = 'Gregorian Date';
+                    document.getElementById('convertedDate').textContent = date.toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                }
+
+            // Update moon phase
+            const moonPhase = getMoonPhase(date);
+            document.getElementById('moonPhaseName').textContent = moonPhase.name;
+            document.getElementById('moonIllumination').textContent = `${Math.round(moonPhase.illumination * 2)}% Illuminated`;
+            updateMoonVisual(moonPhase);
+
+            // Update sun times
+            const sunTimes = getSunTimes(date);
+            document.getElementById('sunriseTime').textContent = sunTimes.sunrise;
+            document.getElementById('sunsetTime').textContent = sunTimes.sunset;
+
+            // Update events
+            updateEvents();
+        }
+
+        function updateMoonVisual(phase) {
+            const moonEl = document.getElementById('moonVisual');
+            const illumination = phase.illumination * 2;
+            
+            // Create moon phase visual
+            if (phase.name === 'New Moon') {
+                moonEl.style.background = '#1a1a2e';
+                moonEl.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.1)';
+            } else if (phase.name === 'Full Moon') {
+                moonEl.style.background = 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)';
+                moonEl.style.boxShadow = '0 0 40px rgba(255, 215, 0, 0.6)';
+            } else {
+                const gradientAngle = phase.name.includes('Waxing') ? '90deg' : '270deg';
+                moonEl.style.background = `linear-gradient(${gradientAngle}, #1a1a2e 50%, #ffd700 50%)`;
+                moonEl.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.3)';
+            }
+        }
+
+        function updateEvents() {
+            const eventsList = document.getElementById('eventsList');
+            let html = '';
+
+            if (state.calendarType === 'gregorian') {
+                const month = state.viewMonth + 1;
+                Object.keys(gregorianEvents).forEach(key => {
+                    const [eventMonth, eventDay] = key.split('-').map(Number);
+                    if (eventMonth === month) {
+                        const event = gregorianEvents[key];
+                        html += `
+                            <div class="event-item ${event.type}">
+                                <div class="event-name">${event.name}</div>
+                                <div class="event-date">${gregorianMonths[eventMonth - 1]} ${eventDay}</div>
+                                <span class="event-type">${event.type}</span>
+                            </div>
+                        `;
+                    }
+                });
+            } else {
+                const month = state.hijriViewMonth + 1;
+                Object.keys(hijriEvents).forEach(key => {
+                    const [eventMonth, eventDay] = key.split('-').map(Number);
+                    if (eventMonth === month) {
+                        const event = hijriEvents[key];
+                        html += `
+                            <div class="event-item islamic">
+                                <div class="event-name">${event.name}</div>
+                                <div class="event-date">${hijriMonths[eventMonth - 1]} ${eventDay}</div>
+                                <span class="event-type">Islamic</span>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            if (!html) {
+                html = '<div class="event-item"><div class="event-name">No events this month</div></div>';
+            }
+
+            eventsList.innerHTML = html;
+
+            // Update meteor shower info
+            const currentMonth = state.calendarType === 'gregorian' ? state.viewMonth + 1 : new Date().getMonth() + 1;
+            updateScientificPhenomena(currentMonth);
+        }
+
+        function updateScientificPhenomena(month) {
+            const phenomena = scientificPhenomena[month];
+            if (phenomena && phenomena.length > 0) {
+                document.getElementById('meteorShower').textContent = phenomena[0].date;
+            }
+        }
+
+        // Initialize
+        function init() {
+            createStars();
+            
+            // Set initial Hijri date
+            const today = new Date();
+            const todayHijri = gregorianToHijri(today.getFullYear(), today.getMonth(), today.getDate());
+            state.hijriViewYear = todayHijri.year;
+            state.hijriViewMonth = todayHijri.month;
+
+            renderCalendar();
+            updateSidebar();
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>

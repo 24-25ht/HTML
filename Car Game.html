@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON RUSH - Car Racing Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+        
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, transparent 0%, #0a0a0a 70%),
+                        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.03) 2px, rgba(0, 255, 255, 0.03) 4px),
+                        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 0, 255, 0.03) 2px, rgba(255, 0, 255, 0.03) 4px);
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: cyan;
+            border-radius: 50%;
+            box-shadow: 0 0 10px cyan, 0 0 20px cyan;
+            animation: float 15s infinite;
+            opacity: 0.6;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* MAIN MENU */
+        #mainMenu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .game-title {
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shine 3s linear infinite;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.5));
+        }
+        
+        @keyframes shine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: #888;
+            margin-bottom: 50px;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+        }
+        
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .menu-btn {
+            position: relative;
+            padding: 20px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+            border: 2px solid transparent;
+            border-image: linear-gradient(135deg, #00ffff, #ff00ff) 1;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .menu-btn:hover::before {
+            left: 100%;
+        }
+        
+        .menu-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3) 0%, rgba(255, 0, 255, 0.3) 100%);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), 0 0 60px rgba(255, 0, 255, 0.3);
+        }
+        
+        .menu-btn.primary {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3) 0%, rgba(0, 200, 255, 0.3) 100%);
+        }
+        
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.2) 0%, rgba(255, 100, 100, 0.2) 100%);
+        }
+        
+        /* GAME CONTAINER */
+        #gameContainer {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .game-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+            z-index: 100;
+        }
+        
+        .player-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .player-label {
+            font-size: 0.9rem;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .player-label.p2 {
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        
+        .hearts {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .heart {
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 5px #ff0055);
+            transition: all 0.3s ease;
+        }
+        
+        .heart.lost {
+            filter: grayscale(100%) brightness(0.3);
+            transform: scale(0.8);
+        }
+        
+        .score-display {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: #888;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #444;
+            cursor: pointer;
+            z-index: 101;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            color: white;
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* GAME CANVAS AREA */
+        .game-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            gap: 20px;
+            padding-top: 60px;
+        }
+        
+        .road-container {
+            position: relative;
+            width: 300px;
+            height: calc(100vh - 100px);
+            max-height: 700px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0d0d1a 100%);
+            border: 3px solid;
+            border-image: linear-gradient(180deg, #00ffff, #ff00ff) 1;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.5);
+        }
+        
+        .road-container.p2 {
+            border-image: linear-gradient(180deg, #ff00ff, #ffff00) 1;
+            box-shadow: 0 0 50px rgba(255, 0, 255, 0.3), inset 0 0 100px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Road markings */
+        .road-lines {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                180deg,
+                #ffffff 0px,
+                #ffffff 30px,
+                transparent 30px,
+                transparent 60px
+            );
+            animation: roadMove 0.5s linear infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes roadMove {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(60px); }
+        }
+        
+        .road-edge {
+            position: absolute;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                180deg,
+                #ff0000 0px,
+                #ff0000 20px,
+                #ffffff 20px,
+                #ffffff 40px
+            );
+            animation: roadMove 0.5s linear infinite;
+        }
+        
+        .road-edge.left { left: 0; }
+        .road-edge.right { right: 0; }
+        
+        /* Cars */
+        .car {
+            position: absolute;
+            width: 50px;
+            height: 90px;
+            transition: left 0.1s ease;
+            z-index: 10;
+        }
+        
+        .player-car {
+            bottom: 20px;
+        }
+        
+        .car-body {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .car-body svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+        
+        .obstacle-car {
+            transition: none;
+        }
+        
+        /* Speed lines effect */
+        .speed-line {
+            position: absolute;
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: speedLine 0.3s linear infinite;
+        }
+        
+        @keyframes speedLine {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(800px); opacity: 0; }
+        }
+        
+        /* Crash effect */
+        .crash-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .crash-effect::before {
+            content: '💥';
+            font-size: 4rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: explode 0.5s ease-out forwards;
+        }
+        
+        @keyframes explode {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+        
+        /* Game Over / Results Screen */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .overlay.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .result-container {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00ffff, #ff00ff) 1;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .result-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #ffd700, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .rank {
+            font-size: 2rem;
+            width: 60px;
+        }
+        
+        .rank.gold { color: #ffd700; text-shadow: 0 0 20px #ffd700; }
+        .rank.silver { color: #c0c0c0; text-shadow: 0 0 20px #c0c0c0; }
+        
+        .result-player {
+            font-size: 1.2rem;
+            flex: 1;
+        }
+        
+        .result-score {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            color: #0f0;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            color: #0f0;
+            text-shadow: 0 0 30px #0f0;
+            margin: 20px 0;
+        }
+        
+        /* Tutorial Modal */
+        .tutorial-content {
+            max-width: 600px;
+            width: 90%;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00ffff, #ff00ff) 1;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .tutorial-content h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+        
+        .control-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .control-section h3 {
+            color: #ff00ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .key-display {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            border: 1px solid #555;
+            border-radius: 5px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            box-shadow: 0 3px 0 #111;
+        }
+        
+        /* About Modal */
+        .about-content {
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00ffff, #ff00ff) 1;
+            text-align: center;
+        }
+        
+        .about-content h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .about-content p {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        
+        .close-btn {
+            margin-top: 30px;
+            padding: 12px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: white;
+            background: linear-gradient(135deg, #ff0055 0%, #ff00ff 100%);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+        }
+        
+        /* Countdown */
+        .countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: 900;
+            color: #00ffff;
+            text-shadow: 0 0 50px #00ffff, 0 0 100px #00ffff;
+            z-index: 1000;
+            animation: countPulse 1s ease-in-out;
+        }
+        
+        @keyframes countPulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+        
+        /* Invincibility flash */
+        .invincible {
+            animation: flash 0.2s infinite;
+        }
+        
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Name Input Modal */
+        .name-input-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .name-input-overlay.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .name-input-container {
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(255, 0, 255, 0.1) 100%);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00ffff, #ff00ff) 1;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .name-input-container h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+        
+        .name-input-group {
+            margin: 20px 0;
+        }
+        
+        .name-input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #ff00ff;
+        }
+        
+        .name-input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            color: white;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .name-input-group input:focus {
+            outline: none;
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .name-input-group input::placeholder {
+            color: #666;
+        }
+        
+        .name-input-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .name-input-buttons button {
+            padding: 12px 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .name-input-buttons button.confirm {
+            background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%);
+        }
+        
+        .name-input-buttons button.confirm:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        
+        .name-input-buttons button.cancel {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 100, 100, 0.3) 100%);
+            border: 2px solid #ff0055;
+        }
+        
+        .name-input-buttons button.cancel:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.5);
+        }
+        
+        /* Leaderboard */
+        .leaderboard-content {
+            max-width: 600px;
+            width: 90%;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 40, 0.95) 100%);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #00ffff, #ff00ff) 1;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .leaderboard-content h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+            text-align: center;
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #00ffff;
+        }
+        
+        .leaderboard-entry.top1 {
+            border-left-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .leaderboard-entry.top2 {
+            border-left-color: #c0c0c0;
+            background: rgba(192, 192, 192, 0.1);
+        }
+        
+        .leaderboard-entry.top3 {
+            border-left-color: #cd7f32;
+            background: rgba(205, 127, 50, 0.1);
+        }
+        
+        .leaderboard-rank {
+            font-size: 1.5rem;
+            font-weight: 900;
+            width: 50px;
+            text-align: center;
+            margin-right: 20px;
+        }
+        
+        .leaderboard-entry.top1 .leaderboard-rank { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        .leaderboard-entry.top2 .leaderboard-rank { color: #c0c0c0; text-shadow: 0 0 10px #c0c0c0; }
+        .leaderboard-entry.top3 .leaderboard-rank { color: #cd7f32; text-shadow: 0 0 10px #cd7f32; }
+        .leaderboard-entry:nth-child(n+5) .leaderboard-rank { color: #888; }
+        
+        .leaderboard-player-info {
+            flex: 1;
+        }
+        
+        .leaderboard-player-name {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+        
+        .leaderboard-player-score {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .empty-leaderboard {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .road-container {
+                width: 45%;
+                min-width: 140px;
+            }
+            
+            .car {
+                width: 35px;
+                height: 65px;
+            }
+            
+            .game-header {
+                padding: 10px 15px;
+                flex-wrap: wrap;
+            }
+            
+            .player-stats {
+                gap: 10px;
+            }
+            
+            .score-display {
+                font-size: 1rem;
+            }
+            
+            .heart {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
+    
+    <!-- Floating Particles -->
+    <script>
+        for(let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+            if(Math.random() > 0.5) {
+                particle.style.background = '#ff00ff';
+                particle.style.boxShadow = '0 0 10px #ff00ff, 0 0 20px #ff00ff';
+            }
+            document.body.appendChild(particle);
+        }
+    </script>
+
+    <!-- MAIN MENU -->
+    <div id="mainMenu">
+        <h1 class="game-title">NEON RUSH</h1>
+        <p class="subtitle">Racing Evolved</p>
+        <div class="menu-container">
+            <button class="menu-btn primary" onclick="startGame('single')">
+                🏎️ Single Player
+            </button>
+            <button class="menu-btn secondary" onclick="startGame('dual')">
+                👥 Dual Player
+            </button>
+            <button class="menu-btn" onclick="showLeaderboard()">
+                🏆 Leaderboard
+            </button>
+            <button class="menu-btn" onclick="showTutorial()">
+                📖 Tutorial
+            </button>
+            <button class="menu-btn" onclick="showAbout()">
+                ℹ️ About
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME CONTAINER -->
+    <div id="gameContainer">
+        <button class="back-btn" onclick="backToMenu()">← MENU</button>
+        
+        <div class="game-header">
+            <div class="player-stats" id="player1Stats">
+                <span class="player-label" id="p1Label">P1</span>
+                <div class="hearts" id="hearts1">
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                </div>
+                <div class="score-display">Score: <span id="score1">0</span></div>
+            </div>
+            
+            <div class="player-stats" id="player2Stats" style="display: none;">
+                <div class="score-display">Score: <span id="score2">0</span></div>
+                <div class="hearts" id="hearts2">
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                    <span class="heart">❤️</span>
+                </div>
+                <span class="player-label p2" id="p2Label">P2</span>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="road-container" id="road1">
+                <div class="road-edge left"></div>
+                <div class="road-lines"></div>
+                <div class="road-edge right"></div>
+                <div class="car player-car" id="player1Car">
+                    <div class="car-body">
+                        <svg viewBox="0 0 50 90" style="color: #00ffff;">
+                            <defs>
+                                <linearGradient id="carGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#0088ff;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Car body -->
+                            <path d="M10 85 L10 30 Q10 15 25 10 Q40 15 40 30 L40 85 Q40 90 25 90 Q10 90 10 85" fill="url(#carGrad1)"/>
+                            <!-- Windshield -->
+                            <path d="M15 35 L15 25 Q25 18 35 25 L35 35 Z" fill="#001133" opacity="0.8"/>
+                            <!-- Headlights -->
+                            <ellipse cx="15" cy="20" rx="3" ry="5" fill="#ffff00"/>
+                            <ellipse cx="35" cy="20" rx="3" ry="5" fill="#ffff00"/>
+                            <!-- Taillights -->
+                            <rect x="12" y="80" width="6" height="4" rx="1" fill="#ff0000"/>
+                            <rect x="32" y="80" width="6" height="4" rx="1" fill="#ff0000"/>
+                            <!-- Racing stripes -->
+                            <rect x="23" y="30" width="4" height="50" fill="rgba(255,255,255,0.3)"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="road-container p2" id="road2" style="display: none;">
+                <div class="road-edge left"></div>
+                <div class="road-lines"></div>
+                <div class="road-edge right"></div>
+                <div class="car player-car" id="player2Car">
+                    <div class="car-body">
+                        <svg viewBox="0 0 50 90" style="color: #ff00ff;">
+                            <defs>
+                                <linearGradient id="carGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ff00ff;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#ff0088;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Car body -->
+                            <path d="M10 85 L10 30 Q10 15 25 10 Q40 15 40 30 L40 85 Q40 90 25 90 Q10 90 10 85" fill="url(#carGrad2)"/>
+                            <!-- Windshield -->
+                            <path d="M15 35 L15 25 Q25 18 35 25 L35 35 Z" fill="#330011" opacity="0.8"/>
+                            <!-- Headlights -->
+                            <ellipse cx="15" cy="20" rx="3" ry="5" fill="#ffff00"/>
+                            <ellipse cx="35" cy="20" rx="3" ry="5" fill="#ffff00"/>
+                            <!-- Taillights -->
+                            <rect x="12" y="80" width="6" height="4" rx="1" fill="#ff0000"/>
+                            <rect x="32" y="80" width="6" height="4" rx="1" fill="#ff0000"/>
+                            <!-- Racing stripes -->
+                            <rect x="23" y="30" width="4" height="50" fill="rgba(255,255,255,0.3)"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TUTORIAL OVERLAY -->
+    <div class="overlay" id="tutorialOverlay">
+        <div class="tutorial-content">
+            <h2>🎮 How to Play</h2>
+            
+            <div class="control-section">
+                <h3>🎯 Objective</h3>
+                <p style="font-family: 'Rajdhani', sans-serif; color: #aaa;">
+                    Dodge incoming traffic and survive as long as possible! You have 3 lives - each crash costs one heart. Score points by surviving longer!
+                </p>
+            </div>
+            
+            <div class="control-section">
+                <h3>🏎️ Player 1 Controls (Single Player)</h3>
+                <p>
+                    <span class="key-display">←</span> Move Left
+                    <span class="key-display">→</span> Move Right
+                </p>
+            </div>
+            
+            <div class="control-section">
+                <h3>👥 Player 2 Controls (Dual Mode)</h3>
+                <p>
+                    <span class="key-display">A</span> Move Left
+                    <span class="key-display">D</span> Move Right
+                </p>
+            </div>
+            
+            <div class="control-section">
+                <h3>💡 Tips</h3>
+                <ul style="font-family: 'Rajdhani', sans-serif; color: #aaa; text-align: left; padding-left: 20px;">
+                    <li>Speed increases over time - stay alert!</li>
+                    <li>After crashing, you're briefly invincible</li>
+                    <li>In Dual Mode, last player standing wins!</li>
+                </ul>
+            </div>
+            
+            <button class="close-btn" onclick="closeTutorial()">GOT IT!</button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD OVERLAY -->
+    <div class="overlay" id="leaderboardOverlay">
+        <div class="leaderboard-content">
+            <h2>🏆 TOP SCORES</h2>
+            <div id="leaderboardList">
+                <!-- Populated by JS -->
+            </div>
+            <button class="close-btn" onclick="closeLeaderboard()">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- ABOUT OVERLAY -->
+    <div class="overlay" id="aboutOverlay">
+        <div class="about-content">
+            <h2>NEON RUSH</h2>
+            <p>A high-octane arcade racing experience with stunning neon visuals and heart-pounding gameplay.</p>
+            <p>🏆 Challenge your friends in Dual Player mode to see who's the ultimate road warrior!</p>
+            <p style="color: #00ffff; margin-top: 20px;">Version 3.0 | Abdullah Karim | 2026</p>
+            <button class="close-btn" onclick="closeAbout()">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- NAME INPUT OVERLAY -->
+    <div class="name-input-overlay" id="nameInputOverlay">
+        <div class="name-input-container">
+            <h2 id="nameInputTitle">Enter Player Names</h2>
+            <div class="name-input-group">
+                <label for="player1Name" id="player1NameLabel">Player 1 Name:</label>
+                <input type="text" id="player1Name" placeholder="Enter your name" maxlength="20">
+            </div>
+            <div class="name-input-group" id="player2NameGroup" style="display: none;">
+                <label for="player2Name">Player 2 Name:</label>
+                <input type="text" id="player2Name" placeholder="Enter your name" maxlength="20">
+            </div>
+            <div class="name-input-buttons">
+                <button class="confirm" onclick="startGameWithNames()">START GAME</button>
+                <button class="cancel" onclick="cancelNameInput()">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div class="overlay" id="gameOverOverlay">
+        <div class="result-container" id="resultContainer">
+            <!-- Results populated by JS -->
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameMode = 'single';
+        let gameRunning = false;
+        let animationId = null;
+        
+        const players = {
+            1: { name: 'Player 1', lives: 3, score: 0, x: 125, invincible: false, alive: true },
+            2: { name: 'Player 2', lives: 3, score: 0, x: 125, invincible: false, alive: true }
+        };
+        
+        let leaderboard = [];
+        
+        let obstacles = { 1: [], 2: [] };
+        let gameSpeed = 3;
+        let spawnTimer = 0;
+        let speedIncreaseTimer = 0;
+        
+        const keys = {};
+        
+        // Car colors for obstacles
+        const obstacleColors = [
+            { main: '#ff3333', accent: '#ff6666' },
+            { main: '#33ff33', accent: '#66ff66' },
+            { main: '#ffff33', accent: '#ffff66' },
+            { main: '#ff33ff', accent: '#ff66ff' },
+            { main: '#33ffff', accent: '#66ffff' },
+            { main: '#ff8833', accent: '#ffaa66' }
+        ];
+        
+        // Input handling
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+            keys[e.key] = false;
+        });
+        
+        // Menu functions
+        function showTutorial() {
+            document.getElementById('tutorialOverlay').classList.add('active');
+        }
+        
+        function closeTutorial() {
+            document.getElementById('tutorialOverlay').classList.remove('active');
+        }
+        
+        function showAbout() {
+            document.getElementById('aboutOverlay').classList.add('active');
+        }
+        
+        function closeAbout() {
+            document.getElementById('aboutOverlay').classList.remove('active');
+        }
+        
+        function showLeaderboard() {
+            loadLeaderboard();
+            displayLeaderboard();
+            document.getElementById('leaderboardOverlay').classList.add('active');
+        }
+        
+        function closeLeaderboard() {
+            document.getElementById('leaderboardOverlay').classList.remove('active');
+        }
+        
+        function backToMenu() {
+            gameRunning = false;
+            if (animationId) cancelAnimationFrame(animationId);
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'flex';
+            clearObstacles();
+        }
+        
+        // Start game - show name input
+        function startGame(mode) {
+            gameMode = mode;
+            
+            // Reset name inputs
+            document.getElementById('player1Name').value = '';
+            document.getElementById('player2Name').value = '';
+            
+            // Show name input overlay
+            const nameInputOverlay = document.getElementById('nameInputOverlay');
+            const player1NameLabel = document.getElementById('player1NameLabel');
+            const player2NameGroup = document.getElementById('player2NameGroup');
+            const nameInputTitle = document.getElementById('nameInputTitle');
+            
+            if (mode === 'single') {
+                nameInputTitle.textContent = 'Enter Your Name';
+                player1NameLabel.textContent = 'Your Name:';
+                player2NameGroup.style.display = 'none';
+            } else {
+                nameInputTitle.textContent = 'Enter Player Names';
+                player1NameLabel.textContent = 'Player 1 Name:';
+                player2NameGroup.style.display = 'block';
+            }
+            
+            nameInputOverlay.classList.add('active');
+            document.getElementById('player1Name').focus();
+        }
+        
+        function startGameWithNames() {
+            const p1Name = document.getElementById('player1Name').value.trim();
+            
+            if (!p1Name) {
+                alert('Please enter a name!');
+                return;
+            }
+            
+            let p2Name = 'CPU';
+            if (gameMode === 'dual') {
+                p2Name = document.getElementById('player2Name').value.trim();
+                if (!p2Name) {
+                    alert('Please enter Player 2 name!');
+                    return;
+                }
+            }
+            
+            document.getElementById('nameInputOverlay').classList.remove('active');
+            startGameWithValidNames(p1Name, p2Name);
+        }
+        
+        function cancelNameInput() {
+            document.getElementById('nameInputOverlay').classList.remove('active');
+        }
+        
+        // Start game with validated names
+        function startGameWithValidNames(p1Name, p2Name) {
+            // Clear previous obstacles and show cars
+            clearObstacles();
+            
+            // Reset state with names
+            players[1] = { name: p1Name, lives: 3, score: 0, x: 125, invincible: false, alive: true };
+            players[2] = { name: p2Name, lives: 3, score: 0, x: 125, invincible: false, alive: true };
+            obstacles = { 1: [], 2: [] };
+            gameSpeed = 3;
+            spawnTimer = 0;
+            speedIncreaseTimer = 0;
+            
+            // Update UI
+            updateHearts(1);
+            updateHearts(2);
+            updateScore(1);
+            updateScore(2);
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            document.getElementById('gameOverOverlay').classList.remove('active');
+            
+            // Update player labels with names
+            document.getElementById('p1Label').textContent = players[1].name;
+            document.getElementById('p2Label').textContent = players[2].name;
+            
+            if (gameMode === 'dual') {
+                document.getElementById('road2').style.display = 'block';
+                document.getElementById('player2Stats').style.display = 'flex';
+            } else {
+                document.getElementById('road2').style.display = 'none';
+                document.getElementById('player2Stats').style.display = 'none';
+            }
+            
+            // Position cars
+            positionCar(1);
+            positionCar(2);
+            
+            // Countdown then start
+            countdown(3);
+        }
+        
+        function countdown(num) {
+            if (num > 0) {
+                const countEl = document.createElement('div');
+                countEl.className = 'countdown';
+                countEl.textContent = num === 1 ? 'GO!' : num;
+                document.body.appendChild(countEl);
+                
+                setTimeout(() => {
+                    countEl.remove();
+                    countdown(num - 1);
+                }, 1000);
+            } else {
+                gameRunning = true;
+                gameLoop();
+            }
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Handle input
+            handleInput();
+            
+            // Update game
+            spawnTimer++;
+            speedIncreaseTimer++;
+            
+            // Increase speed over time
+            if (speedIncreaseTimer > 300) {
+                gameSpeed += 0.2;
+                speedIncreaseTimer = 0;
+            }
+            
+            // Spawn obstacles
+            const spawnRate = Math.max(40, 80 - Math.floor(gameSpeed * 3));
+            if (spawnTimer > spawnRate) {
+                if (players[1].alive) spawnObstacle(1);
+                if (gameMode === 'dual' && players[2].alive) spawnObstacle(2);
+                spawnTimer = 0;
+            }
+            
+            // Update obstacles
+            updateObstacles(1);
+            if (gameMode === 'dual') updateObstacles(2);
+            
+            // Update scores
+            if (players[1].alive) {
+                players[1].score++;
+                updateScore(1);
+            }
+            if (gameMode === 'dual' && players[2].alive) {
+                players[2].score++;
+                updateScore(2);
+            }
+            
+            // Check game over
+            checkGameOver();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        function handleInput() {
+            const roadWidth = document.getElementById('road1').offsetWidth;
+            const carWidth = document.getElementById('player1Car').offsetWidth;
+            const minX = 10;
+            const maxX = roadWidth - carWidth - 10;
+            const moveSpeed = 8;
+            
+            // Player 1: Arrow keys (single player)
+            if (players[1].alive) {
+                if (keys['ArrowLeft']) {
+                    players[1].x = Math.max(minX, players[1].x - moveSpeed);
+                }
+                if (keys['ArrowRight']) {
+                    players[1].x = Math.min(maxX, players[1].x + moveSpeed);
+                }
+                positionCar(1);
+            }
+            
+            // Player 2: A/D (dual player)
+            if (gameMode === 'dual' && players[2].alive) {
+                if (keys['a'] || keys['A']) {
+                    players[2].x = Math.max(minX, players[2].x - moveSpeed);
+                }
+                if (keys['d'] || keys['D']) {
+                    players[2].x = Math.min(maxX, players[2].x + moveSpeed);
+                }
+                positionCar(2);
+            }
+        }
+        
+        function positionCar(player) {
+            const car = document.getElementById(`player${player}Car`);
+            car.style.left = players[player].x + 'px';
+        }
+        
+        function spawnObstacle(player) {
+            const road = document.getElementById(`road${player}`);
+            const roadWidth = road.offsetWidth;
+            const lanes = [20, roadWidth/2 - 25, roadWidth - 70];
+            const lane = lanes[Math.floor(Math.random() * lanes.length)];
+            
+            const colorSet = obstacleColors[Math.floor(Math.random() * obstacleColors.length)];
+            
+            const obstacle = document.createElement('div');
+            obstacle.className = 'car obstacle-car';
+            obstacle.style.left = lane + 'px';
+            obstacle.style.top = '-100px';
+            obstacle.innerHTML = `
+                <div class="car-body">
+                    <svg viewBox="0 0 50 90">
+                        <defs>
+                            <linearGradient id="obsGrad${Date.now()}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:${colorSet.main};stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:${colorSet.accent};stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M10 10 L10 60 Q10 75 25 80 Q40 75 40 60 L40 10 Q40 5 25 0 Q10 5 10 10" fill="url(#obsGrad${Date.now()})"/>
+                        <path d="M15 55 L15 45 Q25 38 35 45 L35 55 Z" fill="#001133" opacity="0.8"/>
+                        <ellipse cx="15" cy="70" rx="3" ry="5" fill="#ffff00"/>
+                        <ellipse cx="35" cy="70" rx="3" ry="5" fill="#ffff00"/>
+                        <rect x="12" y="8" width="6" height="4" rx="1" fill="#ff0000"/>
+                        <rect x="32" y="8" width="6" height="4" rx="1" fill="#ff0000"/>
+                    </svg>
+                </div>
+            `;
+            obstacle.style.filter = `drop-shadow(0 0 10px ${colorSet.main})`;
+            
+            road.appendChild(obstacle);
+            obstacles[player].push({
+                element: obstacle,
+                y: -100,
+                x: lane
+            });
+        }
+        
+        function updateObstacles(player) {
+            const road = document.getElementById(`road${player}`);
+            const roadHeight = road.offsetHeight;
+            
+            for (let i = obstacles[player].length - 1; i >= 0; i--) {
+                const obs = obstacles[player][i];
+                obs.y += gameSpeed;
+                obs.element.style.top = obs.y + 'px';
+                
+                // Check collision
+                if (!players[player].invincible && players[player].alive) {
+                    if (checkCollision(player, obs)) {
+                        handleCrash(player, obs);
+                    }
+                }
+                
+                // Remove if off screen
+                if (obs.y > roadHeight) {
+                    obs.element.remove();
+                    obstacles[player].splice(i, 1);
+                }
+            }
+        }
+        
+        function checkCollision(player, obs) {
+            const playerCar = document.getElementById(`player${player}Car`);
+            const playerRect = playerCar.getBoundingClientRect();
+            const obsRect = obs.element.getBoundingClientRect();
+            
+            // Add some padding for more forgiving collision
+            const padding = 5;
+            
+            return !(playerRect.right - padding < obsRect.left + padding || 
+                     playerRect.left + padding > obsRect.right - padding || 
+                     playerRect.bottom - padding < obsRect.top + padding || 
+                     playerRect.top + padding > obsRect.bottom - padding);
+        }
+        
+        function handleCrash(player, obs) {
+            players[player].lives--;
+            updateHearts(player);
+            
+            // Crash effect
+            const crash = document.createElement('div');
+            crash.className = 'crash-effect';
+            crash.style.left = obs.x + 'px';
+            crash.style.top = obs.y + 'px';
+            document.getElementById(`road${player}`).appendChild(crash);
+            setTimeout(() => crash.remove(), 500);
+            
+            // Remove obstacle
+            const index = obstacles[player].indexOf(obs);
+            if (index > -1) {
+                obs.element.remove();
+                obstacles[player].splice(index, 1);
+            }
+            
+            // Check if player is out
+            if (players[player].lives <= 0) {
+                players[player].alive = false;
+                document.getElementById(`player${player}Car`).style.display = 'none';
+            } else {
+                // Invincibility frames
+                players[player].invincible = true;
+                document.getElementById(`player${player}Car`).classList.add('invincible');
+                setTimeout(() => {
+                    players[player].invincible = false;
+                    document.getElementById(`player${player}Car`).classList.remove('invincible');
+                }, 2000);
+            }
+        }
+        
+        function updateHearts(player) {
+            const heartsContainer = document.getElementById(`hearts${player}`);
+            const hearts = heartsContainer.querySelectorAll('.heart');
+            hearts.forEach((heart, index) => {
+                if (index >= players[player].lives) {
+                    heart.classList.add('lost');
+                } else {
+                    heart.classList.remove('lost');
+                }
+            });
+        }
+        
+        function updateScore(player) {
+            document.getElementById(`score${player}`).textContent = players[player].score;
+        }
+        
+        function checkGameOver() {
+            if (gameMode === 'single' && !players[1].alive) {
+                endGame();
+            } else if (gameMode === 'dual' && !players[1].alive && !players[2].alive) {
+                endGame();
+            } else if (gameMode === 'dual' && (!players[1].alive || !players[2].alive)) {
+                // One player remaining in dual mode - continue a bit then end
+                if (!players[1].alive && !players[2].alive) {
+                    endGame();
+                }
+            }
+            
+            // In dual mode, end when one player dies (last standing wins)
+            if (gameMode === 'dual') {
+                if (!players[1].alive || !players[2].alive) {
+                    setTimeout(() => {
+                        if (gameRunning) endGame();
+                    }, 1500);
+                }
+            }
+        }
+        
+        function endGame() {
+            gameRunning = false;
+            if (animationId) cancelAnimationFrame(animationId);
+            
+            const resultContainer = document.getElementById('resultContainer');
+            
+            if (gameMode === 'single') {
+                // Save to leaderboard
+                saveToLeaderboard(players[1].name, players[1].score);
+                
+                resultContainer.innerHTML = `
+                    <h2 class="result-title">GAME OVER</h2>
+                    <p style="color: #00ffff; font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; margin-bottom: 10px;">${players[1].name}</p>
+                    <div class="final-score">${players[1].score}</div>
+                    <p style="color: #888; font-family: 'Rajdhani', sans-serif; margin-bottom: 30px;">Points Scored</p>
+                    <button class="menu-btn primary" onclick="startGame('single')" style="margin: 10px;">PLAY AGAIN</button>
+                    <button class="menu-btn" onclick="backToMenuFromOverlay()" style="margin: 10px;">MAIN MENU</button>
+                `;
+            } else {
+                // Dual player results
+                const p1Score = players[1].score;
+                const p2Score = players[2].score;
+                
+                let winner, loser, winnerScore, loserScore, winnerName, loserName;
+                if (p1Score >= p2Score) {
+                    winner = 'PLAYER 1';
+                    loser = 'PLAYER 2';
+                    winnerScore = p1Score;
+                    loserScore = p2Score;
+                    winnerName = players[1].name;
+                    loserName = players[2].name;
+                } else {
+                    winner = 'PLAYER 2';
+                    loser = 'PLAYER 1';
+                    winnerScore = p2Score;
+                    loserScore = p1Score;
+                    winnerName = players[2].name;
+                    loserName = players[1].name;
+                }
+                
+                resultContainer.innerHTML = `
+                    <h2 class="result-title">🏆 RACE RESULTS</h2>
+                    <div class="result-item">
+                        <span class="rank gold">🥇</span>
+                        <span class="result-player">${winnerName}</span>
+                        <span class="result-score">${winnerScore}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="rank silver">🥈</span>
+                        <span class="result-player">${loserName}</span>
+                        <span class="result-score">${loserScore}</span>
+                    </div>
+                    <button class="menu-btn secondary" onclick="startGame('dual')" style="margin: 20px 10px 10px;">REMATCH</button>
+                    <button class="menu-btn" onclick="backToMenuFromOverlay()" style="margin: 10px;">MAIN MENU</button>
+                `;
+            }
+            
+            document.getElementById('gameOverOverlay').classList.add('active');
+        }
+        
+        function backToMenuFromOverlay() {
+            document.getElementById('gameOverOverlay').classList.remove('active');
+            backToMenu();
+        }
+        
+        function clearObstacles() {
+            for (let player of [1, 2]) {
+                obstacles[player].forEach(obs => obs.element.remove());
+                obstacles[player] = [];
+                document.getElementById(`player${player}Car`).style.display = 'block';
+                document.getElementById(`player${player}Car`).classList.remove('invincible');
+            }
+        }
+        
+        // Leaderboard functions
+        function saveToLeaderboard(name, score) {
+            loadLeaderboard();
+            leaderboard.push({ name, score, date: new Date().toLocaleDateString() });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10); // Keep top 10
+            localStorage.setItem('neonRushLeaderboard', JSON.stringify(leaderboard));
+        }
+        
+        function loadLeaderboard() {
+            const saved = localStorage.getItem('neonRushLeaderboard');
+            leaderboard = saved ? JSON.parse(saved) : [];
+        }
+        
+        function displayLeaderboard() {
+            loadLeaderboard();
+            const leaderboardList = document.getElementById('leaderboardList');
+            
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div class="empty-leaderboard">No scores yet. Be the first to set a record!</div>';
+                return;
+            }
+            
+            let html = '';
+            leaderboard.forEach((entry, index) => {
+                const rankClass = index === 0 ? 'top1' : index === 1 ? 'top2' : index === 2 ? 'top3' : '';
+                const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                
+                html += `
+                    <div class="leaderboard-entry ${rankClass}">
+                        <div class="leaderboard-rank">${rankEmoji}</div>
+                        <div class="leaderboard-player-info">
+                            <div class="leaderboard-player-name">${entry.name}</div>
+                            <div style="font-size: 0.85rem; color: #666;">${entry.date}</div>
+                        </div>
+                        <div class="leaderboard-player-score">${entry.score}</div>
+                    </div>
+                `;
+            });
+            
+            leaderboardList.innerHTML = html;
+        }
+        
+        // Initialize leaderboard on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboard();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2998 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Explorer - Complete Quranic Application</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a5f4a;
+            --primary-light: #2d8a6e;
+            --primary-dark: #0f3d2e;
+            --secondary: #d4af37;
+            --secondary-light: #e5c76b;
+            --bg-dark: #0d1b16;
+            --bg-card: #152822;
+            --bg-card-hover: #1a3830;
+            --text-primary: #e8f0ed;
+            --text-secondary: #a8c5bb;
+            --text-muted: #6b8f82;
+            --border-color: #2d4a40;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --arabic-font: 'Amiri', 'Traditional Arabic', serif;
+            --ui-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --tajweed-ghunnah: #ff7f7f;
+            --tajweed-ikhfa: #d6a8ff;
+            --tajweed-idgham: #7fdfff;
+            --tajweed-qalqalah: #7fffbf;
+            --tajweed-madd: #ffdf7f;
+            --tajweed-lam-shamsiyah: #ff9f40;
+            --tajweed-idgham-ghunnah: #a0d8ef;
+            --tajweed-idgham-no-ghunnah: #90c8ff;
+            --tajweed-mutajaanisain: #ffb6c1;
+            --tajweed-mutaqaaribain: #dda0dd;
+            --tajweed-shafawi: #98fb98;
+            --tajweed-ikhfa-shafawi: #e6e6fa;
+            --tajweed-iqlab: #ffd700;
+            --tajweed-madd-2: #ffe4b5;
+            --tajweed-madd-246: #f0e68c;
+            --tajweed-madd-muttasil: #ffa07a;
+            --tajweed-madd-munfasil: #ffb6c1;
+            --tajweed-madd-laazim: #ff6347;
+            --tajweed-silent: #c0c0c0;
+            --tajweed-hamzat-wasl: #87ceeb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--ui-font);
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Fixed Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--primary-dark) 100%);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: var(--primary);
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Center Search Bar */
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(45, 138, 110, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1001;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-results-dropdown.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-result-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-arabic {
+            font-family: var(--arabic-font);
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            direction: rtl;
+            text-align: right;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result-translation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .search-result-ref {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            margin-top: 0.25rem;
+        }
+
+        .search-loading,
+        .search-no-results {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Quick Settings in Top Bar */
+        .quick-settings {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-setting-btn {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .quick-setting-btn:hover {
+            background: var(--primary);
+            color: var(--text-primary);
+            border-color: var(--primary);
+        }
+
+        .quick-setting-btn.active {
+            background: var(--primary);
+            color: var(--text-primary);
+            border-color: var(--primary-light);
+        }
+
+        .quick-dropdown {
+            position: relative;
+        }
+
+        .quick-dropdown-content {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            min-width: 180px;
+            margin-top: 0.5rem;
+            display: none;
+            z-index: 1002;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .quick-dropdown-content.show {
+            display: block;
+        }
+
+        .quick-dropdown-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quick-dropdown-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .quick-dropdown-item.selected {
+            background: var(--primary);
+            color: var(--text-primary);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-top: 64px;
+            min-height: calc(100vh - 64px);
+            padding-bottom: 100px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 900;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main Menu Sidebar */
+        .main-sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 300px;
+            height: calc(100vh - 64px);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            z-index: 950;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .main-sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .sidebar-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar-close:hover {
+            color: var(--text-primary);
+        }
+
+        .sidebar-menu {
+            padding: 1rem;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .menu-item.active {
+            background: var(--primary);
+            color: var(--text-primary);
+        }
+
+        .menu-item-icon {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-item-text {
+            font-size: 0.95rem;
+        }
+
+        /* Quick Pick Sidebar */
+        .quick-pick-sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            width: 350px;
+            height: calc(100vh - 64px);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            z-index: 950;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quick-pick-sidebar.active {
+            transform: translateX(0);
+        }
+
+        .quick-pick-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-dark);
+        }
+
+        .quick-pick-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+        }
+
+        .quick-pick-tab:hover {
+            color: var(--text-secondary);
+            background: var(--bg-card-hover);
+        }
+
+        .quick-pick-tab.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+            background: var(--bg-card);
+        }
+
+        .quick-pick-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .quick-pick-list {
+            display: none;
+        }
+
+        .quick-pick-list.active {
+            display: block;
+        }
+
+        .quick-pick-item {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 0.25rem;
+        }
+
+        .quick-pick-item:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .quick-pick-item.current {
+            background: var(--primary);
+        }
+
+        .quick-pick-number {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-right: 0.75rem;
+        }
+
+        .quick-pick-info {
+            flex: 1;
+        }
+
+        .quick-pick-name {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .quick-pick-arabic {
+            font-family: var(--arabic-font);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            direction: rtl;
+        }
+
+        .quick-pick-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Toast Messages */
+        .toast-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(26, 95, 74, 0.95);
+            color: var(--text-primary);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Reading Area */
+        .reading-area {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .surah-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--primary-dark) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .surah-name-arabic {
+            font-family: var(--arabic-font);
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .surah-name-english {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .surah-info {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .bismillah {
+            font-family: var(--arabic-font);
+            font-size: 2rem;
+            color: var(--secondary);
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .verse-container {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .verse-container:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(26, 95, 74, 0.2);
+        }
+
+        .verse-container.playing {
+            border-color: var(--secondary);
+            background: var(--bg-card-hover);
+        }
+
+        .verse-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .verse-number-badge {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .verse-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .verse-action-btn {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .verse-action-btn:hover {
+            background: var(--primary);
+            color: var(--text-primary);
+            border-color: var(--primary);
+        }
+
+        .verse-arabic {
+            font-family: var(--arabic-font);
+            font-size: var(--arabic-size, 32px);
+            line-height: 2.2;
+            color: var(--text-primary);
+            direction: rtl;
+            text-align: right;
+            margin-bottom: 1rem;
+            word-spacing: 8px;
+        }
+
+        .verse-translation {
+            font-size: var(--translation-size, 17px);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 0.75rem;
+        }
+
+        .verse-translation.primary {
+            color: var(--text-primary);
+        }
+
+        .verse-translation.secondary {
+            color: var(--text-muted);
+            font-style: italic;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Word by Word Styling */
+        .word-by-word-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 1rem;
+            direction: rtl;
+            margin-bottom: 1rem;
+        }
+
+        .word-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            min-width: 80px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .word-item:hover {
+            background: var(--primary-dark);
+        }
+
+        .word-arabic {
+            font-family: var(--arabic-font);
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .word-transliteration {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            margin-bottom: 0.15rem;
+        }
+
+        .word-translation {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Tajweed Colors */
+        .tajweed-ghunnah {
+            color: var(--tajweed-ghunnah);
+        }
+
+        .tajweed-ikhfa {
+            color: var(--tajweed-ikhfa);
+        }
+
+        .tajweed-idgham {
+            color: var(--tajweed-idgham);
+        }
+
+        .tajweed-qalqalah {
+            color: var(--tajweed-qalqalah);
+        }
+
+        .tajweed-madd {
+            color: var(--tajweed-madd);
+        }
+
+        .tajweed-lam-shamsiyah {
+            color: var(--tajweed-lam-shamsiyah);
+        }
+
+        .tajweed-idgham-ghunnah {
+            color: var(--tajweed-idgham-ghunnah);
+        }
+
+        .tajweed-idgham-no-ghunnah {
+            color: var(--tajweed-idgham-no-ghunnah);
+        }
+
+        .tajweed-mutajaanisain {
+            color: var(--tajweed-mutajaanisain);
+        }
+
+        .tajweed-mutaqaaribain {
+            color: var(--tajweed-mutaqaaribain);
+        }
+
+        .tajweed-shafawi {
+            color: var(--tajweed-shafawi);
+        }
+
+        .tajweed-ikhfa-shafawi {
+            color: var(--tajweed-ikhfa-shafawi);
+        }
+
+        .tajweed-iqlab {
+            color: var(--tajweed-iqlab);
+        }
+
+        .tajweed-madd-2 {
+            color: var(--tajweed-madd-2);
+        }
+
+        .tajweed-madd-246 {
+            color: var(--tajweed-madd-246);
+        }
+
+        .tajweed-madd-muttasil {
+            color: var(--tajweed-madd-muttasil);
+        }
+
+        .tajweed-madd-munfasil {
+            color: var(--tajweed-madd-munfasil);
+        }
+
+        .tajweed-madd-laazim {
+            color: var(--tajweed-madd-laazim);
+        }
+
+        .tajweed-silent {
+            color: var(--tajweed-silent);
+        }
+
+        .tajweed-hamzat-wasl {
+            color: var(--tajweed-hamzat-wasl);
+        }
+
+        /* Audio Player Bar */
+        .audio-player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--primary-dark) 100%);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 1000;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .audio-info {
+            flex: 0 0 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .audio-title {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .audio-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .audio-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .audio-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .audio-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-btn:hover {
+            color: var(--text-primary);
+            background: var(--primary);
+        }
+
+        .audio-btn.play-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: var(--text-primary);
+            font-size: 1.5rem;
+        }
+
+        .audio-btn.play-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .audio-btn.active {
+            color: var(--secondary);
+        }
+
+        .audio-progress {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .audio-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 40px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .audio-extras {
+            flex: 0 0 200px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .reciter-dropdown {
+            position: relative;
+        }
+
+        .reciter-btn {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            max-width: 150px;
+        }
+
+        .reciter-btn:hover {
+            background: var(--primary);
+            color: var(--text-primary);
+        }
+
+        .reciter-btn span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .reciter-dropdown-content {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            min-width: 220px;
+            margin-bottom: 0.5rem;
+            display: none;
+            z-index: 1002;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .reciter-dropdown-content.show {
+            display: block;
+        }
+
+        .reciter-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .reciter-option:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .reciter-option.selected {
+            background: var(--primary);
+            color: var(--text-primary);
+        }
+
+        /* Volume Control */
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--secondary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Settings Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+        }
+
+        .settings-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .settings-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .settings-select {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .settings-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .settings-slider {
+            width: 100px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .settings-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .settings-value {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        /* Tajweed Legend */
+        .tajweed-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .tajweed-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .tajweed-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 164px);
+            padding: 2rem;
+        }
+
+        .welcome-content {
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .welcome-btn {
+            background: var(--primary);
+            border: none;
+            color: var(--text-primary);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .welcome-btn:hover {
+            background: var(--primary-light);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Go Back Button */
+        .go-back-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 1rem;
+            background: var(--primary);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 20px rgba(26, 95, 74, 0.4);
+            z-index: 999;
+        }
+
+        .go-back-btn.show {
+            display: flex;
+        }
+
+        .go-back-btn:hover {
+            background: var(--primary-light);
+        }
+
+        /* Word by Word Modal */
+        .word-modal {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            z-index: 1500;
+            display: none;
+            min-width: 250px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .word-modal.show {
+            display: block;
+        }
+
+        .word-modal-arabic {
+            font-family: var(--arabic-font);
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .word-modal-transliteration {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .word-modal-translation {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .word-modal-close {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Tafsir Modal */
+        .tafsir-modal .modal {
+            max-width: 800px;
+        }
+
+        .tafsir-content {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .tafsir-verse {
+            font-family: var(--arabic-font);
+            font-size: 1.5rem;
+            color: var(--secondary);
+            text-align: right;
+            direction: rtl;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tafsir-source-select {
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 0 0.5rem;
+            }
+
+            .logo-text {
+                display: none;
+            }
+
+            .search-container {
+                margin: 0 0.5rem;
+            }
+
+            .quick-settings {
+                gap: 0.25rem;
+            }
+
+            .quick-setting-btn span {
+                display: none;
+            }
+
+            .main-sidebar,
+            .quick-pick-sidebar {
+                width: 100%;
+            }
+
+            .audio-player-bar {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 0.75rem;
+            }
+
+            .audio-info {
+                flex: 0 0 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .audio-controls {
+                flex: 1;
+            }
+
+            .audio-extras {
+                flex: 0 0 100%;
+                justify-content: center;
+                margin-top: 0.5rem;
+            }
+
+            .audio-progress {
+                max-width: 100%;
+            }
+
+            .reading-area {
+                padding: 1rem 0.5rem;
+            }
+
+            .verse-arabic {
+                font-size: 1.5rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Fixed Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
+            <div class="logo">
+                <span class="logo-icon">📖</span>
+                <span class="logo-text">Quran Explorer</span>
+            </div>
+        </div>
+
+        <!-- Center Search Bar -->
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="mainSearchInput" placeholder="Search Quran...">
+            </div>
+            <div class="search-results-dropdown" id="searchResultsDropdown">
+                <div class="search-loading" id="searchLoading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem;">Searching...</p>
+                </div>
+                <div class="search-no-results" id="searchNoResults" style="display: none;">
+                    No results found
+                </div>
+                <div id="searchResultsList"></div>
+            </div>
+        </div>
+
+        <!-- Quick Settings -->
+        <div class="quick-settings">
+            <!-- Script Quick Select -->
+            <div class="quick-dropdown">
+                <button class="quick-setting-btn" id="scriptQuickBtn">
+                    <span>📜</span>
+                    <span id="currentScriptLabel">Uthmani</span>
+                </button>
+                <div class="quick-dropdown-content" id="scriptQuickDropdown">
+                    <div class="quick-dropdown-item selected" data-script="uthmani">Uthmani</div>
+                    <div class="quick-dropdown-item" data-script="indopak">IndoPak</div>
+                    <div class="quick-dropdown-item" data-script="imlaei">Imla'i (Simple)</div>
+                </div>
+            </div>
+
+            <!-- Translation Quick Select -->
+            <div class="quick-dropdown">
+                <button class="quick-setting-btn" id="translationQuickBtn">
+                    <span>🌐</span>
+                    <span id="currentTransLabel">English</span>
+                </button>
+                <div class="quick-dropdown-content" id="translationQuickDropdown">
+                    <div class="quick-dropdown-item selected" data-translation="131">English - Haleem</div>
+                    <div class="quick-dropdown-item" data-translation="20">English - Saheeh Int.</div>
+                    <div class="quick-dropdown-item" data-translation="167">Bengali - Zakaria</div>
+                    <div class="quick-dropdown-item" data-translation="161">Bengali - Khan</div>
+                    <div class="quick-dropdown-item" data-translation="97">Urdu - Ahmed Ali</div>
+                    <div class="quick-dropdown-item" data-translation="31">French - Hamidullah</div>
+                    <div class="quick-dropdown-item" data-translation="45">Russian - Abu Adel</div>
+                    <div class="quick-dropdown-item" data-translation="77">Turkish - Diyanet</div>
+                    <div class="quick-dropdown-item" data-translation="33">Indonesian</div>
+                </div>
+            </div>
+
+            <!-- Advanced Tajweed Toggle -->
+            <button class="quick-setting-btn" id="advancedTajweedQuickBtn" title="Advanced Tajweed">
+                <span>🎨</span>
+                <span>Tajweed</span>
+            </button>
+
+            <!-- Settings Button -->
+            <button class="quick-setting-btn" id="settingsQuickBtn" title="Settings">
+                <span>⚙️</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Menu Sidebar -->
+    <div class="main-sidebar" id="mainSidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">Menu</span>
+            <button class="sidebar-close" id="closeSidebar">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item" data-action="quick-pick">
+                <span class="menu-item-icon">📚</span>
+                <span class="menu-item-text">Quick Pick (Surah/Juz/Page)</span>
+            </div>
+            <div class="menu-item" data-action="word-by-word">
+                <span class="menu-item-icon">📝</span>
+                <span class="menu-item-text">Word by Word</span>
+            </div>
+            <div class="menu-item" data-action="tafsir">
+                <span class="menu-item-icon">📖</span>
+                <span class="menu-item-text">Tafsir (Commentary)</span>
+            </div>
+            <div class="menu-item" data-action="tajweed-guide">
+                <span class="menu-item-icon">🎨</span>
+                <span class="menu-item-text">Tajweed Guide</span>
+            </div>
+            <div class="menu-item" data-action="settings">
+                <span class="menu-item-icon">⚙️</span>
+                <span class="menu-item-text">Settings</span>
+            </div>
+            <div class="menu-item" data-action="about">
+                <span class="menu-item-icon">ℹ️</span>
+                <span class="menu-item-text">About</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Pick Sidebar -->
+    <div class="quick-pick-sidebar" id="quickPickSidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">Quick Pick</span>
+            <button class="sidebar-close" id="closeQuickPick">✕</button>
+        </div>
+        <div class="quick-pick-tabs">
+            <div class="quick-pick-tab active" data-tab="surah">Surah</div>
+            <div class="quick-pick-tab" data-tab="juz">Juz</div>
+            <div class="quick-pick-tab" data-tab="page">Page</div>
+        </div>
+        <div class="quick-pick-content">
+            <div class="quick-pick-list active" id="surahList"></div>
+            <div class="quick-pick-list" id="juzList"></div>
+            <div class="quick-pick-list" id="pageList"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-content">
+                <div class="welcome-icon">📖</div>
+                <h1 class="welcome-title">Quran Explorer</h1>
+                <p class="welcome-subtitle">Read, Listen, and Learn the Holy Quran with translations, tafsir, and
+                    word-by-word analysis</p>
+                <button class="welcome-btn" id="startReadingBtn">Start Reading</button>
+            </div>
+        </div>
+
+        <!-- Reading Area -->
+        <div class="reading-area" id="readingArea" style="display: none;"></div>
+    </div>
+
+    <!-- Go Back Button (for search) -->
+    <button class="go-back-btn" id="goBackBtn">
+        <span>←</span>
+        <span>Back to Reading</span>
+    </button>
+
+    <!-- Audio Player Bar -->
+    <div class="audio-player-bar">
+        <div class="audio-info">
+            <span class="audio-title" id="audioTitle">Select a verse</span>
+            <span class="audio-subtitle" id="audioSubtitle">Click play on any verse</span>
+        </div>
+        <div class="audio-controls">
+            <div class="audio-buttons">
+                <button class="audio-btn" id="prevVerseBtn" title="Previous Verse">⏮</button>
+                <button class="audio-btn" id="repeatBtn" title="Repeat">🔁</button>
+                <button class="audio-btn play-btn" id="playPauseBtn" title="Play/Pause">▶</button>
+                <button class="audio-btn" id="nextVerseBtn" title="Next Verse">⏭</button>
+                <button class="audio-btn" id="autoPlayBtn" title="Auto-play next">⏩</button>
+            </div>
+            <div class="audio-progress">
+                <span class="audio-time" id="currentTime">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span class="audio-time" id="totalTime">0:00</span>
+            </div>
+        </div>
+        <div class="audio-extras">
+            <!-- Reciter Dropdown -->
+            <div class="reciter-dropdown">
+                <button class="reciter-btn" id="reciterBtn">
+                    <span>🎙️</span>
+                    <span id="currentReciterLabel">Mishary</span>
+                </button>
+                <div class="reciter-dropdown-content" id="reciterDropdown">
+                    <div class="reciter-option selected" data-reciter="7">Mishary Rashid Alafasy</div>
+                    <div class="reciter-option" data-reciter="1">AbdulBaset (Mujawwad)</div>
+                    <div class="reciter-option" data-reciter="2">AbdulBaset (Murattal)</div>
+                    <div class="reciter-option" data-reciter="3">Abdur-Rahman as-Sudais</div>
+                    <div class="reciter-option" data-reciter="4">Abu Bakr al-Shatri</div>
+                    <div class="reciter-option" data-reciter="5">Hani ar-Rifai</div>
+                    <div class="reciter-option" data-reciter="6">Mahmoud Khalil Al-Husary</div>
+                    <div class="reciter-option" data-reciter="9">Saud ash-Shuraim</div>
+                    <div class="reciter-option" data-reciter="8">Muhammad al-Minshawi</div>
+                    <div class="reciter-option" data-reciter="10">Yasser Ad-Dossari</div>
+                </div>
+            </div>
+            <div class="volume-control">
+                <button class="audio-btn" id="volumeBtn">🔊</button>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <!-- Word Modal -->
+    <div class="word-modal" id="wordModal">
+        <button class="word-modal-close" id="wordModalClose">✕</button>
+        <div class="word-modal-arabic" id="wordModalArabic"></div>
+        <div class="word-modal-transliteration" id="wordModalTransliteration"></div>
+        <div class="word-modal-translation" id="wordModalTranslation"></div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">⚙️ Settings</span>
+                <button class="modal-close" data-close="settingsModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Display Settings -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">📖 Display Settings</h3>
+                    <div class="settings-row">
+                        <span class="settings-label">Arabic Font Size</span>
+                        <div class="settings-control">
+                            <input type="range" class="settings-slider" id="arabicSizeSlider" min="20" max="50"
+                                value="32">
+                            <span class="settings-value" id="arabicSizeValue">32px</span>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Translation Font Size</span>
+                        <div class="settings-control">
+                            <input type="range" class="settings-slider" id="translationSizeSlider" min="12" max="24"
+                                value="17">
+                            <span class="settings-value" id="translationSizeValue">17px</span>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Arabic Script</span>
+                        <div class="settings-control">
+                            <select class="settings-select" id="arabicScriptSelect">
+                                <option value="uthmani">Uthmani</option>
+                                <option value="indopak">IndoPak</option>
+                                <option value="imlaei">Imla'i (Simple)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Translation Settings -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">🌐 Translation Settings</h3>
+                    <div class="settings-row">
+                        <span class="settings-label">Primary Translation</span>
+                        <div class="settings-control">
+                            <select class="settings-select" id="primaryTranslationSelect">
+                                <option value="131">English - M.A.S. Abdel Haleem</option>
+                                <option value="20">English - Saheeh International</option>
+                                <option value="19">English - Pickthall</option>
+                                <option value="22">English - Yusuf Ali</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Secondary Translation</span>
+                        <div class="settings-control">
+                            <select class="settings-select" id="secondaryTranslationSelect">
+                                <option value="">None</option>
+                                <option value="167">Bengali - Abu Bakr Zakaria</option>
+                                <option value="161">Bengali - Muhiuddin Khan</option>
+                                <option value="163">Bengali - Taisirul Quran</option>
+                                <option value="97">Urdu - Ahmed Ali</option>
+                                <option value="31">French - Hamidullah</option>
+                                <option value="45">Russian - Abu Adel</option>
+                                <option value="77">Turkish - Diyanet Isleri</option>
+                                <option value="33">Indonesian</option>
+                                <option value="122">Hindi - Suhel Farooq Khan</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tajweed Settings -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">🎨 Tajweed Settings</h3>
+                    <div class="settings-row">
+                        <span class="settings-label">Enable Tajweed Colors</span>
+                        <div class="settings-control">
+                            <div class="toggle-switch active" id="tajweedToggle"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Advanced Tajweed Rules</span>
+                        <div class="settings-control">
+                            <div class="toggle-switch" id="advancedTajweedToggle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio Settings -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">🔊 Audio Settings</h3>
+                    <div class="settings-row">
+                        <span class="settings-label">Default Reciter</span>
+                        <div class="settings-control">
+                            <select class="settings-select" id="reciterSelect">
+                                <option value="7">Mishary Rashid Alafasy</option>
+                                <option value="1">AbdulBaset AbdulSamad (Mujawwad)</option>
+                                <option value="2">AbdulBaset AbdulSamad (Murattal)</option>
+                                <option value="3">Abdur-Rahman as-Sudais</option>
+                                <option value="4">Abu Bakr al-Shatri</option>
+                                <option value="5">Hani ar-Rifai</option>
+                                <option value="6">Mahmoud Khalil Al-Husary</option>
+                                <option value="9">Saud ash-Shuraim</option>
+                                <option value="8">Muhammad al-Minshawi</option>
+                                <option value="10">Yasser Ad-Dossari</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Auto-play Next Verse</span>
+                        <div class="settings-control">
+                            <div class="toggle-switch" id="autoPlayToggle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Word by Word Settings -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">📝 Word by Word</h3>
+                    <div class="settings-row">
+                        <span class="settings-label">Show Word by Word</span>
+                        <div class="settings-control">
+                            <div class="toggle-switch" id="wordByWordToggle"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Display Mode</span>
+                        <div class="settings-control">
+                            <select class="settings-select" id="wordDisplaySelect">
+                                <option value="both">Translation & Transliteration</option>
+                                <option value="translation">Translation Only</option>
+                                <option value="transliteration">Transliteration Only</option>
+                                <option value="arabic">Arabic Only</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tajweed Guide Modal -->
+    <div class="modal-overlay" id="tajweedGuideModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">🎨 Tajweed Color Guide</span>
+                <button class="modal-close" data-close="tajweedGuideModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Basic Rules</h3>
+                    <div class="tajweed-legend">
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-ghunnah);"></div>
+                            <span>Ghunnah (nasalization)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-ikhfa);"></div>
+                            <span>Ikhfa (hiding)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-idgham);"></div>
+                            <span>Idgham (merging)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-qalqalah);"></div>
+                            <span>Qalqalah (echo)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-madd);"></div>
+                            <span>Madd (prolongation)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-lam-shamsiyah);"></div>
+                            <span>Lam Shamsiyah</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Advanced Rules (Enable in Settings)</h3>
+                    <div class="tajweed-legend">
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-idgham-ghunnah);"></div>
+                            <span>Idghaam with Ghunnah</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-idgham-no-ghunnah);"></div>
+                            <span>Idghaam without Ghunnah</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-mutajaanisain);"></div>
+                            <span>Mutajaanisain</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-mutaqaaribain);"></div>
+                            <span>Mutaqaaribain</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-shafawi);"></div>
+                            <span>Shafawi (labial)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-ikhfa-shafawi);"></div>
+                            <span>Ikhfa Shafawi</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-iqlab);"></div>
+                            <span>Iqlab</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-madd-2);"></div>
+                            <span>Madd 2 (natural)</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-madd-muttasil);"></div>
+                            <span>Madd Muttasil</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-madd-munfasil);"></div>
+                            <span>Madd Munfasil</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-madd-laazim);"></div>
+                            <span>Madd Laazim</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-silent);"></div>
+                            <span>Silent letters</span>
+                        </div>
+                        <div class="tajweed-item">
+                            <div class="tajweed-color" style="background: var(--tajweed-hamzat-wasl);"></div>
+                            <span>Hamzat al-Wasl</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tafsir Modal -->
+    <div class="modal-overlay tafsir-modal" id="tafsirModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">📖 Tafsir (Commentary)</span>
+                <button class="modal-close" data-close="tafsirModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tafsir-source-select">
+                    <select class="settings-select" id="tafsirSourceSelect" style="width: 100%; margin-bottom: 1rem;">
+                        <option value="en-tafisr-ibn-kathir">Ibn Kathir (English)</option>
+                        <option value="en-tafsir-jalalayn">Al-Jalalayn (English)</option>
+                        <option value="ar-tafsir-ibn-kathir">Ibn Kathir (Arabic)</option>
+                        <option value="ar-tafsir-tabari">Al-Tabari (Arabic)</option>
+                    </select>
+                </div>
+                <div class="tafsir-verse" id="tafsirVerse"></div>
+                <div class="tafsir-content" id="tafsirContent">
+                    Select a verse and click the 📖 button to view tafsir
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">ℹ️ About Quran Explorer</span>
+                <button class="modal-close" data-close="aboutModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    This Quran Explorer application is built using the <strong>Quran.com API v4</strong>,
+                    an open-source RESTful service providing comprehensive Quranic data.
+                </p>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    <strong>Features include:</strong>
+                </p>
+                <ul style="margin-left: 1.5rem; margin-bottom: 1rem; color: var(--text-muted);">
+                    <li>Full Arabic text in multiple scripts (Uthmani, IndoPak, Imla'i)</li>
+                    <li>100+ translations in various languages</li>
+                    <li>Word-by-word analysis with transliteration</li>
+                    <li>Audio recitations from renowned Qaris</li>
+                    <li>Color-coded Tajweed rules</li>
+                    <li>Tafsir (commentary) from multiple sources</li>
+                </ul>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <a href="https://quran.com" target="_blank" style="color: var(--secondary);">Visit Quran.com</a>
+                    <a href="https://api-docs.quran.com" target="_blank" style="color: var(--secondary);">API
+                        Documentation</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== STATE MANAGEMENT ====================
+        const state = {
+            currentSurah: null,
+            currentVerse: null,
+            currentJuz: null,
+            currentPage: null,
+            chapters: [],
+            verses: [],
+            settings: {
+                arabicSize: 32,
+                translationSize: 17,
+                arabicScript: 'uthmani',
+                primaryTranslation: '131',
+                secondaryTranslation: '',
+                reciter: '7',
+                tajweedEnabled: true,
+                advancedTajweed: false,
+                autoPlay: false,
+                wordByWord: false,
+                wordDisplay: 'both'
+            },
+            audio: {
+                isPlaying: false,
+                repeat: false,
+                currentVerseKey: null
+            },
+            search: {
+                savedSurah: null,
+                savedVerse: null,
+                isSearching: false
+            }
+        };
+
+        // Audio element
+        const audioPlayer = new Audio();
+        audioPlayer.volume = 0.8;
+
+        // ==================== API FUNCTIONS ====================
+        const API_BASE = 'https://api.quran.com/api/v4';
+
+        async function fetchChapters() {
+            try {
+                const response = await fetch(`${API_BASE}/chapters`);
+                const data = await response.json();
+                state.chapters = data.chapters;
+                return data.chapters;
+            } catch (error) {
+                console.error('Error fetching chapters:', error);
+                showToast('Error loading chapters');
+                return [];
+            }
+        }
+
+        async function fetchVerses(chapterId, page = 1) {
+            try {
+                const scriptField = getScriptField();
+                const translations = state.settings.secondaryTranslation
+                    ? `${state.settings.primaryTranslation},${state.settings.secondaryTranslation}`
+                    : state.settings.primaryTranslation;
+
+                const response = await fetch(
+                    `${API_BASE}/verses/by_chapter/${chapterId}?language=en&words=true&translations=${translations}&fields=${scriptField}&word_fields=text_uthmani,text_indopak,text_imlaei&page=${page}&per_page=50`
+                );
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching verses:', error);
+                showToast('Error loading verses');
+                return null;
+            }
+        }
+
+        async function fetchJuzVerses(juzNumber) {
+            try {
+                const scriptField = getScriptField();
+                const translations = state.settings.secondaryTranslation
+                    ? `${state.settings.primaryTranslation},${state.settings.secondaryTranslation}`
+                    : state.settings.primaryTranslation;
+
+                const response = await fetch(
+                    `${API_BASE}/verses/by_juz/${juzNumber}?language=en&words=true&translations=${translations}&fields=${scriptField}&word_fields=text_uthmani,text_indopak,text_imlaei&per_page=50`
+                );
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching juz verses:', error);
+                showToast('Error loading juz');
+                return null;
+            }
+        }
+
+        async function fetchPageVerses(pageNumber) {
+            try {
+                const scriptField = getScriptField();
+                const translations = state.settings.secondaryTranslation
+                    ? `${state.settings.primaryTranslation},${state.settings.secondaryTranslation}`
+                    : state.settings.primaryTranslation;
+
+                const response = await fetch(
+                    `${API_BASE}/verses/by_page/${pageNumber}?language=en&words=true&translations=${translations}&fields=${scriptField}&word_fields=text_uthmani,text_indopak,text_imlaei`
+                );
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching page verses:', error);
+                showToast('Error loading page');
+                return null;
+            }
+        }
+
+        async function searchQuran(query) {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/search?q=${encodeURIComponent(query)}&size=20&language=en`
+                );
+                const data = await response.json();
+                return data.search;
+            } catch (error) {
+                console.error('Error searching:', error);
+                showToast('Error searching');
+                return null;
+            }
+        }
+
+        async function fetchTafsir(verseKey, tafsirId) {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/tafsirs/${tafsirId}/by_ayah/${verseKey}`
+                );
+                const data = await response.json();
+                return data.tafsir;
+            } catch (error) {
+                console.error('Error fetching tafsir:', error);
+                showToast('Error loading tafsir');
+                return null;
+            }
+        }
+
+        function getScriptField() {
+            switch (state.settings.arabicScript) {
+                case 'indopak': return 'text_indopak';
+                case 'imlaei': return 'text_imlaei';
+                default: return 'text_uthmani';
+            }
+        }
+
+        function getReciterUrl(reciterId, verseKey) {
+            const reciterUrls = {
+                '1': 'https://verses.quran.com/AbdulBaset/Mujawwad/mp3/',
+                '2': 'https://verses.quran.com/AbdulBaset/Murattal/mp3/',
+                '3': 'https://verses.quran.com/Abdurrahmaan_As-Sudais/mp3/',
+                '4': 'https://verses.quran.com/Abu_Bakr_Ash-Shaatree/mp3/',
+                '5': 'https://verses.quran.com/Hani_Rifai/mp3/',
+                '6': 'https://verses.quran.com/Husary/mp3/',
+                '7': 'https://verses.quran.com/Alafasy/mp3/',
+                '8': 'https://verses.quran.com/Minshawi/mp3/',
+                '9': 'https://verses.quran.com/Saud_Shuraim/mp3/',
+                '10': 'https://verses.quran.com/Yasser_Ad-Dussary/mp3/'
+            };
+
+            const [surah, verse] = verseKey.split(':');
+            const paddedSurah = surah.padStart(3, '0');
+            const paddedVerse = verse.padStart(3, '0');
+
+            return `${reciterUrls[reciterId] || reciterUrls['7']}${paddedSurah}${paddedVerse}.mp3`;
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function toggleSidebar(sidebarId, show) {
+            const overlay = document.getElementById('sidebarOverlay');
+            const mainSidebar = document.getElementById('mainSidebar');
+            const quickPickSidebar = document.getElementById('quickPickSidebar');
+
+            // Hide all sidebars first
+            mainSidebar.classList.remove('active');
+            quickPickSidebar.classList.remove('active');
+
+            if (show) {
+                overlay.classList.add('active');
+                document.getElementById(sidebarId).classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // ==================== QUICK PICK LISTS ====================
+        async function populateQuickPickLists() {
+            if (state.chapters.length === 0) {
+                await fetchChapters();
+            }
+
+            // Populate Surah List
+            const surahList = document.getElementById('surahList');
+            surahList.innerHTML = state.chapters.map(chapter => `
+                <div class="quick-pick-item ${state.currentSurah === chapter.id ? 'current' : ''}" data-surah="${chapter.id}">
+                    <div class="quick-pick-number">${chapter.id}</div>
+                    <div class="quick-pick-info">
+                        <div class="quick-pick-name">${chapter.name_simple}</div>
+                        <div class="quick-pick-arabic">${chapter.name_arabic}</div>
+                        <div class="quick-pick-meta">${chapter.revelation_place} • ${chapter.verses_count} verses</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Populate Juz List
+            const juzList = document.getElementById('juzList');
+            juzList.innerHTML = Array.from({ length: 30 }, (_, i) => i + 1).map(juz => `
+                <div class="quick-pick-item ${state.currentJuz === juz ? 'current' : ''}" data-juz="${juz}">
+                    <div class="quick-pick-number">${juz}</div>
+                    <div class="quick-pick-info">
+                        <div class="quick-pick-name">Juz ${juz}</div>
+                        <div class="quick-pick-meta">Part ${juz} of 30</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Populate Page List
+            const pageList = document.getElementById('pageList');
+            pageList.innerHTML = Array.from({ length: 604 }, (_, i) => i + 1).map(page => `
+                <div class="quick-pick-item ${state.currentPage === page ? 'current' : ''}" data-page="${page}">
+                    <div class="quick-pick-number">${page}</div>
+                    <div class="quick-pick-info">
+                        <div class="quick-pick-name">Page ${page}</div>
+                        <div class="quick-pick-meta">Mushaf page ${page}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click listeners
+            surahList.querySelectorAll('.quick-pick-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const surahId = parseInt(item.dataset.surah);
+                    loadSurah(surahId);
+                    toggleSidebar('quickPickSidebar', false);
+                });
+            });
+
+            juzList.querySelectorAll('.quick-pick-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const juzNumber = parseInt(item.dataset.juz);
+                    loadJuz(juzNumber);
+                    toggleSidebar('quickPickSidebar', false);
+                });
+            });
+
+            pageList.querySelectorAll('.quick-pick-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const pageNumber = parseInt(item.dataset.page);
+                    loadPage(pageNumber);
+                    toggleSidebar('quickPickSidebar', false);
+                });
+            });
+        }
+
+        // ==================== LOAD CONTENT ====================
+        async function loadSurah(surahId) {
+            state.currentSurah = surahId;
+            state.currentJuz = null;
+            state.currentPage = null;
+
+            const chapter = state.chapters.find(c => c.id === surahId);
+            if (!chapter) return;
+
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('readingArea').style.display = 'block';
+
+            const readingArea = document.getElementById('readingArea');
+            readingArea.innerHTML = `<div class="loading-spinner"><div class="spinner"></div></div>`;
+
+            const data = await fetchVerses(surahId);
+            if (!data) return;
+
+            state.verses = data.verses;
+            renderSurah(chapter, data.verses);
+        }
+
+        async function loadJuz(juzNumber) {
+            state.currentJuz = juzNumber;
+            state.currentSurah = null;
+            state.currentPage = null;
+
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('readingArea').style.display = 'block';
+
+            const readingArea = document.getElementById('readingArea');
+            readingArea.innerHTML = `<div class="loading-spinner"><div class="spinner"></div></div>`;
+
+            const data = await fetchJuzVerses(juzNumber);
+            if (!data) return;
+
+            state.verses = data.verses;
+            renderJuz(juzNumber, data.verses);
+        }
+
+        async function loadPage(pageNumber) {
+            state.currentPage = pageNumber;
+            state.currentSurah = null;
+            state.currentJuz = null;
+
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('readingArea').style.display = 'block';
+
+            const readingArea = document.getElementById('readingArea');
+            readingArea.innerHTML = `<div class="loading-spinner"><div class="spinner"></div></div>`;
+
+            const data = await fetchPageVerses(pageNumber);
+            if (!data) return;
+
+            state.verses = data.verses;
+            renderPage(pageNumber, data.verses);
+        }
+
+        function renderSurah(chapter, verses) {
+            const readingArea = document.getElementById('readingArea');
+
+            let html = `
+                <div class="surah-header">
+                    <div class="surah-name-arabic">${chapter.name_arabic}</div>
+                    <div class="surah-name-english">${chapter.name_simple} (${chapter.translated_name.name})</div>
+                    <div class="surah-info">${chapter.revelation_place} • ${chapter.verses_count} Verses • Juz ${chapter.pages[0] ? Math.ceil(chapter.pages[0] / 20) : 1}</div>
+                </div>
+            `;
+
+            // Add Bismillah (except for Surah At-Tawbah)
+            if (chapter.id !== 9 && chapter.bismillah_pre) {
+                html += `<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>`;
+            }
+
+            html += renderVerses(verses);
+            readingArea.innerHTML = html;
+            attachVerseListeners();
+        }
+
+        function renderJuz(juzNumber, verses) {
+            const readingArea = document.getElementById('readingArea');
+
+            let html = `
+                <div class="surah-header">
+                    <div class="surah-name-arabic">الجزء ${juzNumber}</div>
+                    <div class="surah-name-english">Juz ${juzNumber}</div>
+                    <div class="surah-info">Part ${juzNumber} of 30</div>
+                </div>
+            `;
+
+            html += renderVerses(verses);
+            readingArea.innerHTML = html;
+            attachVerseListeners();
+        }
+
+        function renderPage(pageNumber, verses) {
+            const readingArea = document.getElementById('readingArea');
+
+            let html = `
+                <div class="surah-header">
+                    <div class="surah-name-arabic">صفحة ${pageNumber}</div>
+                    <div class="surah-name-english">Page ${pageNumber}</div>
+                    <div class="surah-info">Mushaf Page ${pageNumber} of 604</div>
+                </div>
+            `;
+
+            html += renderVerses(verses);
+            readingArea.innerHTML = html;
+            attachVerseListeners();
+        }
+
+        function renderVerses(verses) {
+            return verses.map(verse => {
+                const arabicText = getArabicText(verse);
+                const primaryTranslation = verse.translations?.[0]?.text || '';
+                const secondaryTranslation = verse.translations?.[1]?.text || '';
+
+                let wordByWordHtml = '';
+                if (state.settings.wordByWord && verse.words) {
+                    wordByWordHtml = `
+                        <div class="word-by-word-container">
+                            ${verse.words.filter(w => w.char_type_name === 'word').map(word => `
+                                <div class="word-item" data-word='${JSON.stringify({
+                        arabic: word.text_uthmani,
+                        transliteration: word.transliteration?.text || '',
+                        translation: word.translation?.text || ''
+                    })}'>
+                                    <div class="word-arabic">${word.text_uthmani}</div>
+                                    ${state.settings.wordDisplay !== 'arabic' && state.settings.wordDisplay !== 'translation' ?
+                            `<div class="word-transliteration">${word.transliteration?.text || ''}</div>` : ''}
+                                    ${state.settings.wordDisplay !== 'arabic' && state.settings.wordDisplay !== 'transliteration' ?
+                            `<div class="word-translation">${word.translation?.text || ''}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="verse-container" data-verse-key="${verse.verse_key}" id="verse-${verse.verse_key.replace(':', '-')}">
+                        <div class="verse-header">
+                            <div class="verse-number-badge">${verse.verse_number}</div>
+                            <div class="verse-actions">
+                                <button class="verse-action-btn play-verse-btn" data-verse-key="${verse.verse_key}" title="Play">▶</button>
+                                <button class="verse-action-btn tafsir-btn" data-verse-key="${verse.verse_key}" title="Tafsir">📖</button>
+                                <button class="verse-action-btn copy-btn" data-verse-key="${verse.verse_key}" title="Copy">📋</button>
+                            </div>
+                        </div>
+                        ${wordByWordHtml}
+                        <div class="verse-arabic" style="font-size: ${state.settings.arabicSize}px;">${arabicText}</div>
+                        <div class="verse-translation primary" style="font-size: ${state.settings.translationSize}px;">${cleanHtml(primaryTranslation)}</div>
+                        ${secondaryTranslation ? `<div class="verse-translation secondary" style="font-size: ${state.settings.translationSize}px;">${cleanHtml(secondaryTranslation)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getArabicText(verse) {
+            switch (state.settings.arabicScript) {
+                case 'indopak': return verse.text_indopak || verse.text_uthmani;
+                case 'imlaei': return verse.text_imlaei || verse.text_uthmani;
+                default: return verse.text_uthmani;
+            }
+        }
+
+        function cleanHtml(text) {
+            return text.replace(/<sup[^>]*>.*?<\/sup>/gi, '').replace(/<[^>]+>/g, '');
+        }
+
+        function attachVerseListeners() {
+            // Play buttons
+            document.querySelectorAll('.play-verse-btn').forEach(btn => {
+                btn.addEventListener('click', () => playVerse(btn.dataset.verseKey));
+            });
+
+            // Tafsir buttons
+            document.querySelectorAll('.tafsir-btn').forEach(btn => {
+                btn.addEventListener('click', () => openTafsir(btn.dataset.verseKey));
+            });
+
+            // Copy buttons
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => copyVerse(btn.dataset.verseKey));
+            });
+
+            // Word items
+            document.querySelectorAll('.word-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const wordData = JSON.parse(item.dataset.word);
+                    showWordModal(wordData);
+                });
+            });
+        }
+
+        function showWordModal(wordData) {
+            document.getElementById('wordModalArabic').textContent = wordData.arabic;
+            document.getElementById('wordModalTransliteration').textContent = wordData.transliteration;
+            document.getElementById('wordModalTranslation').textContent = wordData.translation;
+            document.getElementById('wordModal').classList.add('show');
+        }
+
+        async function openTafsir(verseKey) {
+            const verse = state.verses.find(v => v.verse_key === verseKey);
+            if (!verse) return;
+
+            document.getElementById('tafsirVerse').textContent = getArabicText(verse);
+            document.getElementById('tafsirContent').innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            openModal('tafsirModal');
+
+            const tafsirId = document.getElementById('tafsirSourceSelect').value;
+            const tafsir = await fetchTafsir(verseKey, tafsirId);
+
+            if (tafsir) {
+                document.getElementById('tafsirContent').innerHTML = tafsir.text || 'No tafsir available';
+            } else {
+                document.getElementById('tafsirContent').textContent = 'Failed to load tafsir';
+            }
+        }
+
+        function copyVerse(verseKey) {
+            const verse = state.verses.find(v => v.verse_key === verseKey);
+            if (!verse) return;
+
+            const text = `${getArabicText(verse)}\n\n${cleanHtml(verse.translations?.[0]?.text || '')}\n\n— Quran ${verseKey}`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Verse copied to clipboard');
+            });
+        }
+
+        // ==================== AUDIO FUNCTIONS ====================
+        function playVerse(verseKey) {
+            const audioUrl = getReciterUrl(state.settings.reciter, verseKey);
+
+            // Update UI
+            document.querySelectorAll('.verse-container').forEach(v => v.classList.remove('playing'));
+            const verseEl = document.getElementById(`verse-${verseKey.replace(':', '-')}`);
+            if (verseEl) verseEl.classList.add('playing');
+
+            // Update audio info
+            const [surah, verse] = verseKey.split(':');
+            const chapter = state.chapters.find(c => c.id === parseInt(surah));
+            document.getElementById('audioTitle').textContent = `${chapter?.name_simple || 'Surah'} : ${verse}`;
+            document.getElementById('audioSubtitle').textContent = `Verse ${verse}`;
+
+            // Play audio
+            state.audio.currentVerseKey = verseKey;
+            audioPlayer.src = audioUrl;
+            audioPlayer.play().catch(e => {
+                console.error('Error playing audio:', e);
+                showToast('Error playing audio');
+            });
+
+            state.audio.isPlaying = true;
+            document.getElementById('playPauseBtn').textContent = '⏸';
+        }
+
+        function togglePlayPause() {
+            if (state.audio.isPlaying) {
+                audioPlayer.pause();
+                state.audio.isPlaying = false;
+                document.getElementById('playPauseBtn').textContent = '▶';
+            } else if (state.audio.currentVerseKey) {
+                audioPlayer.play();
+                state.audio.isPlaying = true;
+                document.getElementById('playPauseBtn').textContent = '⏸';
+            } else if (state.verses.length > 0) {
+                playVerse(state.verses[0].verse_key);
+            }
+        }
+
+        function playNextVerse() {
+            if (!state.audio.currentVerseKey || state.verses.length === 0) return;
+
+            const currentIndex = state.verses.findIndex(v => v.verse_key === state.audio.currentVerseKey);
+            if (currentIndex < state.verses.length - 1) {
+                playVerse(state.verses[currentIndex + 1].verse_key);
+            } else {
+                showToast('End of verses');
+            }
+        }
+
+        function playPrevVerse() {
+            if (!state.audio.currentVerseKey || state.verses.length === 0) return;
+
+            const currentIndex = state.verses.findIndex(v => v.verse_key === state.audio.currentVerseKey);
+            if (currentIndex > 0) {
+                playVerse(state.verses[currentIndex - 1].verse_key);
+            }
+        }
+
+        function toggleRepeat() {
+            state.audio.repeat = !state.audio.repeat;
+            document.getElementById('repeatBtn').classList.toggle('active', state.audio.repeat);
+            showToast(state.audio.repeat ? 'Repeat Enabled' : 'Repeat Disabled');
+        }
+
+        function toggleAutoPlay() {
+            state.settings.autoPlay = !state.settings.autoPlay;
+            document.getElementById('autoPlayBtn').classList.toggle('active', state.settings.autoPlay);
+            document.getElementById('autoPlayToggle').classList.toggle('active', state.settings.autoPlay);
+            showToast(state.settings.autoPlay ? 'Auto-play Enabled' : 'Auto-play Disabled');
+        }
+
+        // Audio event listeners
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100 || 0;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('currentTime').textContent = formatTime(audioPlayer.currentTime);
+            document.getElementById('totalTime').textContent = formatTime(audioPlayer.duration);
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            if (state.audio.repeat) {
+                audioPlayer.currentTime = 0;
+                audioPlayer.play();
+            } else if (state.settings.autoPlay) {
+                playNextVerse();
+            } else {
+                state.audio.isPlaying = false;
+                document.getElementById('playPauseBtn').textContent = '▶';
+                document.querySelectorAll('.verse-container').forEach(v => v.classList.remove('playing'));
+            }
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // ==================== SEARCH FUNCTIONS ====================
+        let searchTimeout;
+
+        async function handleSearch(query) {
+            if (query.length < 2) {
+                document.getElementById('searchResultsDropdown').classList.remove('active');
+                return;
+            }
+
+            // Save current reading position
+            if (state.currentSurah && !state.search.isSearching) {
+                state.search.savedSurah = state.currentSurah;
+                state.search.savedVerse = state.audio.currentVerseKey;
+            }
+
+            document.getElementById('searchResultsDropdown').classList.add('active');
+            document.getElementById('searchLoading').style.display = 'block';
+            document.getElementById('searchNoResults').style.display = 'none';
+            document.getElementById('searchResultsList').innerHTML = '';
+
+            const results = await searchQuran(query);
+
+            document.getElementById('searchLoading').style.display = 'none';
+
+            if (!results || results.results.length === 0) {
+                document.getElementById('searchNoResults').style.display = 'block';
+                return;
+            }
+
+            state.search.isSearching = true;
+            document.getElementById('goBackBtn').classList.add('show');
+
+            document.getElementById('searchResultsList').innerHTML = results.results.map(result => `
+                <div class="search-result-item" data-verse-key="${result.verse_key}">
+                    <div class="search-result-arabic">${result.text}</div>
+                    <div class="search-result-translation">${cleanHtml(result.translations?.[0]?.text || '')}</div>
+                    <div class="search-result-ref">${result.verse_key}</div>
+                </div>
+            `).join('');
+
+            // Add click listeners to results
+            document.querySelectorAll('.search-result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const verseKey = item.dataset.verseKey;
+                    const [surah] = verseKey.split(':');
+                    loadSurah(parseInt(surah)).then(() => {
+                        setTimeout(() => {
+                            const verseEl = document.getElementById(`verse-${verseKey.replace(':', '-')}`);
+                            if (verseEl) {
+                                verseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                verseEl.classList.add('playing');
+                                setTimeout(() => verseEl.classList.remove('playing'), 2000);
+                            }
+                        }, 500);
+                    });
+                    document.getElementById('searchResultsDropdown').classList.remove('active');
+                    document.getElementById('mainSearchInput').value = '';
+                });
+            });
+        }
+
+        function goBackToReading() {
+            if (state.search.savedSurah) {
+                loadSurah(state.search.savedSurah).then(() => {
+                    if (state.search.savedVerse) {
+                        setTimeout(() => {
+                            const verseEl = document.getElementById(`verse-${state.search.savedVerse.replace(':', '-')}`);
+                            if (verseEl) {
+                                verseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }, 500);
+                    }
+                });
+            }
+            state.search.isSearching = false;
+            document.getElementById('goBackBtn').classList.remove('show');
+        }
+
+        // ==================== SETTINGS FUNCTIONS ====================
+        function applySettings() {
+            document.documentElement.style.setProperty('--arabic-size', `${state.settings.arabicSize}px`);
+            document.documentElement.style.setProperty('--translation-size', `${state.settings.translationSize}px`);
+
+            // Update quick setting labels
+            const scriptLabels = { uthmani: 'Uthmani', indopak: 'IndoPak', imlaei: "Imla'i" };
+            document.getElementById('currentScriptLabel').textContent = scriptLabels[state.settings.arabicScript];
+
+            // Refresh verses if loaded
+            if (state.currentSurah) {
+                loadSurah(state.currentSurah);
+            } else if (state.currentJuz) {
+                loadJuz(state.currentJuz);
+            } else if (state.currentPage) {
+                loadPage(state.currentPage);
+            }
+        }
+
+        function updateReciter(reciterId) {
+            state.settings.reciter = reciterId;
+
+            // Update labels
+            const reciterNames = {
+                '1': 'AbdulBaset (M)',
+                '2': 'AbdulBaset (R)',
+                '3': 'As-Sudais',
+                '4': 'Al-Shatri',
+                '5': 'Ar-Rifai',
+                '6': 'Al-Husary',
+                '7': 'Mishary',
+                '8': 'Al-Minshawi',
+                '9': 'Ash-Shuraim',
+                '10': 'Ad-Dossari'
+            };
+            document.getElementById('currentReciterLabel').textContent = reciterNames[reciterId] || 'Mishary';
+
+            // Update dropdown selections
+            document.querySelectorAll('.reciter-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.reciter === reciterId);
+            });
+            document.getElementById('reciterSelect').value = reciterId;
+
+            // If currently playing, reload with new reciter
+            if (state.audio.currentVerseKey) {
+                playVerse(state.audio.currentVerseKey);
+            }
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load chapters
+            await fetchChapters();
+            await populateQuickPickLists();
+
+            // Menu button
+            document.getElementById('menuBtn').addEventListener('click', () => {
+                toggleSidebar('mainSidebar', true);
+            });
+
+            // Close sidebar buttons
+            document.getElementById('closeSidebar').addEventListener('click', () => {
+                toggleSidebar('mainSidebar', false);
+            });
+
+            document.getElementById('closeQuickPick').addEventListener('click', () => {
+                toggleSidebar('quickPickSidebar', false);
+            });
+
+            document.getElementById('sidebarOverlay').addEventListener('click', () => {
+                toggleSidebar('mainSidebar', false);
+                toggleSidebar('quickPickSidebar', false);
+            });
+
+            // Menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const action = item.dataset.action;
+                    toggleSidebar('mainSidebar', false);
+
+                    switch (action) {
+                        case 'quick-pick':
+                            setTimeout(() => toggleSidebar('quickPickSidebar', true), 100);
+                            break;
+                        case 'word-by-word':
+                            state.settings.wordByWord = !state.settings.wordByWord;
+                            document.getElementById('wordByWordToggle').classList.toggle('active', state.settings.wordByWord);
+                            showToast(state.settings.wordByWord ? 'Word by Word Enabled' : 'Word by Word Disabled');
+                            applySettings();
+                            break;
+                        case 'tafsir':
+                            if (state.audio.currentVerseKey) {
+                                openTafsir(state.audio.currentVerseKey);
+                            } else if (state.verses.length > 0) {
+                                openTafsir(state.verses[0].verse_key);
+                            } else {
+                                showToast('Select a verse first');
+                            }
+                            break;
+                        case 'tajweed-guide':
+                            openModal('tajweedGuideModal');
+                            break;
+                        case 'settings':
+                            openModal('settingsModal');
+                            break;
+                        case 'about':
+                            openModal('aboutModal');
+                            break;
+                    }
+                });
+            });
+
+            // Quick pick tabs
+            document.querySelectorAll('.quick-pick-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.quick-pick-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.quick-pick-list').forEach(l => l.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}List`).classList.add('active');
+                });
+            });
+
+            // Start reading button
+            document.getElementById('startReadingBtn').addEventListener('click', () => {
+                toggleSidebar('quickPickSidebar', true);
+            });
+
+            // Search input
+            const searchInput = document.getElementById('mainSearchInput');
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => handleSearch(e.target.value), 500);
+            });
+
+            searchInput.addEventListener('focus', () => {
+                if (searchInput.value.length >= 2) {
+                    document.getElementById('searchResultsDropdown').classList.add('active');
+                }
+            });
+
+            // Close search on outside click
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('searchResultsDropdown').classList.remove('active');
+                }
+            });
+
+            // Go back button
+            document.getElementById('goBackBtn').addEventListener('click', goBackToReading);
+
+            // Quick settings dropdowns
+            function setupQuickDropdown(btnId, dropdownId) {
+                const btn = document.getElementById(btnId);
+                const dropdown = document.getElementById(dropdownId);
+
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.quick-dropdown-content').forEach(d => {
+                        if (d.id !== dropdownId) d.classList.remove('show');
+                    });
+                    document.querySelectorAll('.reciter-dropdown-content').forEach(d => d.classList.remove('show'));
+                    dropdown.classList.toggle('show');
+                });
+            }
+
+            setupQuickDropdown('scriptQuickBtn', 'scriptQuickDropdown');
+            setupQuickDropdown('translationQuickBtn', 'translationQuickDropdown');
+
+            // Script quick select
+            document.querySelectorAll('#scriptQuickDropdown .quick-dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    state.settings.arabicScript = item.dataset.script;
+                    document.querySelectorAll('#scriptQuickDropdown .quick-dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    document.getElementById('currentScriptLabel').textContent = item.textContent;
+                    document.getElementById('scriptQuickDropdown').classList.remove('show');
+                    document.getElementById('arabicScriptSelect').value = item.dataset.script;
+                    applySettings();
+                });
+            });
+
+            // Translation quick select
+            document.querySelectorAll('#translationQuickDropdown .quick-dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    state.settings.primaryTranslation = item.dataset.translation;
+                    document.querySelectorAll('#translationQuickDropdown .quick-dropdown-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                    document.getElementById('currentTransLabel').textContent = item.textContent.split(' - ')[0];
+                    document.getElementById('translationQuickDropdown').classList.remove('show');
+                    document.getElementById('primaryTranslationSelect').value = item.dataset.translation;
+                    applySettings();
+                });
+            });
+
+            // Advanced Tajweed quick toggle
+            document.getElementById('advancedTajweedQuickBtn').addEventListener('click', () => {
+                state.settings.advancedTajweed = !state.settings.advancedTajweed;
+                document.getElementById('advancedTajweedQuickBtn').classList.toggle('active', state.settings.advancedTajweed);
+                document.getElementById('advancedTajweedToggle').classList.toggle('active', state.settings.advancedTajweed);
+                showToast(state.settings.advancedTajweed ? 'Advanced Tajweed Enabled' : 'Advanced Tajweed Disabled');
+            });
+
+            // Settings quick button
+            document.getElementById('settingsQuickBtn').addEventListener('click', () => {
+                openModal('settingsModal');
+            });
+
+            // Reciter dropdown
+            document.getElementById('reciterBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.quick-dropdown-content').forEach(d => d.classList.remove('show'));
+                document.getElementById('reciterDropdown').classList.toggle('show');
+            });
+
+            document.querySelectorAll('.reciter-option').forEach(item => {
+                item.addEventListener('click', () => {
+                    updateReciter(item.dataset.reciter);
+                    document.getElementById('reciterDropdown').classList.remove('show');
+                });
+            });
+
+            // Close dropdowns on outside click
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.quick-dropdown-content').forEach(d => d.classList.remove('show'));
+                document.querySelectorAll('.reciter-dropdown-content').forEach(d => d.classList.remove('show'));
+            });
+
+            // Audio controls
+            document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+            document.getElementById('nextVerseBtn').addEventListener('click', playNextVerse);
+            document.getElementById('prevVerseBtn').addEventListener('click', playPrevVerse);
+            document.getElementById('repeatBtn').addEventListener('click', toggleRepeat);
+            document.getElementById('autoPlayBtn').addEventListener('click', toggleAutoPlay);
+
+            // Volume control
+            document.getElementById('volumeSlider').addEventListener('input', (e) => {
+                audioPlayer.volume = e.target.value / 100;
+            });
+
+            document.getElementById('volumeBtn').addEventListener('click', () => {
+                if (audioPlayer.volume > 0) {
+                    audioPlayer.volume = 0;
+                    document.getElementById('volumeSlider').value = 0;
+                    document.getElementById('volumeBtn').textContent = '🔇';
+                } else {
+                    audioPlayer.volume = 0.8;
+                    document.getElementById('volumeSlider').value = 80;
+                    document.getElementById('volumeBtn').textContent = '🔊';
+                }
+            });
+
+            // Progress bar click
+            document.getElementById('progressBar').addEventListener('click', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                audioPlayer.currentTime = percent * audioPlayer.duration;
+            });
+
+            // Modal close buttons
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    closeModal(btn.dataset.close);
+                });
+            });
+
+            // Close modal on overlay click
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+
+            // Word modal close
+            document.getElementById('wordModalClose').addEventListener('click', () => {
+                document.getElementById('wordModal').classList.remove('show');
+            });
+
+            // Settings sliders
+            document.getElementById('arabicSizeSlider').addEventListener('input', (e) => {
+                state.settings.arabicSize = parseInt(e.target.value);
+                document.getElementById('arabicSizeValue').textContent = `${e.target.value}px`;
+                applySettings();
+            });
+
+            document.getElementById('translationSizeSlider').addEventListener('input', (e) => {
+                state.settings.translationSize = parseInt(e.target.value);
+                document.getElementById('translationSizeValue').textContent = `${e.target.value}px`;
+                applySettings();
+            });
+
+            // Settings selects
+            document.getElementById('arabicScriptSelect').addEventListener('change', (e) => {
+                state.settings.arabicScript = e.target.value;
+                applySettings();
+            });
+
+            document.getElementById('primaryTranslationSelect').addEventListener('change', (e) => {
+                state.settings.primaryTranslation = e.target.value;
+                applySettings();
+            });
+
+            document.getElementById('secondaryTranslationSelect').addEventListener('change', (e) => {
+                state.settings.secondaryTranslation = e.target.value;
+                applySettings();
+            });
+
+            document.getElementById('reciterSelect').addEventListener('change', (e) => {
+                updateReciter(e.target.value);
+            });
+
+            // Toggle switches
+            document.getElementById('tajweedToggle').addEventListener('click', function () {
+                this.classList.toggle('active');
+                state.settings.tajweedEnabled = this.classList.contains('active');
+            });
+
+            document.getElementById('advancedTajweedToggle').addEventListener('click', function () {
+                this.classList.toggle('active');
+                state.settings.advancedTajweed = this.classList.contains('active');
+                document.getElementById('advancedTajweedQuickBtn').classList.toggle('active', state.settings.advancedTajweed);
+            });
+
+            document.getElementById('autoPlayToggle').addEventListener('click', function () {
+                this.classList.toggle('active');
+                state.settings.autoPlay = this.classList.contains('active');
+                document.getElementById('autoPlayBtn').classList.toggle('active', state.settings.autoPlay);
+            });
+
+            document.getElementById('wordByWordToggle').addEventListener('click', function () {
+                this.classList.toggle('active');
+                state.settings.wordByWord = this.classList.contains('active');
+                applySettings();
+            });
+
+            document.getElementById('wordDisplaySelect').addEventListener('change', (e) => {
+                state.settings.wordDisplay = e.target.value;
+                applySettings();
+            });
+
+            // Tafsir source change
+            document.getElementById('tafsirSourceSelect').addEventListener('change', async (e) => {
+                if (state.audio.currentVerseKey) {
+                    document.getElementById('tafsirContent').innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+                    const tafsir = await fetchTafsir(state.audio.currentVerseKey, e.target.value);
+                    if (tafsir) {
+                        document.getElementById('tafsirContent').innerHTML = tafsir.text || 'No tafsir available';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

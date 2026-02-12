@@ -1,0 +1,51 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Video Player with Audio Delay</title>  
+    <style>  
+        #videoPlayer {  
+            width: 640px;  
+            height: 360px;  
+            background: #000;  
+            margin: 20px;  
+        }  
+        #controls {  
+            display: flex;  
+            justify-content: space-between;  
+            margin-top: 10px;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <video id="videoPlayer" controls>  
+        <source src="file:///C:/Users/nowgo/Downloads/BoBoiBoy%20The%20Movie%20(2016).mkv" type="video/mkv">  
+        Your browser does not support the video tag.  
+    </video>  
+    <div id="controls">  
+        <label for="delayInput">Audio Delay (ms):</label>  
+        <input type="number" id="delayInput" placeholder="Enter delay" />  
+        <button id="applyDelayBtn">Apply Delay</button>  
+    </div>  
+    
+    <script>  
+        const video = document.getElementById('videoPlayer');  
+        const delayInput = document.getElementById('delayInput');  
+        const applyDelayBtn = document.getElementById('applyDelayBtn');  
+
+        applyDelayBtn.addEventListener('click', () => {  
+            const delay = parseInt(delayInput.value) || 0; // Read the delay value  
+            const audioTracks = video.audioTracks; // Get all audio tracks  
+            
+            // Delay the first audio track (index 0) as an example  
+            if (audioTracks && audioTracks.length > 0) {  
+                audioTracks[0].delay = delay / 1000; // Delay in seconds  
+                alert(`Applied ${delay} ms delay to the first audio track.`);  
+            } else {  
+                alert('No audio tracks found.');  
+            }  
+        });  
+    </script>  
+</body>  
+</html>  

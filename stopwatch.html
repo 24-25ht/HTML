@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <title>Stopwatch</title> 
+    <link rel="icon" type="image/x-icon" href="file:///C:/Users/nowgo/OneDrive/Pictures/asdadsad.png">
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <style>
+        /* Google fonts import link */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins',sans-serif;
+}
+body{
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #74ebd5, #9face6);
+}
+
+        .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 85px;
+  display: flex;
+  overflow-x: hidden;
+  flex-direction: column;
+  background: #161a2d;
+  padding: 25px 20px;
+  transition: all 0.4s ease;
+}
+.sidebar:hover {
+  width: 260px;
+}
+.sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+}
+.sidebar .sidebar-header img {
+  width: 42px;
+  border-radius: 50%;
+}
+.sidebar .sidebar-header h2 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: 23px;
+}
+.sidebar-links h4 {
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 10px 0;
+  position: relative;
+}
+.sidebar-links h4 span {
+  opacity: 0;
+}
+.sidebar:hover .sidebar-links h4 span {
+  opacity: 1;
+}
+.sidebar-links .menu-separator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  transform: scaleX(1);
+  transform: translateY(-50%);
+  background: #4f52ba;
+  transform-origin: right;
+  transition-delay: 0.2s;
+}
+.sidebar:hover .sidebar-links .menu-separator {
+  transition-delay: 0s;
+  transform: scaleX(0);
+}
+.sidebar-links {
+  list-style: none;
+  margin-top: 20px;
+  height: 80%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar-links::-webkit-scrollbar {
+  display: none;
+}
+.sidebar-links li a {
+  display: flex;
+  align-items: center;
+  gap: 0 20px;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 15px 10px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+.sidebar-links li a:hover {
+  color: #161a2d;
+  background: #fff;
+  border-radius: 4px;
+}
+.user-account {
+  margin-top: auto;
+  padding: 12px 10px;
+  margin-left: -10px;
+}
+.user-profile {
+  display: flex;
+  align-items: center;
+  color: #161a2d;
+}
+.user-profile img {
+  width: 42px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.user-profile h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.user-profile span {
+  font-size: 0.775rem;
+  font-weight: 600;
+}
+.user-detail {
+  margin-left: 23px;
+  white-space: nowrap;
+}
+.sidebar:hover .user-account {
+  background: #fff;
+  border-radius: 4px;
+}
+.wrapper{
+  user-select: none;
+}
+.wrapper .time{
+  height: 425px;
+  width: 440px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 0 10px;
+  position: relative;
+  top: 30px;
+}
+.wrapper .time span{
+  width: 100px;
+  text-align: center;
+  font-size: 50px;
+  font-weight: 500;
+  color: #333;
+      justify-content: center;
+    align-items: center; 
+    position: relative;
+    right: 50px;
+}
+.time span.colon{
+  width: 10px;
+}
+.time span.ms-colon,
+.time span.millisecond{
+  color: #88ecd9;
+}
+.wrapper .buttons{
+  text-align: center;
+  margin-top: 20px;
+  position: relative;
+  bottom: 100px;
+}
+.buttons button{
+  padding: 6px 16px;
+  outline: none;
+  border: none;
+  margin: 0 5px;
+  color: #333;
+  background: #74ebd5;
+  font-size: 19px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 10px 10px 20px rgba(0,0,0,0.09);
+}
+.buttons button.active,
+.buttons button.stopActive{
+  pointer-events: none;
+  opacity: 0.7;
+}
+.abc {
+    position: relative;
+    bottom: 100px;
+    left: 158px;
+    justify-content: center;
+    align-items: center; 
+}
+</style>
+   </head>
+<body>
+
+  <div class="wrapper">
+    <div class="time">
+         <img class="abc" src="file:///C:/Users/nowgo/OneDrive/Pictures/8671450.png" alt="clock" width="103px" height="103px">
+      <span class="hour">00</span>
+      <span class="colon">:</span>
+      <span class="minute">00</span>
+      <span class="colon">:</span>
+      <span class="second">00</span>
+      <span class="colon ms-colon">:</span>
+      <span class="millisecond">00</span>
+    </div>
+    <div class="buttons">
+      <button class="start">Start</button>
+      <button class="stop">Stop</button>
+      <button class="reset">Reset</button>
+    </div>
+  </div>
+  
+      <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="file:///C:/Users/nowgo/OneDrive/Pictures/images.png" alt="logo" />
+      <h2>Clock</h2>
+    </div>
+    <ul class="sidebar-links">
+      <h4>
+        <span>Main Menu</span>
+        <div class="menu-separator"></div>
+      </h4>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/stopwatch.html">
+          <span class="material-symbols-outlined"> history_toggle_off </span>Stopwatch</a>
+      </li>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/timera.html"><span class="material-symbols-outlined"> timer </span>Timer</a>
+      </li>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm.html"><span class="material-symbols-outlined"> alarm </span>Alarm</a>
+      </li>
+           <li>
+        <a href="file:///C:\Users\nowgo\OneDrive\Documents\Coding\HTML\digital clogk.html"><span class="material-symbols-outlined"> schedule </span>World Clock</a>
+      </li>
+      <h4>
+        <span>More</span>
+        <div class="menu-separator"></div>
+      </h4>
+      <li>
+        <a href="file:///C:\Users\nowgo\OneDrive\Documents\Coding\HTML\Weather v1.1.html"><span class="material-symbols-outlined"> partly_cloudy_day </span>Weather</a>
+      </li>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML.html"><span class="material-symbols-outlined"> apps </span>Others</a>
+      </li>
+
+        
+    </ul>
+    <div class="user-account">
+      <div class="user-profile">
+        <img src="file:///C:/Users/nowgo/OneDrive/Pictures/pixelcut-export%20(3).png" alt="Profile Image" />
+        <div class="user-detail">
+          <h3>Abdullah karim</h3>
+          <span>Made This</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+  let hr = min = sec = ms = "0" + 0,
+    startTimer;
+
+  const startBtn = document.querySelector(".start"),
+   stopBtn = document.querySelector(".stop"),
+   resetBtn = document.querySelector(".reset");
+
+   startBtn.addEventListener("click", start);
+   stopBtn.addEventListener("click", stop);
+   resetBtn.addEventListener("click", reset);
+
+  function start() {
+    startBtn.classList.add("active");
+    stopBtn.classList.remove("stopActive");
+
+    startTimer = setInterval(()=>{
+      ms++
+      ms = ms < 10 ? "0" + ms : ms;
+
+      if(ms == 100){
+        sec++;
+        sec = sec < 10 ? "0" + sec : sec;
+        ms = "0" + 0;
+      }
+      if(sec == 60){
+        min++;
+        min = min < 10 ? "0" + min : min;
+        sec = "0" + 0;
+      }
+      if(min == 60){
+        hr++;
+        hr = hr < 10 ? "0" + hr : hr;
+        min = "0" + 0;
+      }
+      putValue();
+    },10); //1000ms = 1s
+
+  }
+
+  function stop() {
+    startBtn.classList.remove("active");
+    stopBtn.classList.add("stopActive");
+    clearInterval(startTimer);
+  }
+  function reset() {
+    startBtn.classList.remove("active");
+    stopBtn.classList.remove("stopActive");
+    clearInterval(startTimer);
+    hr = min = sec = ms = "0" + 0;
+    putValue();
+  }
+
+  function putValue() {
+    document.querySelector(".millisecond").innerText = ms;
+    document.querySelector(".second").innerText = sec;
+    document.querySelector(".minute").innerText = min;
+    document.querySelector(".hour").innerText = hr;
+  }
+ </script>
+</body>
+</html>

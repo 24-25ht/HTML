@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simon</title>
+<style>
+  :root{
+    --bg:#0f1720;
+    --panel:#0b1220;
+    --glass: rgba(255,255,255,0.03);
+    --accent: #ffd166;
+    --muted: #9aa6b2;
+    --tile-size: 140px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,#071021 0%, #0f1720 100%);
+    color:#e6f0f6;
+    display:flex;
+    min-height:100vh;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .wrap{
+    width:100%;
+    max-width:1100px;
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap:22px;
+  }
+
+  .left{
+    background:linear-gradient(180deg,var(--panel),#08101a);
+    padding:18px;
+    border-radius:12px;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+  }
+
+  h1{margin:0 0 6px 0;font-size:20px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:12px}
+
+  /* Board */
+  .board{
+    display:grid;
+    grid-template-columns: repeat(2, var(--tile-size));
+    grid-template-rows: repeat(2, var(--tile-size));
+    gap:12px;
+    justify-content:center;
+    padding:10px 0;
+  }
+
+  .tile{
+    border-radius:18px;
+    position:relative;
+    cursor:pointer;
+    user-select:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: transform 0.12s ease, box-shadow 0.12s;
+    box-shadow: 0 6px 16px rgba(2,6,23,0.6);
+    min-width:var(--tile-size);
+    min-height:var(--tile-size);
+  }
+  .tile:active { transform: translateY(2px) }
+  .tile.disabled { pointer-events:none; filter:grayscale(.3) brightness(.9); cursor:default; }
+
+  /* fruit colors */
+  .green{ background: linear-gradient(180deg,#7cd389,#55b260); }
+  .red  { background: linear-gradient(180deg,#ff8b8b,#e14b4b); }
+  .yellow{ background: linear-gradient(180deg,#ffe07a,#ffcb2a); }
+  .purple{ background: linear-gradient(180deg,#c6a8ff,#8a5bf3); }
+
+  /* glow when active */
+  .tile.flash{
+    transform: scale(1.06);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 28px rgba(255,255,255,0.06) inset;
+    filter: brightness(1.12) saturate(1.05);
+  }
+
+  .fruit-face {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Controls & indicator */
+  .controls{
+    display:flex;
+    gap:10px;
+    margin-top:14px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .btn {
+    background:var(--glass);
+    border:1px solid rgba(255,255,255,0.03);
+    color:var(--accent);
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .btn.primary{ background: linear-gradient(90deg,#ffb86b,#ffd166); color:#071022; border:none }
+  .stat {
+    background:rgba(255,255,255,0.02);
+    padding:8px 10px;
+    border-radius:8px;
+    font-size:13px;
+    color:var(--muted);
+  }
+
+  .settings{
+    margin-top:14px;
+    display:grid;
+    gap:8px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .row{ display:flex; gap:8px; align-items:center; }
+  label{font-size:13px;color:var(--muted)}
+
+  /* Max Levels input style */
+  #maxLevel {
+    width: 80px;
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--muted);
+    background-color: var(--panel);
+    color: var(--accent);
+    text-align: center;
+    transition: border-color 0.3s ease;
+    box-shadow: none;
+    -moz-appearance: textfield; /* remove Firefox spinner */
+    appearance: textfield; /* remove default spinner */
+  }
+  #maxLevel:hover,
+  #maxLevel:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 6px var(--accent);
+  }
+  /* Remove number input spinners on Chrome */
+  #maxLevel::-webkit-inner-spin-button,
+  #maxLevel::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* right panel */
+  .right{
+    background:linear-gradient(180deg,#071826, #08101a);
+    padding:18px;
+    border-radius:12px;
+    box-shadow: 0 6px 30px rgba(0,0,0,0.6);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .card{
+    background: rgba(255,255,255,0.02);
+    padding:12px;
+    border-radius:10px;
+  }
+  .bigscore{ font-size:42px; font-weight:700; letter-spacing:1px; margin:6px 0 }
+  .small{ color:var(--muted); font-size:13px }
+  .stats-grid{
+    display:grid;
+    grid-template-columns: repeat(2,1fr);
+    gap:8px;
+    margin-top:8px;
+  }
+
+  .percent{
+    font-weight:700;
+    font-size:18px;
+    color:var(--accent)
+  }
+
+  .stars{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    margin-top:6px;
+  }
+  .star{ font-size:20px; color: #3d3d3d; filter:grayscale(1) brightness(.7) }
+  .star.on{ color:#ffd166; filter:none }
+
+  footer{ margin-top:8px; color:var(--muted); font-size:12px; text-align:right }
+
+  /* responsive */
+  @media (max-width:960px){
+    .wrap{ grid-template-columns: 1fr; }
+    .left,.right{ order:unset }
+    .board{ justify-content:space-around; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <h1>Simon — Fruity Advanced</h1>
+      <div class="sub">Repeat the fruit sequence. Configure difficulty, sounds, and viewing hints.</div>
+
+      <div class="board" id="board" aria-label="Simon board">
+        <div class="tile green" data-key="0" id="tile-0" tabindex="0" role="button" aria-pressed="false">
+          <div class="fruit-face" aria-hidden="true"></div>
+        </div>
+
+        <div class="tile red" data-key="1" id="tile-1" tabindex="0" role="button" aria-pressed="false">
+          <div class="fruit-face"></div>
+        </div>
+
+        <div class="tile yellow" data-key="2" id="tile-2" tabindex="0" role="button" aria-pressed="false">
+          <div class="fruit-face"></div>
+        </div>
+
+        <div class="tile purple" data-key="3" id="tile-3" tabindex="0" role="button" aria-pressed="false">
+          <div class="fruit-face"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn primary" id="startBtn">Start / Restart</button>
+        <button class="btn" id="strictBtn" title="Strict: single mistake ends game">Strict: Off</button>
+        <button class="btn" id="hintBtn" title="Show hints when playing">Hints: Off</button>
+        <div class="stat">Level: <span id="level">0</span></div>
+        <div class="stat">Status: <span id="status">Idle</span></div>
+      </div>
+
+      <div class="settings">
+        <div class="row card" style="grid-column: span 2">
+          <label style="width:50%;">Speed</label>
+          <input id="speed" type="range" min="300" max="900" value="650" step="50" style="width:50%">
+          <span id="speedLabel" style="width:70px;text-align:right;color:var(--muted)">Normal</span>
+        </div>
+
+        <div class="row">
+          <label>Autoplay (Demo)</label>
+          <input id="demo" type="checkbox">
+        </div>
+        <div class="row">
+          <label>Keyboard</label>
+          <input id="keyboard" type="checkbox" checked>
+        </div>
+
+        <div class="row" style="grid-column: span 2; align-items: center;">
+          <label style="width:55%;">Max Levels</label>
+          <input id="maxLevel" type="number" min="5" max="99" value="20">
+        </div>
+      </div>
+
+      <footer>Tip: Use numbers 1→4 keys for tiles when Keyboard is enabled.</footer>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <div class="small">Your current score</div>
+        <div class="bigscore" id="score">0</div>
+        <div class="small">Attempts: <span id="attempts">0</span> • Best: <span id="best">0</span></div>
+
+        <div class="stats-grid" style="margin-top:10px">
+          <div class="small card">Average: <strong id="avg">0</strong></div>
+          <div class="small card">Median: <strong id="median">0</strong></div>
+          <div class="small card">Percentile: <strong id="percentile">—</strong></div>
+          <div class="small card">Stars: <div class="stars" id="stars"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="small">Recent attempt</div>
+        <div id="recent">No attempts yet</div>
+      </div>
+
+      <div class="card">
+        <div class="small">How percentile & stars work</div>
+        <div class="small" style="color:var(--muted)">
+          Your score is compared to stored player scores on this browser (local). Percentile is percent of players you beat. Stars: 1 star = bottom third, 2 stars = middle third, 3 stars = top third.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================
+   Advanced Simon logic
+   ========================= */
+
+(() => {
+  // DOM
+  const tiles = Array.from(document.querySelectorAll('.tile'));
+  const startBtn = document.getElementById('startBtn');
+  const strictBtn = document.getElementById('strictBtn');
+  const hintBtn = document.getElementById('hintBtn');
+  const levelText = document.getElementById('level');
+  const statusText = document.getElementById('status');
+  const scoreEl = document.getElementById('score');
+  const attemptsEl = document.getElementById('attempts');
+  const bestEl = document.getElementById('best');
+  const avgEl = document.getElementById('avg');
+  const medianEl = document.getElementById('median');
+  const percentileEl = document.getElementById('percentile');
+  const starsEl = document.getElementById('stars');
+  const recentEl = document.getElementById('recent');
+  const speedSlider = document.getElementById('speed');
+  const speedLabel = document.getElementById('speedLabel');
+  const demoCheckbox = document.getElementById('demo');
+  const keyboardCheckbox = document.getElementById('keyboard');
+  const maxLevelInput = document.getElementById('maxLevel');
+
+  // state
+  let sequence = [];
+  let playerIndex = 0;
+  let isPlayerTurn = false;
+  let isStrict = false;
+  let showHints = false;
+  let speed = Number(speedSlider.value); // ms between tile flashes
+  let playing = false;
+  let score = 0;
+  let maxLevels = Number(maxLevelInput.value) || 20;
+
+  // localStorage key
+  const LS_KEY = 'simon_fruity_scores_v1';
+
+  // WebAudio setup
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = new AudioContext();
+
+  const freqs = [440, 523.25, 659.25, 784]; // mapped tones
+
+  function playTone(index, duration=300){
+    if (!audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = freqs[index] || 440;
+    g.gain.setValueAtTime(0.001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.02);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    setTimeout(()=> {
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+      setTimeout(()=>o.stop(), 30);
+    }, duration);
+  }
+
+  // helpers for storage & stats
+  function loadScores(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return [] }
+  }
+  function saveScore(s){
+    const arr = loadScores();
+    arr.push({score:s, at: Date.now()});
+    // keep last 1000 for performance
+    if (arr.length > 1000) arr.splice(0, arr.length - 1000);
+    localStorage.setItem(LS_KEY, JSON.stringify(arr));
+  }
+  function computeStats(){
+    const arr = loadScores().map(x=>Number(x.score)||0).sort((a,b)=>a-b);
+    if (!arr.length) return {avg:0,median:0,best:0,attempts:0,percentile: null};
+    const attempts = arr.length;
+    const sum = arr.reduce((a,b)=>a+b,0);
+    const avg = (sum/attempts).toFixed(1);
+    const median = (attempts%2 ? arr[(attempts-1)/2] : ((arr[attempts/2] + arr[attempts/2 -1])/2)).toFixed(1);
+    const best = arr[arr.length-1];
+    return {avg,median,best,attempts,arr};
+  }
+  function computePercentile(score){
+    const stats = computeStats();
+    if (!stats.arr || !stats.arr.length) return null;
+    const less = stats.arr.filter(x=> x < score).length;
+    const perc = Math.round((less / stats.arr.length) * 100);
+    return perc;
+  }
+
+  // UI updates
+  function refreshStatsUI(){
+    const s = computeStats();
+    avgEl.textContent = s.avg;
+    medianEl.textContent = s.median;
+    attemptsEl.textContent = s.attempts;
+    bestEl.textContent = s.best || 0;
+  }
+
+  function showStarsFromPercentile(perc){
+    starsEl.innerHTML = '';
+    if (perc === null){ percentileEl.textContent = '—'; return; }
+    percentileEl.textContent = perc + '%';
+    // bottom third => 1 star, mid third => 2 stars, top third => 3 stars
+    let stars = 1;
+    if (perc > 66) stars = 3;
+    else if (perc > 33) stars = 2;
+    for (let i=0;i<3;i++){
+      const span = document.createElement('div');
+      span.className = 'star' + (i<stars ? ' on' : '');
+      span.innerHTML = '★';
+      starsEl.appendChild(span);
+    }
+  }
+
+  // board functions
+  function setStatus(txt){
+    statusText.textContent = txt;
+  }
+
+  function disableBoard(v=true){
+    tiles.forEach(t => t.classList.toggle('disabled', v));
+  }
+
+  async function flashTile(index, duration = Math.max(160, speed - 300)){
+    const tile = tiles[index];
+    if (!tile) return;
+    tile.classList.add('flash');
+    playTone(index, duration);
+    if (showHints) tile.style.outline = '4px solid rgba(255,255,255,0.06)';
+    await new Promise(r=>setTimeout(r, duration));
+    tile.classList.remove('flash');
+    tile.style.outline = '';
+    await new Promise(r=>setTimeout(r, 80));
+  }
+
+  async function playSequence(){
+    disableBoard(true);
+    isPlayerTurn = false;
+    setStatus('Watching sequence...');
+    for (let i=0;i<sequence.length;i++){
+      await flashTile(sequence[i]);
+      if (demoCheckbox.checked && i === sequence.length -1){
+        // little longer pause to allow demo look
+        await new Promise(r => setTimeout(r, 120));
+      }
+    }
+    await new Promise(r=>setTimeout(r, 350));
+    isPlayerTurn = true;
+    playerIndex = 0;
+    setStatus('Your turn');
+    disableBoard(false);
+  }
+
+  function addRandomStep(){
+    const rand = Math.floor(Math.random()*tiles.length);
+    sequence.push(rand);
+  }
+
+  async function nextLevel(){
+    if(sequence.length >= maxLevels){
+      // player won max level
+      setStatus('You completed max levels! Congrats!');
+      playing = false;
+      disableBoard(true);
+      saveScore(score);
+      updateStatsAfterGame();
+      return;
+    }
+    addRandomStep();
+    levelText.textContent = sequence.length;
+    await playSequence();
+  }
+
+  function resetGame(){
+    sequence = [];
+    playerIndex = 0;
+    score = 0;
+    scoreEl.textContent = score;
+    levelText.textContent = 0;
+    setStatus('Ready to start');
+  }
+
+  function updateStatsAfterGame(){
+    refreshStatsUI();
+    const perc = computePercentile(score);
+    showStarsFromPercentile(perc);
+    recentEl.textContent = `Last score: ${score}`;
+  }
+
+  async function startGame(){
+    if (playing) return;
+    if(audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+    playing = true;
+    disableBoard(true);
+    sequence = [];
+    playerIndex = 0;
+    score = 0;
+    scoreEl.textContent = score;
+    levelText.textContent = 0;
+    setStatus('Starting...');
+    await new Promise(r => setTimeout(r, 400));
+    await nextLevel();
+  }
+
+  // player input handling
+  async function playerInput(index){
+    if (!isPlayerTurn || !playing) return;
+    if (index !== sequence[playerIndex]){
+      setStatus('Wrong tile!');
+      playTone(index, 150);
+      disableBoard(true);
+      isPlayerTurn = false;
+
+      if (isStrict) {
+        setStatus('Strict mode: Game over!');
+        playing = false;
+        saveScore(score);
+        updateStatsAfterGame();
+      } else {
+        setStatus('Try again...');
+        await new Promise(r=>setTimeout(r, 1000));
+        playerIndex = 0;
+        await playSequence();
+      }
+      return;
+    }
+
+    // correct input
+    playTone(index);
+    playerIndex++;
+    score = playerIndex;
+    scoreEl.textContent = score;
+
+    if(playerIndex === sequence.length){
+      setStatus('Level complete!');
+      isPlayerTurn = false;
+      disableBoard(true);
+      await new Promise(r=>setTimeout(r, 700));
+      await nextLevel();
+    }
+  }
+
+  // tile click events
+  tiles.forEach((tile, i) => {
+    tile.addEventListener('click', () => playerInput(i));
+  });
+
+  // keyboard control
+  window.addEventListener('keydown', (e) => {
+    if(!keyboardCheckbox.checked) return;
+    if(!playing || !isPlayerTurn) return;
+    if(['1','2','3','4'].includes(e.key)){
+      const idx = Number(e.key) - 1;
+      playerInput(idx);
+    }
+  });
+
+  // control buttons
+  startBtn.addEventListener('click', () => {
+    maxLevels = Number(maxLevelInput.value) || 20;
+    if (maxLevels < 5) maxLevels = 5; // Ensure minimum level is 5
+    if (maxLevels > 99) maxLevels = 99;
+    maxLevelInput.value = maxLevels; // Update input value to reflect the
+    startGame();
+  });
+
+  strictBtn.addEventListener('click', () => {
+    isStrict = !isStrict;
+    strictBtn.textContent = 'Strict: ' + (isStrict ? 'On' : 'Off');
+  });
+
+  hintBtn.addEventListener('click', () => {
+    showHints = !showHints;
+    hintBtn.textContent = 'Hints: ' + (showHints ? 'On' : 'Off');
+  });
+
+  speedSlider.addEventListener('input', () => {
+    speed = Number(speedSlider.value);
+    const speedNames = {300:'Fast', 650:'Normal', 900:'Slow'};
+    speedLabel.textContent = speedNames[speed] || speed + 'ms';
+  });
+
+  // demo autoplay mode
+  let demoInterval = null;
+  demoCheckbox.addEventListener('change', () => {
+    if (demoCheckbox.checked){
+      startGame();
+      demoInterval = setInterval(()=>{
+        if(!playing) clearInterval(demoInterval);
+        else if(!isPlayerTurn) playerInput(sequence[playerIndex]||0);
+      }, speed + 400);
+    } else {
+      if(demoInterval) clearInterval(demoInterval);
+    }
+  });
+
+  // initial stats load
+  refreshStatsUI();
+  updateStatsAfterGame();
+
+  // Disable board at start
+  disableBoard(true);
+  setStatus('Press Start to play');
+})();
+</script>
+</body>
+</html>
+<!--
+  This is an advanced version of the Simon game with fruity themes.
+  It includes features like strict mode, hints, autoplay demo, and keyboard controls.
+  The game tracks player scores and computes statistics like average, median, and percentile.
+  Local storage is used to save player scores for comparison.
+  The game is designed to be visually appealing with a modern UI and smooth animations.
+-->

@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Memory Card Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Import Google Font - Poppins */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #6563ff;
+      overflow: hidden;
+      /* Prevent scrolling during game */
+    }
+
+    ::selection {
+      color: #fff;
+      background: #6563ff;
+    }
+
+    /* --- MENUS & OVERLAYS --- */
+    #mainMenu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #6563ff;
+      display: flex;
+      /* Flex by default */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .title {
+      font-size: 3rem;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      text-align: center;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .btn {
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #6563ff;
+      background: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    /* --- GAME CONTAINER --- */
+    #gameContainer {
+      display: none;
+      /* Hidden by default */
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .wrapper {
+      padding: 25px;
+      background: #f8f8f8;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      width: 100%;
+    }
+
+    /* HUD (Heads Up Display) */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hud-label {
+      font-size: 0.8rem;
+      color: #777;
+    }
+
+    .hud-value {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .active-player {
+      color: #6563ff;
+      font-weight: 700;
+      border-bottom: 2px solid #6563ff;
+    }
+
+    .back-btn-small {
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      margin-left: -5px;
+      /* Visual adjustment */
+    }
+
+    /* --- CARD GRID --- */
+    .cards {
+      height: 400px;
+      width: 100%;
+      /* Responsive width */
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      list-style: none;
+    }
+
+    .cards .card {
+      cursor: pointer;
+      position: relative;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      height: calc(100% / 4 - 10px);
+      width: calc(100% / 4 - 10px);
+    }
+
+    .card.shake {
+      animation: shake 0.35s ease-in-out;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-13px);
+      }
+
+      40% {
+        transform: translateX(13px);
+      }
+
+      60% {
+        transform: translateX(-8px);
+      }
+
+      80% {
+        transform: translateX(8px);
+      }
+    }
+
+    .cards .card .view {
+      width: 100%;
+      height: 100%;
+      user-select: none;
+      pointer-events: none;
+      position: absolute;
+      background: #fff;
+      border-radius: 7px;
+      backface-visibility: hidden;
+      transition: transform 0.25s linear;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card .front-view img {
+      max-width: 17px;
+    }
+
+    .card .back-view {
+      transform: rotateY(-180deg);
+    }
+
+    .card .back-view img {
+      max-width: 40px;
+    }
+
+    .card.flip .front-view {
+      transform: rotateY(180deg);
+    }
+
+    .card.flip .back-view {
+      transform: rotateY(0);
+    }
+
+    /* --- MODALS --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      color: #6563ff;
+      margin-bottom: 15px;
+    }
+
+    .modal-body {
+      color: #444;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .modal-close-btn {
+      padding: 10px 25px;
+      background: #6563ff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Leaderboard List */
+    .leaderboard-list {
+      list-style: none;
+      text-align: left;
+      margin: 10px 0;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .leaderboard-item:nth-child(1) {
+      color: #d4af37;
+      font-weight: bold;
+    }
+
+    /* Gold */
+    .leaderboard-item:nth-child(2) {
+      color: #c0c0c0;
+      font-weight: bold;
+    }
+
+    /* Silver */
+    .leaderboard-item:nth-child(3) {
+      color: #cd7f32;
+      font-weight: bold;
+    }
+
+    /* Bronze */
+
+    /* Input Group */
+    .input-group {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .input-group input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+      text-align: left;
+    }
+
+    .input-label {
+      font-size: 0.9rem;
+      color: #6563ff;
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 700px) {
+      .cards {
+        height: 350px;
+        width: 350px;
+      }
+
+      .card .front-view img {
+        max-width: 16px;
+      }
+
+      .card .back-view img {
+        max-width: 40px;
+      }
+    }
+
+    @media screen and (max-width: 530px) {
+      .cards {
+        height: 300px;
+        width: 300px;
+      }
+
+      .card .back-view img {
+        max-width: 35px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- MAIN MENU -->
+  <div id="mainMenu">
+    <div class="title">Memory<br>Card Game</div>
+    <div class="menu-buttons">
+      <button class="btn" onclick="openNameInput('single')">Single Player</button>
+      <button class="btn" onclick="openNameInput('multi')">2 Players</button>
+      <button class="btn" onclick="showLeaderboard()">Leaderboard</button>
+      <button class="btn" onclick="showTutorial()">Tutorial</button>
+      <button class="btn" onclick="showAbout()">About</button>
+    </div>
+  </div>
+
+  <!-- GAME AREA -->
+  <div id="gameContainer">
+    <div class="wrapper">
+      <!-- HUD -->
+      <div class="hud">
+        <button class="btn back-btn-small" onclick="goToMenu()">Back</button>
+
+        <!-- Single Player Stats -->
+        <div id="singleHud" class="hud-stat" style="display:none;">
+          <span class="hud-label">Time</span>
+          <span class="hud-value" id="timerDisplay">00:00</span>
+        </div>
+
+        <!-- 2 Player Stats -->
+        <div id="multiHud" style="display:flex; gap:20px;">
+          <div class="hud-stat" id="p1Stat">
+            <span class="hud-label" id="p1NameLabel">Player 1</span>
+            <span class="hud-value" id="p1Score">0</span>
+          </div>
+          <div class="hud-stat" id="p2Stat">
+            <span class="hud-label" id="p2NameLabel">Player 2</span>
+            <span class="hud-value" id="p2Score">0</span>
+          </div>
+        </div>
+
+        <div class="hud-stat">
+          <span class="hud-label">Turn</span>
+          <span class="hud-value" id="turnDisplay">-</span>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <ul class="cards">
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-1.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-2.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-3.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-4.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-5.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-6.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-5.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-6.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-1.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-2.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-3.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-4.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-1.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-4.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-5.png" alt="card-img"></div>
+        </li>
+        <li class="card">
+          <div class="view front-view"><img src="images/que_icon.svg" alt="icon"></div>
+          <div class="view back-view"><img src="images/img-6.png" alt="card-img"></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- NAME INPUT MODAL -->
+  <div id="nameInputModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="modal-title">Enter Names</h2>
+      <div id="nameInputBody" class="input-group">
+        <!-- Injected via JS -->
+      </div>
+      <br>
+      <button class="btn" style="background:#6563ff; color:white; width:100%;" onclick="confirmStartGame()">Start
+        Game</button>
+      <br><br>
+      <button class="modal-close-btn" style="background:transparent; color:#888;"
+        onclick="closeModal('nameInputModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- GENERIC MODAL -->
+  <div id="genericModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 id="modalTitle" class="modal-title">Title</h2>
+      <div id="modalBody" class="modal-body">Content</div>
+      <button class="modal-close-btn" onclick="closeModal('genericModal')">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // --- STATE & CONFIG ---
+    let gameState = {
+      mode: 'single', // 'single' or 'multi'
+      turn: 1, // 1 or 2
+      scores: [0, 0],
+      p1Name: 'Player 1',
+      p2Name: 'Player 2',
+      isLocked: false,
+      firstCard: null,
+      secondCard: null,
+      matches: 0,
+      totalPairs: 8,
+      isPlaying: false,
+      startTime: 0,
+      timerInterval: null,
+      elapsedSeconds: 0
+    };
+
+    const LEADERBOARD_KEY = 'memory_game_top_5';
+
+    // --- DOM ELEMENTS ---
+    const mainMenu = document.getElementById('mainMenu');
+    const gameContainer = document.getElementById('gameContainer');
+    const cards = document.querySelectorAll('.card');
+
+    // HUD Elements
+    const singleHud = document.getElementById('singleHud');
+    const multiHud = document.getElementById('multiHud');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const p1ScoreEl = document.getElementById('p1Score');
+    const p2ScoreEl = document.getElementById('p2Score');
+    const p1Stat = document.getElementById('p1Stat');
+    const p2Stat = document.getElementById('p2Stat');
+    const p1NameLabel = document.getElementById('p1NameLabel');
+    const p2NameLabel = document.getElementById('p2NameLabel');
+    const turnDisplay = document.getElementById('turnDisplay');
+
+    // Modal Elements
+    const genericModal = document.getElementById('genericModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    const nameInputModal = document.getElementById('nameInputModal');
+    const nameInputBody = document.getElementById('nameInputBody');
+
+    // --- SYSTEM FUNCTIONS ---
+
+    function getLeaderboard() {
+      const data = localStorage.getItem(LEADERBOARD_KEY);
+      return data ? JSON.parse(data) : [];
+    }
+
+    function saveLeaderboard(name, time) {
+      let lb = getLeaderboard();
+      const existingIndex = lb.findIndex(entry => entry.name.toLowerCase() === name.toLowerCase());
+
+      if (existingIndex !== -1) {
+        // Player exists. Update only if new time is better (lower)
+        if (time < lb[existingIndex].time) {
+          lb[existingIndex].time = time;
+        }
+      } else {
+        // New player
+        lb.push({ name, time });
+      }
+
+      // Sort and keep top 5
+      lb.sort((a, b) => a.time - b.time);
+      if (lb.length > 5) lb = lb.slice(0, 5);
+      localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
+    }
+
+    // --- GAME LOGIC ---
+
+    function shuffle() {
+      // 8 pairs = 16 cards
+      let arr = [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8];
+      arr.sort(() => Math.random() > 0.5 ? 1 : -1);
+
+      cards.forEach((card, index) => {
+        card.classList.remove('flip', 'shake', 'matched');
+        // Reset image source
+        let imgTag = card.querySelector('.back-view img');
+        imgTag.src = `images/img-${arr[index]}.png`;
+        card.dataset.value = arr[index];
+        // Re-enable clicks
+        card.addEventListener('click', flipCard);
+      });
+    }
+
+    // Step 1: Open Name Input Modal
+    function openNameInput(mode) {
+      gameState.mode = mode;
+      nameInputModal.style.display = 'flex';
+      nameInputBody.innerHTML = '';
+
+      if (mode === 'single') {
+        nameInputBody.innerHTML = `
+                <div class="input-row">
+                    <span class="input-label">Your Name</span>
+                    <input type="text" id="inputP1" placeholder="Enter Name" value="Player 1" maxlength="12">
+                </div>
+            `;
+      } else {
+        nameInputBody.innerHTML = `
+                <div class="input-row">
+                    <span class="input-label">Player 1 Name</span>
+                    <input type="text" id="inputP1" placeholder="Enter Name" value="Player 1" maxlength="12">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">Player 2 Name</span>
+                    <input type="text" id="inputP2" placeholder="Enter Name" value="Player 2" maxlength="12">
+                </div>
+            `;
+      }
+    }
+
+    // Step 2: Confirm and Start
+    function confirmStartGame() {
+      const p1Input = document.getElementById('inputP1');
+      const p2Input = document.getElementById('inputP2');
+
+      gameState.p1Name = p1Input && p1Input.value.trim() ? p1Input.value.trim() : 'Player 1';
+      if (gameState.mode === 'multi') {
+        gameState.p2Name = p2Input && p2Input.value.trim() ? p2Input.value.trim() : 'Player 2';
+      }
+
+      closeModal('nameInputModal');
+      initGame();
+    }
+
+    function initGame() {
+      gameState.turn = 1;
+      gameState.scores = [0, 0];
+      gameState.isLocked = false;
+      gameState.firstCard = null;
+      gameState.secondCard = null;
+      gameState.matches = 0;
+      gameState.elapsedSeconds = 0;
+      gameState.isPlaying = false; // Starts when first card clicked
+
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+
+      // UI Updates
+      mainMenu.style.display = 'none';
+      gameContainer.style.display = 'flex';
+
+      if (gameState.mode === 'single') {
+        singleHud.style.display = 'flex';
+        multiHud.style.display = 'none';
+        turnDisplay.textContent = `${gameState.p1Name}'s Game`;
+        timerDisplay.textContent = '00:00';
+      } else {
+        singleHud.style.display = 'none';
+        multiHud.style.display = 'flex';
+        p1NameLabel.textContent = gameState.p1Name;
+        p2NameLabel.textContent = gameState.p2Name;
+        updateTurnUI();
+      }
+
+      updateScores();
+      shuffle();
+    }
+
+    function goToMenu() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+      gameContainer.style.display = 'none';
+      mainMenu.style.display = 'flex';
+    }
+
+    function formatTime(s) {
+      const min = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      gameState.isPlaying = true;
+      gameState.startTime = Date.now();
+      gameState.timerInterval = setInterval(() => {
+        gameState.elapsedSeconds++;
+        timerDisplay.textContent = formatTime(gameState.elapsedSeconds);
+      }, 1000);
+    }
+
+    function updateTurnUI() {
+      if (gameState.mode === 'single') return;
+
+      const currentName = gameState.turn === 1 ? gameState.p1Name : gameState.p2Name;
+      turnDisplay.textContent = `${currentName}'s Turn`;
+
+      if (gameState.turn === 1) {
+        p1Stat.classList.add('active-player');
+        p2Stat.classList.remove('active-player');
+      } else {
+        p1Stat.classList.remove('active-player');
+        p2Stat.classList.add('active-player');
+      }
+    }
+
+    function updateScores() {
+      p1ScoreEl.textContent = gameState.scores[0];
+      p2ScoreEl.textContent = gameState.scores[1];
+    }
+
+    function flipCard(e) {
+      const clickedCard = e.target.closest('.card'); // Handle clicks on inner elements
+
+      // Validation
+      if (!clickedCard) return;
+      if (gameState.isLocked) return;
+      if (clickedCard === gameState.firstCard) return;
+      if (clickedCard.classList.contains('flip')) return;
+
+      // Start timer on first interaction in Single mode
+      if (gameState.mode === 'single' && !gameState.isPlaying) {
+        startTimer();
+      }
+
+      clickedCard.classList.add('flip');
+
+      if (!gameState.firstCard) {
+        gameState.firstCard = clickedCard;
+        return;
+      }
+
+      gameState.secondCard = clickedCard;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      gameState.isLocked = true;
+      let val1 = gameState.firstCard.dataset.value;
+      let val2 = gameState.secondCard.dataset.value;
+
+      if (val1 === val2) {
+        handleMatch();
+      } else {
+        // No Match
+        setTimeout(() => {
+          gameState.firstCard.classList.add('shake');
+          gameState.secondCard.classList.add('shake');
+        }, 400);
+
+        setTimeout(() => {
+          if (gameState.firstCard) gameState.firstCard.classList.remove('shake', 'flip');
+          if (gameState.secondCard) gameState.secondCard.classList.remove('shake', 'flip');
+
+          gameState.firstCard = null;
+          gameState.secondCard = null;
+          gameState.isLocked = false;
+
+          // Switch Turn Logic (Multiplayer only)
+          if (gameState.mode === 'multi') {
+            switchTurn();
+          }
+        }, 1200);
+      }
+    }
+
+    function handleMatch() {
+      // Remove ability to click these again
+      gameState.firstCard.removeEventListener('click', flipCard);
+      gameState.secondCard.removeEventListener('click', flipCard);
+
+      // Update Score
+      // Player 1 is index 0, Player 2 is index 1
+      gameState.scores[gameState.turn - 1]++;
+      gameState.matches++;
+      updateScores();
+
+      gameState.firstCard = null;
+      gameState.secondCard = null;
+      gameState.isLocked = false;
+
+      // Check Game Over
+      if (gameState.matches === gameState.totalPairs) {
+        setTimeout(handleGameOver, 500);
+      }
+
+      // Note: In Multi, if you match, you keep your turn. So we just return here.
+    }
+
+    function switchTurn() {
+      gameState.turn = gameState.turn === 1 ? 2 : 1;
+      updateTurnUI();
+    }
+
+    function handleGameOver() {
+      if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+
+      if (gameState.mode === 'single') {
+        const time = gameState.elapsedSeconds;
+        saveLeaderboard(gameState.p1Name, time); // Auto-save with pre-entered name
+        showModal("Game Over", `Great job ${gameState.p1Name}!<br>You finished in ${formatTime(time)}.`);
+      } else {
+        let winnerText = "It's a Tie!";
+        if (gameState.scores[0] > gameState.scores[1]) winnerText = `${gameState.p1Name} Wins!`;
+        if (gameState.scores[1] > gameState.scores[0]) winnerText = `${gameState.p2Name} Wins!`;
+
+        showModal("Game Over", `
+            <h2 style="color:#6563ff; margin-bottom:10px;">${winnerText}</h2>
+            <p>${gameState.p1Name}: ${gameState.scores[0]} - ${gameState.p2Name}: ${gameState.scores[1]}</p>
+        `);
+      }
+    }
+
+    // --- MODAL FUNCTIONS ---
+
+    function showModal(title, content) {
+      genericModal.style.display = 'flex';
+      modalTitle.textContent = title;
+      modalBody.innerHTML = content;
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      // If closing Generic Modal after Single Player Game Over, show Leaderboard?
+      // Optional, but nice.
+    }
+
+    function showLeaderboard() {
+      const lb = getLeaderboard();
+      let html = '<ul class="leaderboard-list">';
+      if (lb.length === 0) {
+        html += '<li>No records yet. Be the first!</li>';
+      } else {
+        lb.forEach((entry, i) => {
+          html += `
+            <li class="leaderboard-item">
+              <span>#${i + 1} ${entry.name}</span>
+              <span>${formatTime(entry.time)}</span>
+            </li>
+          `;
+        });
+      }
+      html += '</ul>';
+      showModal("Top 5 Fastest Times", html);
+    }
+
+    function showTutorial() {
+      const html = `
+        <div style="text-align:left; font-size:0.9rem;">
+          <h3 style="color:#6563ff;">Single Player</h3>
+          <p>Find all matching pairs as fast as you can. Your best times will be saved to the leaderboard!</p>
+          <br>
+          <h3 style="color:#6563ff;">2 Players</h3>
+          <p>Take turns finding pairs.</p>
+          <ul style="margin-left:20px;">
+            <li><b>Match?</b> You get a point and go again!</li>
+            <li><b>Miss?</b> Your turn ends.</li>
+          </ul>
+        </div>
+      `;
+      showModal("How to Play", html);
+    }
+
+    function showAbout() {
+      showModal("About", `
+        <p>Memory Card Game v2.1</p>
+        <p>A simple, clean card matching game associated with Car Game vibe.</p>
+        <br>
+        <p style="font-size:0.8rem; color:#888;">Built with Vanilla JS & CSS.</p>
+      `);
+    }
+
+    // Initialize
+    cards.forEach(c => c.addEventListener('click', flipCard));
+
+  </script>
+</body>
+
+</html>

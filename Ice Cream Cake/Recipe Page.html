@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="./Recipe Page_files/css2" rel="stylesheet">
+  <link href="./Recipe Page_files/css2(1)" rel="stylesheet">
+  <link rel="stylesheet" href="./Recipe Page_files/style.css">
+  <title> Ice Cream Cake Recipe Page</title>
+</head>
+
+<body>
+  <section class="container">
+    <!-- HEADER IMAGE -->
+<div class="video-wrapper">
+  <img src="Recipe Page_files/17481-DDMFS-4x3-89bf9ff32d0c40179a3d752d4d25f22a.webp" alt="Preview" class="video-preview" onclick="switchToVideo()" />
+  
+  <video id="video" class="hidden-video" controls>
+    <source src="Recipe Page_files/Ice Cream Cake Recipe.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<style>
+  .video-preview {
+    width: 100%;
+    cursor: pointer;
+    display: block;
+  }
+
+  .hidden-video {
+    display: none;
+    width: 100%;
+  }
+</style>
+
+<script>
+  function switchToVideo() {
+    const img = document.querySelector('.video-preview');
+    const vid = document.getElementById('video');
+    img.style.display = 'none';
+    vid.style.display = 'block';
+    vid.play();
+  }
+</script>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <h1 class="content-title">Simple Ice Cream Cake Recipe</h1>
+      <p class="water">
+        This Ice Cream Cake recipe is the perfect classic white cake. Light and fluffy, moist and full of flavor.
+      </p>
+      <!-- PREPARATION TIME -->
+      <article class="preparation">
+        <h2>Preparation time</h2>
+        <ul>
+          <li>
+            <p><strong>Total</strong>: Approximately 50 minutes</p>
+          </li>
+          <li>
+            <p><strong>Preparation</strong>: 20 minutes</p>
+          </li>
+          <li>
+            <p><strong>Cooking</strong>: 30 minutes</p>
+          </li>
+        </ul>
+      </article>
+      <!-- INGREDIENTS -->
+      <article class="ingredients">
+        <h2>Ingredients</h2>
+        <ul>
+          <li><p>15.25 oz chocolate cake mix</p></li>
+          <li><p>1 cup water</p></li>
+          <li><p>3 large eggs</p></li>
+          <li><p>⅓ cup vegetable oil</p></li>
+          <li><p>½ gallon chocolate ice cream</p></li>
+        </ul>
+      </article>
+      <hr>
+      <!-- INSTRUCTIONS -->
+      <article class="instructions">
+        <h2>Instructions</h2>
+        <ol>
+          <li>
+            <h4>1.</h4>
+            <div>
+              <p>
+                <strong>Pre-heat the oven</strong>: Preheat the oven to 350 degrees F (175 degrees C). Grease a 9x13-inch baking dish.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>2.</h4>
+            <div>
+              <p>
+                <strong>Mix it well</strong>: Combine chocolate cake mix, water, eggs, and oil in a large bowl. Beat with an electric mixer on medium speed until smooth, about 2 minutes. Pour batter into the prepared baking dish.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>3.</h4>
+            <div>
+              <p>
+                <strong>Bake the cake</strong>: Bake in the preheated oven until a toothpick inserted into the center comes out clean, 26 to 30 minutes. Allow to cool completely on a wired rack.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>4.</h4>
+            <div>
+              <p>
+                <strong>Ice Cream</strong>: Meanwhile, remove the carton paper from ice cream. Set ice cream block on its long side. Use a piece of string or dental floss to cut ice cream in half lengthwise, then place the 2 pieces side-by-side on a sheet of waxed paper
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>5.</h4>
+            <div>
+              <p>
+                <strong>Trim it</strong>: Remove cooled cake from the baking dish and place over the ice cream slabs. Trim cake and ice cream, so the edges are flush.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>6.</h4>
+            <div>
+              <p>
+                <strong>Placing the cake</strong>: Place a board or serving platter over cake. Holding onto the waxed paper and board, flip ice cream cake over. Remove the waxed paper and smooth the seam between the ice cream slabs.
+              </p>
+            </div>
+          </li>
+          <li>
+            <h4>7.</h4>
+            <div>
+              <p>
+                <strong>Freeze and decorate</strong>: Cover top with waxed paper and freeze until very firm. Decorate as desired.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </article>
+      <hr>
+      <!-- NUTRITION TABLE -->
+      <article class="nutrition">
+        <h2>Nutrition</h2>
+        <p>The table below shows nutritional values per serving without the additional fillings.</p>
+        <div class="row">
+          <div class="col-1">
+            <p>Calories</p>
+          </div>
+          <div class="col-2">
+            <h4>250kcal</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1">
+            <p>Carbs</p>
+          </div>
+          <div class="col-2">
+            <h4>38g</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1">
+            <p>Protein</p>
+          </div>
+          <div class="col-2">
+            <h4>4g</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1">
+            <p>Fat</p>
+          </div>
+          <div class="col-2">
+            <h4>11g</h4>
+          </div>
+        </div>
+      </article>
+    </main>
+  
+  <a class="nutrition-button" href="c:\Users\nowgo\OneDrive\Documents\Coding\HTML\Recipies\Ice Cream Cake\Recipe Page_files\index.html">
+  Full Nutrition Values
+</a>
+</section>
+
+  <script>
+  const container = document.getElementById('media-container');
+  const img = document.getElementById('thumbnail');
+
+  img.addEventListener('click', () => {
+    const video = document.createElement('video');
+    video.setAttribute('controls', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('playsinline', '');
+
+    const source = document.createElement('source');
+    source.src = 'https://www.w3schools.com/html/mov_bbb.mp4'; // replace with your video URL
+    source.type = 'video/mp4';
+
+    video.appendChild(source);
+    container.innerHTML = '';
+    container.appendChild(video);
+  });
+</script>
+
+</body>
+</html>

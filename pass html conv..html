@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    body {
+        font-family: Arial;
+        text-align: center;
+        color: white;
+        background-color: #202124;
+    }
+    .pass {
+            background-color: #F2522E;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;;
+            align-content: center;
+      
+     }
+
+        button:hover {
+            background-color: #F2A03D;
+            font-family: Arial;;
+        }
+        .water{
+            position: relative;
+            top: 10px;
+        }
+    </style>
+    <title>Password Form</title>
+</head>
+<body>
+    <h1>Enter your password:</h1>
+    <form>
+        <input class="pass" type="password" id="password" name="password">
+        <button class="pass" type="button" onclick="checkPassword()">Submit</button>
+    </form>
+
+    <h2 id="message"></h2>
+
+    <script>
+        function checkPassword() {
+            var password = document.getElementById("password").value;
+            var messageElement = document.getElementById("message");
+
+            if (password === "chicken") {
+                messageElement.innerHTML = "Great, Eid Al Adha is at Evening of Sun, Jun 16, 2024 - Thu, Jun 20, 2024, Eid Mubarak. Advice: give me Eid money <br> <img class=water src=file:///C:/Users/nowgo/Downloads/kfc-fried-chicken.gif>";
+            } else {
+                messageElement.innerHTML = "Incorrect. <br><br> Hint: If you dont like chicken you should go eat _______. <br> Try Again.";
+            }
+        }
+    </script>
+</body>
+</html>

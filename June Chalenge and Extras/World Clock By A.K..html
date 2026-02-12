@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Clock By A.K.</title>
+<link rel="icon" type="image/x-icon" href="file:///C:/Users/nowgo/OneDrive/Pictures/ADsdSDasdDadSDsdwedfadffrqweeeeetrefdgregerufjrghujewrjrfhyiergfihjwrfhiwrferhgfjefbrekfjgjkefgbjfhkgnhdjhkfdijufhdjfdsfkjdshfjskfjkdsfhdsjhfjskdfdsjfhhchicken].png">
+<style>
+
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+      background: linear-gradient(to right, #74ebd5, #9face6);
+    margin: 0;
+    padding: 0;
+  }
+  
+  h1 {
+    margin-top: 30px;
+    color: #333;
+  }
+  #clock-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    color: black;
+  }
+  .clock {
+    margin: 0 10px;
+    padding: 40px;
+    border: 2px solid #333;
+    border-radius: 40px;
+    background-color: ;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: black;
+    font-size: 24px;
+  }
+    
+    button {
+            background-color: #474973;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 41px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            position: relative;
+            left: 0px;
+            bottom: 35px;
+      
+     }
+
+        button:hover {
+            background-color: #000060;
+        }
+
+        .buttoon {
+            background-color: #374983;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            position: relative;
+            left: 0px;
+            bottom: -40px;
+            margin-right: 70px;
+      
+     }
+
+        .button:hover {
+            background-color: #281e5d;
+            font-family: Arial;
+        }
+
+</style>
+</head>
+<body>
+
+<h1></h1><h1 style="font-size:60px;">World Clock</h1>
+
+<a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/Weather%20By%20A.K.%20V%201.1.html">
+      <button class="button">Weather</button>
+    </a>
+
+<div id="clock-container">
+  <div class="clock" id="qatar-clock">Qatar: Saturday, June 15, 2024 at 05:48:16 PM</div>
+  <div class="clock" id="bangladesh-clock">Bangladesh: Saturday, June 15, 2024 at 08:48:16 PM</div>
+  <div class="clock" id="georgia-clock">Georgia: Saturday, June 15, 2024 at 06:48:16 PM</div>
+  <div class="clock" id="saudi-arabia-clock">Saudi Arabia: Saturday, June 15, 2024 at 05:48:16 PM</div>
+</div>
+
+<a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/June%20Chalenge%20and%20Extras/World%20Clock%20By%20A.K..html">
+      <button class="buttoon">World Clock</button>
+    </a>
+<a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/timera.html">
+      <button class="buttoon">Timer</button>
+    </a>
+<a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/stopwatch.html">
+      <button class="buttoon">Stopwatch</button>
+    </a>
+<a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm.html">
+      <button class="buttoon">Alarm</button>
+    </a>
+
+
+<script>
+  function updateClocks() {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+    const qatarTime = new Date().toLocaleString("en-US", {timeZone: "Asia/Qatar", ...options});
+    const bangladeshTime = new Date().toLocaleString("en-US", {timeZone: "Asia/Dhaka", ...options});
+    const georgiaTime = new Date().toLocaleString("en-US", {timeZone: "Asia/Tbilisi", ...options});
+    const saudiArabiaTime = new Date().toLocaleString("en-US", {timeZone: "Asia/Riyadh", ...options});
+
+    document.getElementById("qatar-clock").innerText = `Qatar: ${qatarTime}`;
+    document.getElementById("bangladesh-clock").innerText = `Bangladesh: ${bangladeshTime}`;
+    document.getElementById("georgia-clock").innerText = `Georgia: ${georgiaTime}`;
+    document.getElementById("saudi-arabia-clock").innerText = `Saudi Arabia: ${saudiArabiaTime}`;
+  }
+
+  setInterval(updateClocks, 1000);
+</script>
+
+
+</body></html>

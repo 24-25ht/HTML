@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <title>Digital Clock</title>
+    <style>
+      /* General Reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Arial', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: url('f.jpg') no-repeat center center/cover;
+        color: #fff;
+        overflow: hidden;
+      }
+
+      /* Button Styling */
+      #timezone-button {
+        position: fixed;
+        top: 20px;
+        right: 20px; /* Moved to the top-right corner */
+        padding: 10px 20px;
+        font-size: 14px;
+        background: #ff007c;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(255, 0, 124, 0.5);
+        transition: all 0.3s ease;
+        z-index: 11; /* Ensures it stays above the sidebar */
+      }
+
+      #timezone-button:hover {
+        background: #ff4da6;
+        box-shadow: 0 6px 20px rgba(255, 77, 166, 0.7);
+      }
+
+      h2 {
+        font-size: 24px;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-bottom: 20px;
+        color: #00eaff;
+        text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+      
+      }
+
+            h1 {
+        font-size: 34px;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-bottom: 20px;
+        color: #00eaff;
+        text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+      
+      }
+
+      .clock {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .clock div {
+        text-align: center;
+      }
+
+      .clock span {
+        display: block;
+        font-size: 60px;
+        font-weight: bold;
+        color: #00ff88;
+        text-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88;
+      }
+
+      .clock .text {
+        font-size: 14px;
+        text-transform: uppercase;
+        color: #888;
+        margin-top: 5px;
+      }
+
+      #ampm {
+        font-size: 24px;
+        color: #ff007c;
+        text-shadow: 0 0 10px #ff007c, 0 0 20px #ff007c;
+      }
+
+      /* Date Styling */
+      .date {
+        margin-top: 20px;
+        font-size: 20px;
+        color: #fff;
+        text-align: center;
+        text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+        right: 30px;
+      }
+
+      /* Sidebar Styling */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 85px;
+        display: flex;
+        overflow-x: hidden;
+        flex-direction: column;
+        background: #161a2d;
+        padding: 25px 20px;
+        transition: all 0.4s ease;
+        z-index: 10;
+      }
+
+      .sidebar:hover {
+        width: 260px;
+      }
+
+      .sidebar .sidebar-header {
+        display: flex;
+        align-items: center;
+      }
+
+      .sidebar .sidebar-header img {
+        width: 42px;
+        border-radius: 50%;
+      }
+
+      .sidebar .sidebar-header h2 {
+        color: #fff;
+        font-size: 1.25rem;
+        font-weight: 600;
+        white-space: nowrap;
+        margin-left: 23px;
+      }
+
+      .sidebar-links h4 {
+        color: #fff;
+        font-weight: 500;
+        white-space: nowrap;
+        margin: 10px 0;
+        position: relative;
+      }
+
+      .sidebar-links h4 span {
+        opacity: 0;
+      }
+
+      .sidebar:hover .sidebar-links h4 span {
+        opacity: 1;
+      }
+
+      .sidebar-links .menu-separator {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        transform: scaleX(1);
+        transform: translateY(-50%);
+        background: #4f52ba;
+        transform-origin: right;
+        transition-delay: 0.2s;
+      }
+
+      .sidebar:hover .sidebar-links .menu-separator {
+        transition-delay: 0s;
+        transform: scaleX(0);
+      }
+
+      .sidebar-links {
+        list-style: none;
+        margin-top: 20px;
+        height: 80%;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      .sidebar-links::-webkit-scrollbar {
+        display: none;
+      }
+
+      .sidebar-links li a {
+        display: flex;
+        align-items: center;
+        gap: 0 20px;
+        color: #fff;
+        font-weight: 500;
+        white-space: nowrap;
+        padding: 15px 10px;
+        text-decoration: none;
+        transition: 0.2s ease;
+      }
+
+      .sidebar-links li a:hover {
+        color: #161a2d;
+        background: #fff;
+        border-radius: 4px;
+      }
+
+      .user-account {
+        margin-top: auto;
+        padding: 12px 10px;
+        margin-left: -10px;
+      }
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        color: #161a2d;
+      }
+
+      .user-profile img {
+        width: 42px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+      }
+
+      .user-profile h3 {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .user-profile span {
+        font-size: 0.775rem;
+        font-weight: 600;
+      }
+
+      .user-detail {
+        margin-left: 23px;
+        white-space: nowrap;
+      }
+
+      .sidebar:hover .user-account {
+        background: #fff;
+        border-radius: 4px;
+      }
+
+      /* Animation for glowing effect */
+      @keyframes glow {
+        0% {
+          text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88;
+        }
+        50% {
+          text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88;
+        }
+        100% {
+          text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88;
+        }
+      }
+
+      .clock span {
+        animation: glow 2s infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="timezone-button">Change City</button>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="file:///C:/Users/nowgo/OneDrive/Pictures/images.png" alt="logo" />
+        <h2>Clock</h2>
+      </div>
+      <ul class="sidebar-links">
+        <h4>
+          <span>Main Menu</span>
+          <div class="menu-separator"></div>
+        </h4>
+        <li>
+          <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/stopwatch.html">
+            <span class="material-symbols-outlined"> history_toggle_off </span>Stopwatch</a>
+        </li>
+        <li>
+          <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/timera.html"><span class="material-symbols-outlined"> timer </span>Timer</a>
+        </li>
+        <li>
+          <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm.html"><span class="material-symbols-outlined"> alarm </span>Alarm</a>
+        </li>
+        <li>
+          <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/digital%20clogk.html"><span class="material-symbols-outlined"> schedule </span>World Clock</a>
+        </li>
+        <h4>
+          <span>More</span>
+          <div class="menu-separator"></div>
+        </h4>
+        <li>
+          <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Weather%20v1.1.html"><span class="material-symbols-outlined"> partly_cloudy_day </span>Weather</a>
+        </li>
+        <li>
+          <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML.html"><span class="material-symbols-outlined"> apps </span>Others</a>
+        </li>
+      </ul>
+      <div class="user-account">
+        <div class="user-profile">
+          <img src="file:///C:/Users/nowgo/OneDrive/Pictures/pixelcut-export%20(3).png" alt="Profile Image" />
+          <div class="user-detail">
+            <h3>Abdullah Karim</h3>
+            <span>Made This</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <h1>Digital Clock</h1>
+    <h2 id="city-name">Local Time</h2> <!-- Default city name -->
+    <div class="clock">
+      <div>
+        <span id="hour">00</span>
+        <span class="text">Hours</span>
+      </div>
+      <div>
+        <span id="minutes">00</span>
+        <span class="text">Minutes</span>
+      </div>
+      <div>
+        <span id="seconds">00</span>
+        <span class="text">Seconds</span>
+      </div>
+      <div>
+        <span id="ampm">AM</span>
+      </div>
+    </div>
+    <div class="date" id="date"></div>
+    <script>
+      // Predefined mapping of city names to timezone offsets (in hours)
+      const cityToOffset = {
+        "Gopalganj": 6,
+        "Khulna": 6,
+        "Doha": 3,
+        "New York": -5,
+        "Dhaka": 6,
+        "Los Angeles": -8,
+        "Chicago": -6,
+        "Houston": -6,
+        "Phoenix": -7,
+        "Philadelphia": -5,
+        "San Antonio": -6,
+        "San Diego": -8,
+        "Dallas": -6,
+        "San Jose": -8,
+        "Austin": -6,
+        "Jacksonville": -5,
+        "San Francisco": -8,
+        "Columbus": -5,
+        "Fort Worth": -6,
+        "Charlotte": -5,
+        "Detroit": -5,
+        "El Paso": -7,
+        "Seattle": -8,
+        "Denver": -7,
+        "Washington, D.C.": -5,
+        "Boston": -5,
+        "Oklahoma City": -6,
+        "Portland": -8,
+        "Las Vegas": -8,
+        "Baltimore": -5,
+        "Milwaukee": -6,
+        "Albuquerque": -7,
+        "Tucson": -7,
+        "London": 0,
+        "Paris": 1,
+        "Berlin": 1,
+        "Madrid": 1,
+        "Rome": 1,
+        "Amsterdam": 1,
+        "Brussels": 1,
+        "Vienna": 1,
+        "Lisbon": 0,
+        "Stockholm": 1,
+        "Oslo": 1,
+        "Copenhagen": 1,
+        "Helsinki": 2,
+        "Dublin": 0,
+        "Zurich": 1,
+        "Tokyo": 9,
+        "Seoul": 9,
+        "Beijing": 8,
+        "Shanghai": 8,
+        "Hong Kong": 8,
+        "Taipei": 8,
+        "Bangkok": 7,
+        "Kuala Lumpur": 8,
+        "Singapore": 8,
+        "Manila": 8,
+        "Jakarta": 7,
+        "Mumbai": 5.5,
+        "Delhi": 5.5,
+        "Bangalore": 5.5,
+        "Chennai": 5.5,
+        "Kolkata": 5.5,
+        "Mexico City": -6,
+        "Toronto": -5,
+        "Montreal": -5,
+        "Vancouver": -8,
+        "Ottawa": -5,
+        "Buenos Aires": -3,
+        "Santiago": -3,
+        "Brasilia": -3,
+        "Lima": -5,
+        "Bogota": -5,
+        "Cairo": 2,
+        "Riyadh": 3,
+        "Dubai": 4,
+        "Jerusalem": 2,
+        "Ankara": 3,
+        "Nairobi": 3,
+        "Addis Ababa": 3,
+        "Accra": 0,
+        "Lagos": 1,
+        "Moscow": 3,
+        "Kyiv": 2,
+        "Tallinn": 2,
+        "Vilnius": 2,
+        "Riga": 2,
+        "Canberra": 11,
+        "Sydney": 11,
+        "Melbourne": 11,
+        "Brisbane": 10,
+        "Hobart": 11,
+        "Perth": 8,
+        "Wellington": 13,
+        "Auckland": 13,
+        "Fiji": 12,
+        "Sofia": 2,
+        "Belgrade": 1,
+        "Bucharest": 2,
+        "Sarajevo": 1,
+        "Reykjavik": 0,
+        "Hanoi": 7,
+        "Phnom Penh": 7,
+        "Vientiane": 7,
+        "Managua": -6,
+        "Havana": -5,
+        "Caracas": -4,
+        "Quito": -5,
+        "Harare": 2,
+        "Lomé": 0,
+        "Port Louis": 4,
+        "Antananarivo": 3,
+        "Djibouti": 3,
+        "Tunis": 1,
+        "Algiers": 1,
+        "Luanda": 1,
+        "Tbilisi": 4,
+      };
+
+      let offsetHours = -new Date().getTimezoneOffset() / 60;
+
+      const hourEl = document.getElementById("hour");
+      const minuteEl = document.getElementById("minutes");
+      const secondEl = document.getElementById("seconds");
+      const ampmEl = document.getElementById("ampm");
+      const dateEl = document.getElementById("date");
+      const timezoneButton = document.getElementById("timezone-button");
+      const cityNameEl = document.getElementById("city-name"); // Reference to city name element
+
+      function updateClock() {
+        const now = new Date();
+        const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+        const adjustedTime = new Date(utcTime + offsetHours * 3600000);
+        let h = adjustedTime.getHours();
+        let m = adjustedTime.getMinutes();
+        let s = adjustedTime.getSeconds();
+        let ampm = "AM";
+
+        if (h >= 12) {
+          ampm = "PM";
+          if (h > 12) h = h - 12;
+        }
+        if (h === 0) {
+          h = 12;
+        }
+
+        h = h < 10 ? "0" + h : h;
+        m = m < 10 ? "0" + m : m;
+        s = s < 10 ? "0" + s : s;
+
+        hourEl.innerText = h;
+        minuteEl.innerText = m;
+        secondEl.innerText = s;
+        ampmEl.innerText = ampm;
+
+        // Update the date
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const monthNames = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        const day = adjustedTime.getDate();
+        const daySuffix = day % 10 === 1 && day !== 11 ? "st" : day % 10 === 2 && day !== 12 ? "nd" : day % 10 === 3 && day !== 13 ? "rd" : "th";
+        const dayOfWeek = dayNames[adjustedTime.getDay()];
+        const month = monthNames[adjustedTime.getMonth()];
+        const year = adjustedTime.getFullYear();
+
+        dateEl.innerText = `${dayOfWeek}, ${day}${daySuffix} of ${month} ${year}`;
+
+        setTimeout(updateClock, 1000);
+      }
+
+      updateClock();
+
+      timezoneButton.addEventListener("click", () => {
+        const city = prompt("Enter a city name (e.g., Doha):", "");
+        if (city !== null && city.trim() !== "") {
+          if (cityToOffset.hasOwnProperty(city.trim())) {
+            offsetHours = cityToOffset[city.trim()];
+            cityNameEl.innerText = city.trim(); // Update city name
+            updateClock();
+          } else {
+            alert("City not recognized. Please try one of: " + Object.keys(cityToOffset).join(", "));
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

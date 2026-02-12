@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
+            /* Light gradient background */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #ff6f61;
+            /* Vibrant coral */
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #level,
+        #score,
+        #timer {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            color: #444;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            background: #ff6f61;
+            /* Vibrant coral */
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(255, 111, 97, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #e65b50;
+            /* Slightly darker coral */
+            box-shadow: 0 6px 15px rgba(255, 111, 97, 0.6);
+        }
+
+        button:disabled {
+            background: #ccc;
+            color: #777;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            gap: 15px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .hole {
+            width: 120px;
+            height: 120px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        /* Apply hover effect only when the mole is not present */
+        .hole:not(.mole):hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .mole {
+            width: 100%;
+            height: 100%;
+            background-image: url("https://cdn-icons-png.flaticon.com/512/616/616430.png");
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .game-container {
+                grid-template-columns: repeat(3, 90px);
+                gap: 10px;
+            }
+
+            .hole {
+                width: 90px;
+                height: 90px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Whack-a-Mole</h1>
+    <div class="game-info">
+        <div id="level">Level 1</div>
+        <div id="score">Score: 0</div>
+        <div id="timer">Time: 60s</div>
+    </div>
+    <button id="startButton">Start Game</button>
+    <button id="endButton" disabled>End Game</button>
+    <div class="game-container">
+        <div class="hole" id="hole1"></div>
+        <div class="hole" id="hole2"></div>
+        <div class="hole" id="hole3"></div>
+        <div class="hole" id="hole4"></div>
+        <div class="hole" id="hole5"></div>
+        <div class="hole" id="hole6"></div>
+        <div class="hole" id="hole7"></div>
+        <div class="hole" id="hole8"></div>
+        <div class="hole" id="hole9"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const holes = document.querySelectorAll(".hole");
+            const startButton = document.getElementById("startButton");
+            const endButton = document.getElementById("endButton");
+            const scoreDisplay = document.getElementById("score");
+            const timerDisplay = document.getElementById("timer");
+            const levelDisplay = document.getElementById("level");
+
+            let timer;
+            let score = 0;
+            let countdown;
+            let moleInterval;
+            let currentLevel = 1;
+            const maxLevels = 5; // Maximum number of levels
+            let gameOver = true;
+            let moleSpeed = 1000; // Initial mole appearance interval (in ms)
+
+            function comeout() {
+                holes.forEach(hole => {
+                    hole.classList.remove('mole');
+                    hole.removeEventListener('click', handleMoleClick);
+                });
+
+                let random = holes[Math.floor(Math.random() * holes.length)];
+                random.classList.add('mole');
+                random.addEventListener('click', handleMoleClick);
+            }
+
+            function handleMoleClick() {
+                if (!gameOver) {
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                }
+                this.classList.remove('mole');
+            }
+
+            function startGame() {
+                if (!gameOver) return;
+
+                gameOver = false;
+                score = 0;
+                scoreDisplay.textContent = `Score: ${score}`;
+                timer = 30; // Each level lasts 30 seconds
+                timerDisplay.textContent = `Time: ${timer}s`;
+
+                startButton.disabled = true;
+                endButton.disabled = false;
+
+                countdown = setInterval(() => {
+                    timer--;
+                    timerDisplay.textContent = `Time: ${timer}s`;
+
+                    if (timer <= 0) {
+                        clearInterval(countdown);
+                        clearInterval(moleInterval);
+                        gameOver = true;
+
+                        if (currentLevel >= maxLevels) {
+                            alert(`Game Over! You completed all ${maxLevels} levels!\nYour final score: ${score}`);
+                            startButton.disabled = false;
+                            endButton.disabled = true;
+
+                            // Reset game
+                            currentLevel = 1;
+                            levelDisplay.textContent = `Level ${currentLevel}`;
+                            moleSpeed = 1000;
+                        } else {
+                            alert(`Level ${currentLevel} Complete!\nYour score: ${score}`);
+                            currentLevel++;
+                            levelDisplay.textContent = `Level ${currentLevel}`;
+                            moleSpeed = Math.max(400, moleSpeed - 100); // Decrease mole interval, minimum 400ms
+                            startGame(); // Start the next level
+                        }
+                    }
+                }, 1000);
+
+                moleInterval = setInterval(() => {
+                    if (!gameOver) comeout();
+                }, moleSpeed);
+            }
+
+            function endGame() {
+                clearInterval(countdown);
+                clearInterval(moleInterval);
+                gameOver = true;
+                alert(`Game Ended!\nYour final score: ${score}`);
+                score = 0;
+                timer = 30;
+                scoreDisplay.textContent = `Score: ${score}`;
+                timerDisplay.textContent = `Time: ${timer}s`;
+                startButton.disabled = false;
+                endButton.disabled = true;
+
+                // Reset level and difficulty
+                currentLevel = 1;
+                levelDisplay.textContent = `Level ${currentLevel}`;
+                moleSpeed = 1000;
+            }
+
+            startButton.addEventListener("click", startGame);
+            endButton.addEventListener("click", endGame);
+        });
+    </script>
+</body>
+
+</html>

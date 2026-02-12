@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Alarm Clock</title>
+    <link rel="icon" type="image/x-icon" href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm%20clock/files/clock.png">
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <style>
+      /* Import Google font - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+body, .wrapper, .content{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body{
+  padding: 0 10px;
+  min-height: 100vh;
+  background: linear-gradient(to right, #74ebd5, #9face6);
+
+      body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to right, #74ebd5, #9face6);
+            margin: 0;
+        }
+
+        .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 85px;
+  display: flex;
+  overflow-x: hidden;
+  flex-direction: column;
+  background: #161a2d;
+  padding: 25px 20px;
+  transition: all 0.4s ease;
+}
+.sidebar:hover {
+  width: 260px;
+}
+.sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+}
+.sidebar .sidebar-header img {
+  width: 42px;
+  border-radius: 50%;
+}
+.sidebar .sidebar-header h2 {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+  margin-left: 23px;
+}
+.sidebar-links h4 {
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 10px 0;
+  position: relative;
+}
+.sidebar-links h4 span {
+  opacity: 0;
+}
+.sidebar:hover .sidebar-links h4 span {
+  opacity: 1;
+}
+.sidebar-links .menu-separator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  transform: scaleX(1);
+  transform: translateY(-50%);
+  background: #4f52ba;
+  transform-origin: right;
+  transition-delay: 0.2s;
+}
+.sidebar:hover .sidebar-links .menu-separator {
+  transition-delay: 0s;
+  transform: scaleX(0);
+}
+.sidebar-links {
+  list-style: none;
+  margin-top: 20px;
+  height: 80%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar-links::-webkit-scrollbar {
+  display: none;
+}
+.sidebar-links li a {
+  display: flex;
+  align-items: center;
+  gap: 0 20px;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 15px 10px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+.sidebar-links li a:hover {
+  color: #161a2d;
+  background: #fff;
+  border-radius: 4px;
+}
+.user-account {
+  margin-top: auto;
+  padding: 12px 10px;
+  margin-left: -10px;
+}
+.user-profile {
+  display: flex;
+  align-items: center;
+  color: #161a2d;
+}
+.user-profile img {
+  width: 42px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.user-profile h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.user-profile span {
+  font-size: 0.775rem;
+  font-weight: 600;
+}
+.user-detail {
+  margin-left: 23px;
+  white-space: nowrap;
+}
+.sidebar:hover .user-account {
+  background: #fff;
+  border-radius: 4px;
+}
+.wrapper{
+  width: 440px;
+  height: 425px;
+  padding: 30px 30px 38px;
+  background: #fff;
+  border-radius: 10px;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+.wrapper img{
+  max-width: 103px;
+}
+.wrapper h1{
+  font-size: 38px;
+  font-weight: 500;
+  margin: 30px 0;
+}
+.wrapper .content{
+  width: 100%;
+  justify-content: space-between;
+}
+.content.disable{
+  cursor: no-drop;
+}
+.content .column{
+  padding: 0 10px;
+  border-radius: 5px;
+  border: 1px solid #bfbfbf;
+  width: calc(100% / 3 - 5px);
+}
+.content.disable .column{
+  opacity: 0.6;
+  pointer-events: none;
+}
+.column select{
+  width: 100%;
+  height: 53px;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 19px;
+}
+.wrapper button{
+  width: 100%;
+  border: none;
+  outline: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 17px 0;
+  margin-top: 20px;
+  border-radius: 5px;
+  background: #4A98F7;
+
+.wrapper button:hover {
+  background: #8B008B;
+  transform: scale(1.05);
+}
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <div class="wrapper">
+      <img src="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm%20clock/files/clock.svg" alt="clock">
+      <h1>00:00:00 PM</h1>
+      <div class="content">
+        <div class="column">
+          <select>
+            <option value="Hour" selected disabled hidden>Hour</option>
+          </select>
+        </div>
+        <div class="column">
+          <select>
+            <option value="Minute" selected disabled hidden>Minute</option>
+          </select>
+        </div>
+        <div class="column">
+          <select>
+            <option value="AM/PM" selected disabled hidden>AM/PM</option>
+          </select>
+        </div>
+      </div>
+      <button>Set Alarm</button>
+    </div>
+
+        <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="file:///C:/Users/nowgo/OneDrive/Pictures/images.png" alt="logo" />
+      <h2>Clock</h2>
+    </div>
+    <ul class="sidebar-links">
+      <h4>
+        <span>Main Menu</span>
+        <div class="menu-separator"></div>
+      </h4>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/stopwatch.html">
+          <span class="material-symbols-outlined"> history_toggle_off </span>Stopwatch</a>
+      </li>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/timera.html"><span class="material-symbols-outlined"> timer </span>Timer</a>
+      </li>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm.html"><span class="material-symbols-outlined"> alarm </span>Alarm</a>
+      </li>
+           <li>
+        <a href="file:///C:\Users\nowgo\OneDrive\Documents\Coding\HTML\digital clogk.html"><span class="material-symbols-outlined"> schedule </span>World Clock</a>
+      </li>
+      <h4>
+        <span>More</span>
+        <div class="menu-separator"></div>
+      </h4>
+      <li>
+        <a href="file:///C:\Users\nowgo\OneDrive\Documents\Coding\HTML\Weather v1.1.html"><span class="material-symbols-outlined"> partly_cloudy_day </span>Weather</a>
+      </li>
+      <li>
+        <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML.html"><span class="material-symbols-outlined"> apps </span>Others</a>
+      </li>
+
+        
+    </ul>
+    <div class="user-account">
+      <div class="user-profile">
+        <img src="file:///C:/Users/nowgo/OneDrive/Pictures/pixelcut-export%20(3).png" alt="Profile Image" />
+        <div class="user-detail">
+          <h3>Abdullah karim</h3>
+          <span>Made This</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+    <script>
+      const currentTime = document.querySelector("h1"),
+content = document.querySelector(".content"),
+selectMenu = document.querySelectorAll("select"),
+setAlarmBtn = document.querySelector("button");
+
+let alarmTime, isAlarmSet,
+ringtone = new Audio("file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/alarm%20clock/files/ringtone.mp3");
+
+for (let i = 12; i > 0; i--) {
+    i = i < 10 ? `0${i}` : i;
+    let option = `<option value="${i}">${i}</option>`;
+    selectMenu[0].firstElementChild.insertAdjacentHTML("afterend", option);
+}
+
+for (let i = 59; i >= 0; i--) {
+    i = i < 10 ? `0${i}` : i;
+    let option = `<option value="${i}">${i}</option>`;
+    selectMenu[1].firstElementChild.insertAdjacentHTML("afterend", option);
+}
+
+for (let i = 2; i > 0; i--) {
+    let ampm = i == 1 ? "AM" : "PM";
+    let option = `<option value="${ampm}">${ampm}</option>`;
+    selectMenu[2].firstElementChild.insertAdjacentHTML("afterend", option);
+}
+
+setInterval(() => {
+    let date = new Date(),
+    h = date.getHours(),
+    m = date.getMinutes(),
+    s = date.getSeconds(),
+    ampm = "AM";
+    if(h >= 12) {
+        h = h - 12;
+        ampm = "PM";
+    }
+    h = h == 0 ? h = 12 : h;
+    h = h < 10 ? "0" + h : h;
+    m = m < 10 ? "0" + m : m;
+    s = s < 10 ? "0" + s : s;
+    currentTime.innerText = `${h}:${m}:${s} ${ampm}`;
+
+    if (alarmTime === `${h}:${m} ${ampm}`) {
+        ringtone.play();
+        ringtone.loop = true;
+    }
+});
+
+function setAlarm() {
+    if (isAlarmSet) {
+        alarmTime = "";
+        ringtone.pause();
+        content.classList.remove("disable");
+        setAlarmBtn.innerText = "Set Alarm";
+        return isAlarmSet = false;
+    }
+
+    let time = `${selectMenu[0].value}:${selectMenu[1].value} ${selectMenu[2].value}`;
+    if (time.includes("Hour") || time.includes("Minute") || time.includes("AM/PM")) {
+        return alert("Please, select a valid time to set Alarm!");
+    }
+    alarmTime = time;
+    isAlarmSet = true;
+    content.classList.add("disable");
+    setAlarmBtn.innerText = "Clear Alarm";
+}
+
+setAlarmBtn.addEventListener("click", setAlarm);
+    </script>
+  </body>
+</html>

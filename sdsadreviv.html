@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic Companion - Quran, Hadith, Dua & Dhikr</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a5f4a;
+            --primary-light: #2d8a6e;
+            --primary-dark: #0d3d2e;
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --bg-dark: #0a0f0d;
+            --bg-card: #111816;
+            --bg-card-hover: #1a2420;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b5b0;
+            --text-muted: #6b7d76;
+            --border: #2a3b35;
+            --gradient-primary: linear-gradient(135deg, #1a5f4a 0%, #2d8a6e 100%);
+            --gradient-gold: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+            --shadow-glow: 0 0 40px rgba(26, 95, 74, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .arabic-text {
+            font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+            direction: rtl;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5L35 20H50L38 30L43 45L30 35L17 45L22 30L10 20H25L30 5Z' fill='%23d4af37' fill-opacity='0.4'/%3E%3C/svg%3E");
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, var(--bg-card) 0%, transparent 100%);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-gold);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-text span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-card-hover);
+        }
+
+        .nav-tab.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 95, 74, 0.4);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Daily Feature Card */
+        .daily-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .daily-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-gold);
+        }
+
+        .daily-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .daily-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(212, 175, 55, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: var(--gold);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .refresh-btn.loading .refresh-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .daily-content {
+            text-align: center;
+        }
+
+        .arabic-display {
+            font-size: 2.5rem;
+            line-height: 2;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(212, 175, 55, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .transliteration {
+            font-size: 1.2rem;
+            color: var(--gold);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .translation {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .reference {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card-hover);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Quran Section */
+        .quran-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        select,
+        input {
+            padding: 0.875rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        select:focus,
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 95, 74, 0.2);
+        }
+
+        select option {
+            background: var(--bg-card);
+        }
+
+        /* Verse Card */
+        .verse-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .verse-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .verse-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .verse-arabic {
+            font-size: 2rem;
+            line-height: 2.2;
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+
+        .verse-translation {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Audio Player */
+        .audio-player {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card-hover);
+            border-radius: 12px;
+            margin-top: 1rem;
+        }
+
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient-gold);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-gold);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Hadith Section */
+        .hadith-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .hadith-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .hadith-source {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .hadith-book {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .hadith-number {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hadith-grade {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .grade-sahih {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .grade-hasan {
+            background: rgba(234, 179, 8, 0.1);
+            color: #eab308;
+        }
+
+        .grade-daif {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .hadith-arabic {
+            font-size: 1.5rem;
+            line-height: 2;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(212, 175, 55, 0.05);
+            border-radius: 12px;
+            text-align: right;
+        }
+
+        .hadith-text {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .narrator {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Dua Section */
+        .dua-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-chip:hover,
+        .category-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .dua-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .dua-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .dua-arabic {
+            font-size: 1.8rem;
+            line-height: 2;
+            text-align: right;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            background: rgba(212, 175, 55, 0.05);
+            border-radius: 12px;
+        }
+
+        .dua-transliteration {
+            font-size: 1rem;
+            color: var(--primary-light);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .dua-translation {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .dua-benefits {
+            background: var(--bg-card-hover);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .benefits-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .benefits-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Search Section */
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            padding-left: 3rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* Tafsir Section */
+        .tafsir-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .tafsir-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tafsir-source-select {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tafsir-text {
+            color: var(--text-secondary);
+            line-height: 2;
+            font-size: 1.05rem;
+        }
+
+        /* Word by Word */
+        .word-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            direction: rtl;
+        }
+
+        .word-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .word-item:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+        }
+
+        .word-arabic {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .word-transliteration {
+            font-size: 0.8rem;
+            color: var(--primary-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .word-meaning {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Settings Modal */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .setting-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .setting-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-switch:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background: var(--gradient-primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Loading State */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-tabs {
+                width: 100%;
+                overflow-x: auto;
+                justify-content: flex-start;
+            }
+
+            .nav-tab {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .daily-card {
+                padding: 1.5rem;
+            }
+
+            .arabic-display {
+                font-size: 1.8rem;
+            }
+
+            .quran-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .verse-arabic {
+                font-size: 1.5rem;
+            }
+
+            .daily-card-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Tajweed Colors */
+        .tajweed-ghunnah {
+            color: #2ecc71;
+        }
+
+        .tajweed-ikhfa {
+            color: #9b59b6;
+        }
+
+        .tajweed-idgham {
+            color: #3498db;
+        }
+
+        .tajweed-qalqalah {
+            color: #e74c3c;
+        }
+
+        .tajweed-madd {
+            color: #f39c12;
+        }
+
+        .tajweed-lam {
+            color: #1abc9c;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Bismillah decoration */
+        .bismillah {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">☪</div>
+                <div class="logo-text">
+                    <h1>Islamic Companion</h1>
+                    <span>Quran • Hadith • Dua & Dhikr</span>
+                </div>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-section="quran">
+                    <span>📖</span> Quran
+                </button>
+                <button class="nav-tab" data-section="hadith">
+                    <span>📚</span> Hadith
+                </button>
+                <button class="nav-tab" data-section="dua">
+                    <span>🤲</span> Dua & Dhikr
+                </button>
+                <button class="nav-tab" data-section="settings">
+                    <span>⚙️</span> Settings
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Quran Section -->
+        <section id="quran-section" class="section active">
+            <!-- Daily Verse -->
+            <div class="daily-card">
+                <div class="daily-card-header">
+                    <div class="daily-badge">
+                        <span>✨</span> Daily Verse
+                    </div>
+                    <button class="refresh-btn" onclick="loadRandomVerse()">
+                        <span class="refresh-icon">🔄</span> New Random Verse
+                    </button>
+                </div>
+                <div class="daily-content" id="daily-verse">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quran Controls -->
+            <div class="quran-controls">
+                <div class="control-group">
+                    <label>Surah</label>
+                    <select id="surah-select" onchange="loadSurah()">
+                        <option value="">Select Surah...</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Verse</label>
+                    <select id="verse-select" onchange="loadSpecificVerse()">
+                        <option value="">Select Verse...</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Reciter</label>
+                    <select id="reciter-select">
+                        <option value="ar.alafasy">Mishary Rashid Alafasy</option>
+                        <option value="ar.abdulbasitmurattal">AbdulBaset AbdulSamad</option>
+                        <option value="ar.husary">Mahmoud Khalil Al-Husary</option>
+                        <option value="ar.sudais">Abdur-Rahman as-Sudais</option>
+                        <option value="ar.minshawi">Muhammad al-Minshawi</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Translation</label>
+                    <select id="translation-select">
+                        <option value="en.sahih">English - Saheeh International</option>
+                        <option value="en.pickthall">English - Pickthall</option>
+                        <option value="en.yusufali">English - Yusuf Ali</option>
+                        <option value="bn.bengali">Bengali</option>
+                        <option value="ur.ahmedali">Urdu - Ahmed Ali</option>
+                        <option value="fr.hamidullah">French - Hamidullah</option>
+                        <option value="ru.abuadel">Russian - Abu Adel</option>
+                        <option value="tr.diyanet">Turkish - Diyanet</option>
+                        <option value="id.indonesian">Indonesian</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Surah Display -->
+            <div id="surah-display"></div>
+
+            <!-- Word by Word -->
+            <div id="word-by-word" style="display: none;">
+                <h3 style="margin-bottom: 1rem; color: var(--gold);">Word by Word Analysis</h3>
+                <div class="word-grid" id="word-grid"></div>
+            </div>
+
+            <!-- Tafsir -->
+            <div id="tafsir-section" style="display: none; margin-top: 2rem;">
+                <div class="tafsir-content">
+                    <div class="tafsir-header">
+                        <h3 style="color: var(--gold);">Tafsir (Commentary)</h3>
+                        <select id="tafsir-select" onchange="loadTafsir()">
+                            <option value="en.ibn-kathir">Ibn Kathir (English)</option>
+                            <option value="en.jalalayn">Al-Jalalayn (English)</option>
+                            <option value="ar.ibnkathir">Ibn Kathir (Arabic)</option>
+                            <option value="ar.tabari">Al-Tabari (Arabic)</option>
+                        </select>
+                    </div>
+                    <div class="tafsir-text" id="tafsir-text">
+                        Select a verse to view its Tafsir...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hadith Section -->
+        <section id="hadith-section" class="section">
+            <!-- Daily Hadith -->
+            <div class="daily-card">
+                <div class="daily-card-header">
+                    <div class="daily-badge">
+                        <span>📜</span> Daily Hadith
+                    </div>
+                    <button class="refresh-btn" onclick="loadRandomHadith()">
+                        <span class="refresh-icon">🔄</span> New Random Hadith
+                    </button>
+                </div>
+                <div class="daily-content" id="daily-hadith">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hadith Controls -->
+            <div class="quran-controls">
+                <div class="control-group">
+                    <label>Collection</label>
+                    <select id="hadith-collection" onchange="loadHadithBooks()">
+                        <option value="bukhari">Sahih al-Bukhari</option>
+                        <option value="muslim">Sahih Muslim</option>
+                        <option value="abudawud">Sunan Abu Dawud</option>
+                        <option value="tirmidhi">Jami' at-Tirmidhi</option>
+                        <option value="nasai">Sunan an-Nasa'i</option>
+                        <option value="ibnmajah">Sunan Ibn Majah</option>
+                        <option value="riyadussalihin">Riyad as-Salihin</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Book/Chapter</label>
+                    <select id="hadith-book">
+                        <option value="">Select Book...</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Hadith Number</label>
+                    <input type="number" id="hadith-number" placeholder="Enter hadith number...">
+                </div>
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button class="refresh-btn" onclick="searchHadith()" style="width: 100%;">
+                        Search Hadith
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hadith Display -->
+            <div id="hadith-display"></div>
+        </section>
+
+        <!-- Dua Section -->
+        <section id="dua-section" class="section">
+            <!-- Daily Dua -->
+            <div class="daily-card">
+                <div class="daily-card-header">
+                    <div class="daily-badge">
+                        <span>🤲</span> Daily Dua
+                    </div>
+                    <button class="refresh-btn" onclick="loadRandomDua()">
+                        <span class="refresh-icon">🔄</span> New Random Dua
+                    </button>
+                </div>
+                <div class="daily-content" id="daily-dua">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dua Categories -->
+            <div class="dua-categories" id="dua-categories">
+                <button class="category-chip active" data-category="all">All Duas</button>
+                <button class="category-chip" data-category="morning">Morning</button>
+                <button class="category-chip" data-category="evening">Evening</button>
+                <button class="category-chip" data-category="prayer">Prayer</button>
+                <button class="category-chip" data-category="travel">Travel</button>
+                <button class="category-chip" data-category="food">Food & Drink</button>
+                <button class="category-chip" data-category="sleep">Sleep</button>
+                <button class="category-chip" data-category="protection">Protection</button>
+                <button class="category-chip" data-category="forgiveness">Forgiveness</button>
+                <button class="category-chip" data-category="gratitude">Gratitude</button>
+            </div>
+
+            <!-- Dua Display -->
+            <div id="dua-display"></div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings-section" class="section">
+            <h2 style="margin-bottom: 2rem; color: var(--gold);">⚙️ Settings & Preferences</h2>
+
+            <div class="settings-grid">
+                <!-- Display Settings -->
+                <div class="setting-card">
+                    <h3 class="setting-title">📖 Display Settings</h3>
+                    <div class="control-group" style="margin-bottom: 1rem;">
+                        <label>Arabic Font Size</label>
+                        <input type="range" min="16" max="48" value="28" id="arabic-font-size"
+                            oninput="updateFontSize()">
+                        <span id="arabic-size-value">28px</span>
+                    </div>
+                    <div class="control-group" style="margin-bottom: 1rem;">
+                        <label>Translation Font Size</label>
+                        <input type="range" min="12" max="24" value="16" id="translation-font-size"
+                            oninput="updateFontSize()">
+                        <span id="translation-size-value">16px</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Arabic Script Style</label>
+                        <select id="arabic-script">
+                            <option value="uthmani">Uthmani</option>
+                            <option value="indopak">IndoPak</option>
+                            <option value="imlaei">Imla'i (Simple)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tajweed Settings -->
+                <div class="setting-card">
+                    <h3 class="setting-title">🎨 Tajweed Colors</h3>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Enable Tajweed Colors</span>
+                        <label class="switch">
+                            <input type="checkbox" id="tajweed-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Ghunnah</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Ikhfa</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Qalqalah</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Madd</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Audio Settings -->
+                <div class="setting-card">
+                    <h3 class="setting-title">🔊 Audio Settings</h3>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Auto-play Next Verse</span>
+                        <label class="switch">
+                            <input type="checkbox" id="autoplay-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Repeat Current Verse</span>
+                        <label class="switch">
+                            <input type="checkbox" id="repeat-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="control-group" style="margin-top: 1rem;">
+                        <label>Playback Speed</label>
+                        <select id="playback-speed">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1x (Normal)</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Word by Word Settings -->
+                <div class="setting-card">
+                    <h3 class="setting-title">📝 Word by Word</h3>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Transliteration</span>
+                        <label class="switch">
+                            <input type="checkbox" id="transliteration-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Word Meaning</span>
+                        <label class="switch">
+                            <input type="checkbox" id="meaning-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Highlight on Hover</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Hadith Settings -->
+                <div class="setting-card">
+                    <h3 class="setting-title">📚 Hadith Preferences</h3>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Arabic Text</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Narrator Chain</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Grading</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dua Settings -->
+                <div class="setting-card">
+                    <h3 class="setting-title">🤲 Dua & Dhikr</h3>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show Benefits/Virtues</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-switch">
+                        <span class="toggle-label">Show References</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="control-group" style="margin-top: 1rem;">
+                        <label>Default Dua Language</label>
+                        <select id="dua-language">
+                            <option value="en">English</option>
+                            <option value="bn">Bengali</option>
+                            <option value="ur">Urdu</option>
+                            <option value="ar">Arabic Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Configuration -->
+            <div class="setting-card" style="margin-top: 2rem;">
+                <h3 class="setting-title">🔌 API Configuration</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                    Configure your API endpoints for Quran, Hadith, and Dua services.
+                </p>
+                <div class="control-group" style="margin-bottom: 1rem;">
+                    <label>Quran API (Al Quran Cloud)</label>
+                    <input type="text" id="quran-api-url" placeholder="https://api.alquran.cloud/v1"
+                        value="https://api.alquran.cloud/v1">
+                </div>
+                <div class="control-group" style="margin-bottom: 1rem;">
+                    <label>Hadith API (Sunnah.com)</label>
+                    <input type="text" id="hadith-api-url" placeholder="Enter your Sunnah.com API URL">
+                </div>
+                <div class="control-group" style="margin-bottom: 1rem;">
+                    <label>Dua API (FitraHive)</label>
+                    <input type="text" id="dua-api-url" placeholder="Enter your FitraHive API URL">
+                </div>
+                <button class="refresh-btn" onclick="saveApiConfig()" style="margin-top: 1rem;">
+                    Save API Configuration
+                </button>
+            </div>
+
+            <!-- Tajweed Guide -->
+            <div class="setting-card" style="margin-top: 2rem;">
+                <h3 class="setting-title">🎨 Tajweed Color Guide</h3>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 20px; height: 20px; background: #2ecc71; border-radius: 4px;"></span>
+                        <span style="color: var(--text-secondary);">Ghunnah (nasalization)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 20px; height: 20px; background: #9b59b6; border-radius: 4px;"></span>
+                        <span style="color: var(--text-secondary);">Ikhfa (hiding)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 20px; height: 20px; background: #3498db; border-radius: 4px;"></span>
+                        <span style="color: var(--text-secondary);">Idgham (merging)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 20px; height: 20px; background: #e74c3c; border-radius: 4px;"></span>
+                        <span style="color: var(--text-secondary);">Qalqalah (echo)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 20px; height: 20px; background: #f39c12; border-radius: 4px;"></span>
+                        <span style="color: var(--text-secondary);">Madd (prolongation)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 20px; height: 20px; background: #1abc9c; border-radius: 4px;"></span>
+                        <span style="color: var(--text-secondary);">Lam Shamsiyah</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Audio Element -->
+    <audio id="audio-player" style="display: none;"></audio>
+
+    <script>
+        // API Configuration
+        const API_CONFIG = {
+            quran: 'https://api.alquran.cloud/v1',
+            hadith: '', // User will add their Sunnah.com API URL
+            dua: '' // User will add their FitraHive API URL
+        };
+
+        // Sample Data (for demonstration when APIs aren't configured)
+        const sampleDuas = [
+            {
+                id: 1,
+                category: 'morning',
+                title: 'Morning Remembrance',
+                arabic: 'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيكَ لَهُ',
+                transliteration: "Asbahna wa asbahal-mulku lillah walhamdu lillah, la ilaha illal-lah, wahdahu la shareeka lah",
+                translation: "We have reached the morning and at this very time unto Allah belongs all sovereignty, and all praise is for Allah. None has the right to be worshipped except Allah, alone, without partner.",
+                reference: 'Hisnul Muslim #75',
+                benefits: 'Protection and blessings throughout the day'
+            },
+            {
+                id: 2,
+                category: 'evening',
+                title: 'Evening Remembrance',
+                arabic: 'أَمْسَيْنَا وَأَمْسَى الْمُلْكُ للهِ، وَالْحَمْدُ للهِ، لَا إِلَهَ إِلاَّ اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ',
+                transliteration: "Amsayna wa amsal-mulku lillah walhamdu lillah la ilaha illal-lahu wahdahu la shareeka lah",
+                translation: "We have reached the evening and at this very time unto Allah belongs all sovereignty, and all praise is for Allah. None has the right to be worshipped except Allah, alone, without partner.",
+                reference: 'Hisnul Muslim #77',
+                benefits: 'Protection during the night'
+            },
+            {
+                id: 3,
+                category: 'protection',
+                title: 'Seeking Protection',
+                arabic: 'بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ',
+                transliteration: "Bismillahil-ladhi la yadurru ma'as-mihi shay'un fil-ardi wa la fis-sama'i, wa Huwas-Sami'ul-'Alim",
+                translation: "In the name of Allah with whose name nothing is harmed on earth nor in the heavens and He is The All-Seeing, The All-Knowing.",
+                reference: 'Abu Dawud 4/323, At-Tirmidhi 5/465',
+                benefits: 'Recite 3 times morning and evening for complete protection'
+            },
+            {
+                id: 4,
+                category: 'forgiveness',
+                title: 'Seeking Forgiveness (Sayyidul Istighfar)',
+                arabic: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ',
+                transliteration: "Allahumma anta Rabbi la ilaha illa anta, khalaqtani wa ana 'abduka, wa ana 'ala 'ahdika wa wa'dika mas-tata't",
+                translation: "O Allah, You are my Lord, none has the right to be worshipped except You, You created me and I am Your servant and I abide to Your covenant and promise as best I can.",
+                reference: 'Sahih al-Bukhari 7/150',
+                benefits: 'The master supplication for seeking forgiveness'
+            },
+            {
+                id: 5,
+                category: 'travel',
+                title: 'Dua for Travel',
+                arabic: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ',
+                transliteration: "Subhanal-ladhi sakh-khara lana hadha wa ma kunna lahu muqrinin. Wa inna ila Rabbina lamunqalibun",
+                translation: "Glory unto Him Who created this transportation, for us, though we were unable to create it on our own. And unto our Lord we shall return.",
+                reference: 'Surah Az-Zukhruf 43:13-14',
+                benefits: 'Safety and blessing during journey'
+            },
+            {
+                id: 6,
+                category: 'food',
+                title: 'Before Eating',
+                arabic: 'بِسْمِ اللهِ',
+                transliteration: "Bismillah",
+                translation: "In the name of Allah.",
+                reference: 'At-Tirmidhi, Abu Dawud',
+                benefits: 'Blessings in food and protection from harm'
+            },
+            {
+                id: 7,
+                category: 'sleep',
+                title: 'Before Sleeping',
+                arabic: 'بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا',
+                transliteration: "Bismika Allahumma amutu wa ahya",
+                translation: "In Your name O Allah, I live and die.",
+                reference: 'Sahih al-Bukhari',
+                benefits: 'Protection during sleep'
+            },
+            {
+                id: 8,
+                category: 'gratitude',
+                title: 'Expression of Gratitude',
+                arabic: 'الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِينَ',
+                transliteration: "Alhamdu lillahil-ladhi at'amana wa saqana wa ja'alana muslimin",
+                translation: "All praise is for Allah who fed us and gave us drink, and who made us Muslims.",
+                reference: 'Abu Dawud, At-Tirmidhi',
+                benefits: 'Expressing gratitude increases blessings'
+            },
+            {
+                id: 9,
+                category: 'prayer',
+                title: 'After Prayer',
+                arabic: 'أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ',
+                transliteration: "Astaghfirullah, Astaghfirullah, Astaghfirullah",
+                translation: "I seek the forgiveness of Allah (three times).",
+                reference: 'Muslim 1/414',
+                benefits: 'Recommended after every obligatory prayer'
+            },
+            {
+                id: 10,
+                category: 'protection',
+                title: 'Ayatul Kursi',
+                arabic: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ',
+                transliteration: "Allahu la ilaha illa Huwal-Hayyul-Qayyum, la ta'khudhuhu sinatun wa la nawm",
+                translation: "Allah - there is no deity except Him, the Ever-Living, the Sustainer of existence. Neither drowsiness overtakes Him nor sleep.",
+                reference: 'Surah Al-Baqarah 2:255',
+                benefits: 'Greatest verse in the Quran, protection from evil'
+            }
+        ];
+
+        const sampleHadiths = [
+            {
+                collection: 'Sahih al-Bukhari',
+                bookName: 'Book of Revelation',
+                hadithNumber: 1,
+                arabic: 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى',
+                text: 'The Prophet (ﷺ) said, "The reward of deeds depends upon the intentions and every person will get the reward according to what he has intended."',
+                narrator: 'Narrated by Umar bin Al-Khattab',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Sahih Muslim',
+                bookName: 'Book of Faith',
+                hadithNumber: 45,
+                arabic: 'لاَ يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ',
+                text: 'The Prophet (ﷺ) said, "None of you truly believes until he loves for his brother what he loves for himself."',
+                narrator: 'Narrated by Anas bin Malik',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Sahih al-Bukhari',
+                bookName: 'Book of Knowledge',
+                hadithNumber: 67,
+                arabic: 'بَلِّغُوا عَنِّي وَلَوْ آيَةً',
+                text: 'The Prophet (ﷺ) said, "Convey from me even if it is one verse."',
+                narrator: 'Narrated by Abdullah ibn Amr',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Jami at-Tirmidhi',
+                bookName: 'Book of Supplication',
+                hadithNumber: 3383,
+                arabic: 'الدُّعَاءُ هُوَ الْعِبَادَةُ',
+                text: 'The Prophet (ﷺ) said, "Supplication (dua) is worship."',
+                narrator: 'Narrated by Nu\'man ibn Bashir',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Riyad as-Salihin',
+                bookName: 'Book of Miscellany',
+                hadithNumber: 62,
+                arabic: 'خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ',
+                text: 'The Prophet (ﷺ) said, "The best among you are those who learn the Quran and teach it."',
+                narrator: 'Narrated by Uthman ibn Affan',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Sahih Muslim',
+                bookName: 'Book of Purification',
+                hadithNumber: 223,
+                arabic: 'الطُّهُورُ شَطْرُ الإِيمَانِ',
+                text: 'The Prophet (ﷺ) said, "Cleanliness is half of faith."',
+                narrator: 'Narrated by Abu Malik al-Ash\'ari',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Sahih al-Bukhari',
+                bookName: 'Book of Good Manners',
+                hadithNumber: 6018,
+                arabic: 'مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ',
+                text: 'The Prophet (ﷺ) said, "Whoever believes in Allah and the Last Day should speak good or remain silent."',
+                narrator: 'Narrated by Abu Hurayrah',
+                grade: 'Sahih'
+            },
+            {
+                collection: 'Sunan Ibn Majah',
+                bookName: 'Book of Asceticism',
+                hadithNumber: 4171,
+                arabic: 'الدُّنْيَا سِجْنُ الْمُؤْمِنِ وَجَنَّةُ الْكَافِرِ',
+                text: 'The Prophet (ﷺ) said, "This world is a prison for the believer and a paradise for the disbeliever."',
+                narrator: 'Narrated by Abu Hurayrah',
+                grade: 'Sahih'
+            }
+        ];
+
+        // Surah List
+        const surahList = [
+            { number: 1, name: 'Al-Fatihah', englishName: 'The Opening', verses: 7, type: 'Meccan' },
+            { number: 2, name: 'Al-Baqarah', englishName: 'The Cow', verses: 286, type: 'Medinan' },
+            { number: 3, name: 'Ali \'Imran', englishName: 'Family of Imran', verses: 200, type: 'Medinan' },
+            { number: 4, name: 'An-Nisa', englishName: 'The Women', verses: 176, type: 'Medinan' },
+            { number: 5, name: 'Al-Ma\'idah', englishName: 'The Table Spread', verses: 120, type: 'Medinan' },
+            { number: 6, name: 'Al-An\'am', englishName: 'The Cattle', verses: 165, type: 'Meccan' },
+            { number: 7, name: 'Al-A\'raf', englishName: 'The Heights', verses: 206, type: 'Meccan' },
+            { number: 8, name: 'Al-Anfal', englishName: 'The Spoils of War', verses: 75, type: 'Medinan' },
+            { number: 9, name: 'At-Tawbah', englishName: 'The Repentance', verses: 129, type: 'Medinan' },
+            { number: 10, name: 'Yunus', englishName: 'Jonah', verses: 109, type: 'Meccan' },
+            // ... continuing with all 114 surahs
+            { number: 112, name: 'Al-Ikhlas', englishName: 'Sincerity', verses: 4, type: 'Meccan' },
+            { number: 113, name: 'Al-Falaq', englishName: 'The Daybreak', verses: 5, type: 'Meccan' },
+            { number: 114, name: 'An-Nas', englishName: 'Mankind', verses: 6, type: 'Meccan' }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Populate Surah dropdown
+            populateSurahDropdown();
+
+            // Load initial data
+            loadRandomVerse();
+            loadRandomHadith();
+            loadRandomDua();
+
+            // Setup navigation
+            setupNavigation();
+
+            // Setup category chips
+            setupCategoryChips();
+        }
+
+        function setupNavigation() {
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const section = this.dataset.section;
+
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show corresponding section
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(`${section}-section`).classList.add('active');
+                });
+            });
+        }
+
+        function setupCategoryChips() {
+            const chips = document.querySelectorAll('.category-chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', function () {
+                    chips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    filterDuasByCategory(this.dataset.category);
+                });
+            });
+        }
+
+        function populateSurahDropdown() {
+            const select = document.getElementById('surah-select');
+            surahList.forEach(surah => {
+                const option = document.createElement('option');
+                option.value = surah.number;
+                option.textContent = `${surah.number}. ${surah.name} (${surah.englishName})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Quran Functions
+        async function loadRandomVerse() {
+            const container = document.getElementById('daily-verse');
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+            try {
+                // Random verse number (1-6236)
+                const randomVerse = Math.floor(Math.random() * 6236) + 1;
+                const translation = document.getElementById('translation-select')?.value || 'en.sahih';
+
+                const response = await fetch(`${API_CONFIG.quran}/ayah/${randomVerse}/editions/quran-uthmani,${translation}`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    const arabicData = data.data[0];
+                    const translationData = data.data[1];
+
+                    container.innerHTML = `
+                        <div class="arabic-display arabic-text">${arabicData.text}</div>
+                        <div class="translation">${translationData.text}</div>
+                        <div class="reference">
+                            📖 Surah ${arabicData.surah.englishName} (${arabicData.surah.number}:${arabicData.numberInSurah})
+                        </div>
+                        <div class="audio-player" style="max-width: 400px; margin: 1rem auto 0;">
+                            <button class="play-btn" onclick="playVerseAudio(${arabicData.number})">▶</button>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-${arabicData.number}"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="arabic-display arabic-text">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+                    <div class="translation">In the name of Allah, the Entirely Merciful, the Especially Merciful.</div>
+                    <div class="reference">📖 Surah Al-Fatihah (1:1)</div>
+                    <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.85rem;">
+                        (Demo mode - Configure API in Settings for live data)
+                    </p>
+                `;
+            }
+        }
+
+        async function loadSurah() {
+            const surahNumber = document.getElementById('surah-select').value;
+            if (!surahNumber) return;
+
+            const container = document.getElementById('surah-display');
+            const verseSelect = document.getElementById('verse-select');
+
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+            try {
+                const translation = document.getElementById('translation-select').value;
+                const response = await fetch(`${API_CONFIG.quran}/surah/${surahNumber}/editions/quran-uthmani,${translation}`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    const arabicSurah = data.data[0];
+                    const translationSurah = data.data[1];
+
+                    // Populate verse dropdown
+                    verseSelect.innerHTML = '<option value="">Select Verse...</option>';
+                    for (let i = 1; i <= arabicSurah.numberOfAyahs; i++) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.textContent = `Verse ${i}`;
+                        verseSelect.appendChild(option);
+                    }
+
+                    // Display surah
+                    let html = `
+                        <div class="bismillah arabic-text">${surahNumber !== '9' ? 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ' : ''}</div>
+                    `;
+
+                    arabicSurah.ayahs.forEach((ayah, index) => {
+                        html += `
+                            <div class="verse-card" data-verse="${ayah.numberInSurah}">
+                                <span class="verse-number">${ayah.numberInSurah}</span>
+                                <div class="verse-arabic arabic-text">${ayah.text}</div>
+                                <div class="verse-translation">${translationSurah.ayahs[index].text}</div>
+                                <div class="audio-player">
+                                    <button class="play-btn" onclick="playVerseAudio(${ayah.number})">▶</button>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progress-${ayah.number}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Unable to load Surah. Please check your API configuration.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function playVerseAudio(verseNumber) {
+            const reciter = document.getElementById('reciter-select').value;
+            const audioUrl = `https://cdn.islamic.network/quran/audio/128/${reciter}/${verseNumber}.mp3`;
+
+            const audio = document.getElementById('audio-player');
+            audio.src = audioUrl;
+            audio.play();
+
+            // Update progress
+            audio.addEventListener('timeupdate', function () {
+                const progress = (audio.currentTime / audio.duration) * 100;
+                const progressBar = document.getElementById(`progress-${verseNumber}`);
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                }
+            });
+        }
+
+        // Hadith Functions
+        async function loadRandomHadith() {
+            const container = document.getElementById('daily-hadith');
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+            // Use sample data for demo
+            const randomIndex = Math.floor(Math.random() * sampleHadiths.length);
+            const hadith = sampleHadiths[randomIndex];
+
+            setTimeout(() => {
+                container.innerHTML = `
+                    <div class="hadith-card">
+                        <div class="hadith-header">
+                            <div class="hadith-source">
+                                <span class="hadith-book">${hadith.collection}</span>
+                                <span class="hadith-number">${hadith.bookName} - Hadith #${hadith.hadithNumber}</span>
+                            </div>
+                            <span class="hadith-grade grade-${hadith.grade.toLowerCase()}">${hadith.grade}</span>
+                        </div>
+                        <div class="hadith-arabic arabic-text">${hadith.arabic}</div>
+                        <div class="hadith-text">${hadith.text}</div>
+                        <div class="narrator">${hadith.narrator}</div>
+                    </div>
+                `;
+            }, 500);
+        }
+
+        function searchHadith() {
+            const collection = document.getElementById('hadith-collection').value;
+            const hadithNumber = document.getElementById('hadith-number').value;
+            const container = document.getElementById('hadith-display');
+
+            if (!hadithNumber) {
+                alert('Please enter a hadith number');
+                return;
+            }
+
+            // Demo display
+            const matchingHadith = sampleHadiths.find(h =>
+                h.collection.toLowerCase().includes(collection) &&
+                h.hadithNumber.toString() === hadithNumber
+            ) || sampleHadiths[0];
+
+            container.innerHTML = `
+                <div class="hadith-card">
+                    <div class="hadith-header">
+                        <div class="hadith-source">
+                            <span class="hadith-book">${matchingHadith.collection}</span>
+                            <span class="hadith-number">${matchingHadith.bookName} - Hadith #${matchingHadith.hadithNumber}</span>
+                        </div>
+                        <span class="hadith-grade grade-${matchingHadith.grade.toLowerCase()}">${matchingHadith.grade}</span>
+                    </div>
+                    <div class="hadith-arabic arabic-text">${matchingHadith.arabic}</div>
+                    <div class="hadith-text">${matchingHadith.text}</div>
+                    <div class="narrator">${matchingHadith.narrator}</div>
+                </div>
+                <p style="color: var(--text-muted); text-align: center; margin-top: 1rem; font-size: 0.85rem;">
+                    (Demo mode - Configure Sunnah.com API in Settings for live data)
+                </p>
+            `;
+        }
+
+        function loadHadithBooks() {
+            const collection = document.getElementById('hadith-collection').value;
+            const bookSelect = document.getElementById('hadith-book');
+
+            // Sample books for demo
+            const books = {
+                bukhari: ['Book of Revelation', 'Book of Faith', 'Book of Knowledge', 'Book of Ablution', 'Book of Prayer'],
+                muslim: ['Book of Faith', 'Book of Purification', 'Book of Prayer', 'Book of Zakat', 'Book of Fasting'],
+                abudawud: ['Book of Purification', 'Book of Prayer', 'Book of Zakat', 'Book of Fasting'],
+                tirmidhi: ['Book of Purification', 'Book of Prayer', 'Book of Supplication'],
+                nasai: ['Book of Purification', 'Book of Water', 'Book of Prayer'],
+                ibnmajah: ['Book of Purification', 'Book of Prayer', 'Book of Asceticism'],
+                riyadussalihin: ['Book of Miscellany', 'Book of Good Manners', 'Book of Dress']
+            };
+
+            bookSelect.innerHTML = '<option value="">Select Book...</option>';
+            (books[collection] || []).forEach((book, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1;
+                option.textContent = book;
+                bookSelect.appendChild(option);
+            });
+        }
+
+        // Dua Functions
+        function loadRandomDua() {
+            const container = document.getElementById('daily-dua');
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+            const randomIndex = Math.floor(Math.random() * sampleDuas.length);
+            const dua = sampleDuas[randomIndex];
+
+            setTimeout(() => {
+                container.innerHTML = `
+                    <div class="dua-card">
+                        <div class="dua-title">${dua.title}</div>
+                        <div class="dua-arabic arabic-text">${dua.arabic}</div>
+                        <div class="dua-transliteration">${dua.transliteration}</div>
+                        <div class="dua-translation">${dua.translation}</div>
+                        <div class="dua-benefits">
+                            <div class="benefits-title">✨ Benefits & Virtues</div>
+                            <div class="benefits-text">${dua.benefits}</div>
+                        </div>
+                        <div class="reference">📚 ${dua.reference}</div>
+                    </div>
+                `;
+            }, 500);
+        }
+
+        function filterDuasByCategory(category) {
+            const container = document.getElementById('dua-display');
+
+            const filteredDuas = category === 'all'
+                ? sampleDuas
+                : sampleDuas.filter(d => d.category === category);
+
+            if (filteredDuas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No duas found for this category.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredDuas.forEach(dua => {
+                html += `
+                    <div class="dua-card" style="margin-bottom: 1rem;">
+                        <div class="dua-title">${dua.title}</div>
+                        <div class="dua-arabic arabic-text">${dua.arabic}</div>
+                        <div class="dua-transliteration">${dua.transliteration}</div>
+                        <div class="dua-translation">${dua.translation}</div>
+                        <div class="dua-benefits">
+                            <div class="benefits-title">✨ Benefits & Virtues</div>
+                            <div class="benefits-text">${dua.benefits}</div>
+                        </div>
+                        <div class="reference">📚 ${dua.reference}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Settings Functions
+        function updateFontSize() {
+            const arabicSize = document.getElementById('arabic-font-size').value;
+            const translationSize = document.getElementById('translation-font-size').value;
+
+            document.getElementById('arabic-size-value').textContent = arabicSize + 'px';
+            document.getElementById('translation-size-value').textContent = translationSize + 'px';
+
+            // Apply to all arabic text
+            document.querySelectorAll('.arabic-display, .verse-arabic, .hadith-arabic, .dua-arabic').forEach(el => {
+                el.style.fontSize = arabicSize + 'px';
+            });
+
+            document.querySelectorAll('.translation, .verse-translation, .hadith-text, .dua-translation').forEach(el => {
+                el.style.fontSize = translationSize + 'px';
+            });
+        }
+
+        function saveApiConfig() {
+            API_CONFIG.quran = document.getElementById('quran-api-url').value || API_CONFIG.quran;
+            API_CONFIG.hadith = document.getElementById('hadith-api-url').value;
+            API_CONFIG.dua = document.getElementById('dua-api-url').value;
+
+            alert('API Configuration saved successfully!');
+        }
+
+        // Load Tafsir
+        async function loadTafsir() {
+            const surah = document.getElementById('surah-select').value;
+            const verse = document.getElementById('verse-select').value;
+            const tafsirSource = document.getElementById('tafsir-select').value;
+
+            if (!surah || !verse) {
+                alert('Please select a Surah and Verse first');
+                return;
+            }
+
+            const container = document.getElementById('tafsir-text');
+            container.textContent = 'Loading tafsir...';
+
+            // Demo tafsir
+            setTimeout(() => {
+                container.innerHTML = `
+                    <p>This is a placeholder for the Tafsir of Surah ${surah}, Verse ${verse}.</p>
+                    <p style="margin-top: 1rem;">To view actual Tafsir, please configure the Quran.com API with Tafsir endpoints in the Settings section.</p>
+                    <p style="margin-top: 1rem; color: var(--text-muted);">Supported Tafsir sources include Ibn Kathir, Al-Jalalayn, Al-Sa'di, Al-Tabari, Al-Qurtubi, and more.</p>
+                `;
+            }, 500);
+        }
+
+        // Show/hide sections based on user interaction
+        function loadSpecificVerse() {
+            const verse = document.getElementById('verse-select').value;
+            if (verse) {
+                document.getElementById('tafsir-section').style.display = 'block';
+                document.getElementById('word-by-word').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+
+</html>

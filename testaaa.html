@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator By A.K.</title>
+    <style>
+        @font-face {
+            font-family: "DungGeunMo";
+            src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff") format("woff");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #353935;
+            font-family: "DungGeunMo", Arial, sans-serif;
+        }
+
+        h1 {
+            color: #f1f1f1;
+            font-size: 2rem;
+            margin: 0.5rem;
+            text-align: center;
+        }
+
+        h2 {
+            color: #aaaaaa;
+            font-size: 0.8rem;
+            margin: 0.5rem;
+            text-align: left;
+            font-family: Arial;
+        }
+
+        h3 {
+            color: #aaaaaa;
+            font-size: 0.8rem;
+            margin: 0.5rem;
+            text-align: right;
+            font-family: Arial;
+            position: relative;
+            bottom: 25px;
+        }
+
+        #calculator {
+            width: 90%;
+            max-width: 430px;
+            height: 570px;
+            padding: 25px;
+            border-radius: 25px;
+            background: linear-gradient(to bottom right, #404040, #0c0c0c);
+        }
+
+        #input-wrap {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            width: 100%;
+            padding: 0.5rem;
+            background: #a1bd66;
+            box-shadow: inset 0px 0px 15px 0px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        #input {
+            width: 100%;
+            font-size: 2rem;
+            line-height: 2.5rem;
+            text-align: right;
+            padding: 0.5rem;
+            word-break: break-all;
+            color: #000;
+            height: 50px;
+        }
+
+        #button-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 0.25rem;
+        }
+
+        #button-wrap>button {
+            flex: 1 1 calc(25% - 0.5rem);
+            text-align: center;
+            line-height: 3.6rem;
+            margin: 0.25rem 0;
+            background: grey;
+            color: #f1f1f1;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            outline: 0;
+            transition: 0.3s;
+            font-size: 1.5rem;
+        }
+
+        #button-wrap>button.number {
+            background: #5d5d5f;
+        }
+
+        #button-wrap>button:hover {
+            box-shadow: inset 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        #button-wrap>button#result {
+            background: #f55530;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="calculator">
+        <h1>Calculator</h1>
+        <h2>A.K. V 2.4</h2>
+        <h3>Made in Qatar</h3>
+        <div id="input-wrap">
+            <div id="input"></div>
+        </div>
+        <div id="button-wrap">
+            <button id="all-clear">AC</button>
+            <button id="clear">C</button>
+            <button id="sign">+/-</button>
+            <button class="amt divide">÷</button>
+
+            <button class="number">7</button>
+            <button class="number">8</button>
+            <button class="number">9</button>
+            <button class="amt times">×</button>
+
+            <button class="number">4</button>
+            <button class="number">5</button>
+            <button class="number">6</button>
+            <button class="amt minus">-</button>
+
+            <button class="number">1</button>
+            <button class="number">2</button>
+            <button class="number">3</button>
+            <button class="amt plus">+</button>
+
+            <button class="number">00</button>
+            <button class="number">0</button>
+            <button id="dot">.</button>
+            <button id="result">=</button>
+        </div>
+    </div>
+    <script>
+        const input = document.getElementById("input");
+
+        const empty = element => {
+            element.innerText = "";
+        };
+
+        // All-clear button
+        document.getElementById("all-clear").addEventListener("click", () => {
+            empty(input);
+            currentExpression = "";
+        });
+
+        // Clear button
+        document.getElementById("clear").addEventListener("click", () => {
+            empty(input);
+        });
+
+        // Number buttons
+        document.querySelectorAll(".number").forEach(element => {
+            element.addEventListener("click", () => {
+                if (input.innerText.length > 19) return alert("Maximum input range exceeded!");
+                input.innerText += element.innerText;
+            });
+        });
+
+        // Dot button
+        document.getElementById("dot").addEventListener("click", () => {
+            if (!input.innerText.includes(".")) {
+                input.innerText += ".";
+            }
+        });
+
+        // Sign toggle button
+        document.getElementById("sign").addEventListener("click", () => {
+            if (input.innerText.startsWith("-")) {
+                input.innerText = input.innerText.slice(1);
+            } else {
+                input.innerText = `-${input.innerText}`;
+            }
+        });
+
+        // Operator buttons
+        let currentExpression = "";
+        document.querySelectorAll(".amt").forEach(element => {
+            element.addEventListener("click", () => {
+                if (input.innerText || currentExpression) {
+                    currentExpression += ` ${input.innerText} ${element.innerText}`;
+                    empty(input);
+                }
+            });
+        });
+
+        // Equals button
+        document.getElementById("result").addEventListener("click", () => {
+            if (input.innerText) {
+                currentExpression += ` ${input.innerText}`;
+                const expression = currentExpression.replace(/×/g, "*").replace(/÷/g, "/");
+                input.innerText = evalExpression(expression);
+                currentExpression = "";
+            }
+        });
+
+        // Evaluate expression
+        function evalExpression(expr) {
+            try {
+                return new Function(`return (${expr})`)().toString();
+            } catch {
+                return "Error";
+            }
+        }
+    </script>
+</body>
+
+</html>

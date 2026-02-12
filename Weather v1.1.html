@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    /* Importing Google Fonts - Poppins */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4); /* New gradient background */
+      color: #333; /* Darker text for better contrast */
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 15px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.8); /* Light background for the container */
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+    }
+
+    .search-section {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-section .input-wrapper {
+      flex-grow: 1;
+      position: relative;
+    }
+
+    .search-section .input-wrapper span {
+      position: absolute;
+      top: 50%;
+      left: 15px;
+      transform: translateY(-50%);
+      color: #888;
+    }
+
+    .search-section .search-input {
+      width: 100%;
+      padding: 12px 15px 12px 40px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-section .search-input::placeholder {
+      color: #aaa;
+    }
+
+    .search-section .location-button {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 8px;
+      background: #ff6b6b;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .search-section .location-button:hover {
+      background: #ff4c4c;
+    }
+
+    .no-results {
+      display: none;
+      padding: 40px;
+      text-align: center;
+    }
+
+    body.show-no-results .no-results {
+      display: block;
+    }
+
+    .no-results .title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #ff6b6b;
+    }
+
+    .no-results .message {
+      font-size: 1rem;
+      color: #bbb;
+    }
+
+    .weather-section {
+      text-align: center;
+    }
+
+    .current-weather .weather-icon {
+      width: 120px;
+      margin: 20px auto;
+    }
+
+    .current-weather .temperature {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #ff6b6b;
+    }
+
+    .current-weather .description {
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: #555;
+    }
+
+    .hourly-weather {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+    }
+
+    .hourly-weather .weather-list {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .hourly-weather .weather-item {
+      text-align: center;
+      color: #333;
+    }
+
+    .hourly-weather .weather-item .weather-icon {
+      width: 50px;
+      margin-bottom: 5px;
+    }
+
+    .hourly-weather .weather-item .time {
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    .hourly-weather .weather-item .temperature {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ff6b6b;
+    }
+
+    /* Scrollbar styling */
+    .hourly-weather .weather-list::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .hourly-weather .weather-list::-webkit-scrollbar-thumb {
+      background: #aaa;
+      border-radius: 3px;
+    }
+
+    .hourly-weather .weather-list::-webkit-scrollbar-thumb:hover {
+      background: #888;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .search-section {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .search-section .location-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Search section -->
+    <div class="search-section">
+      <div class="input-wrapper">
+        <span class="material-symbols-rounded">search</span>
+        <input type="search" placeholder="Enter a city name" class="search-input">
+      </div>
+      <button class="location-button">
+        <span class="material-symbols-rounded">my_location</span>
+      </button>
+    </div>
+    <!-- No results message -->
+    <div class="no-results">
+      <h3 class="title">No Results Found</h3>
+      <p class="message">Please check the city name or try again later.</p>
+    </div>
+    <!-- Weather section -->
+    <div class="weather-section">
+      <div class="current-weather">
+        <img src="icons/no-result.svg" alt="Weather Icon" class="weather-icon">
+        <h2 class="temperature">00<span>°C</span></h2>
+        <p class="description">Weather description</p>
+      </div>
+      <div class="hourly-weather">
+        <ul class="weather-list">
+          <!-- Hourly weather items will be dynamically added here -->
+        </ul>
+      </div>
+    </div>
+  </div>
+  <script>
+    const searchInput = document.querySelector(".search-input");
+    const locationButton = document.querySelector(".location-button");
+    const currentWeatherDiv = document.querySelector(".current-weather");
+    const hourlyWeather = document.querySelector(".hourly-weather .weather-list");
+
+    const API_KEY = "a774276c18054ccc9f770224242109"; // API key
+
+    // Weather codes for mapping to custom icons
+    const weatherCodes = {
+      clear: [1000],
+      clouds: [1003, 1006, 1009],
+      mist: [1030, 1135, 1147],
+      rain: [1063, 1150, 1153, 1168, 1171, 1180, 1183, 1198, 1201, 1240, 1243, 1246, 1273, 1276],
+      moderate_heavy_rain: [1186, 1189, 1192, 1195, 1243, 1246],
+      snow: [1066, 1069, 1072, 1114, 1117, 1204, 1207, 1210, 1213, 1216, 1219, 1222, 1225, 1237, 1249, 1252, 1255, 1258, 1261, 1264, 1279, 1282],
+      thunder: [1087, 1279, 1282],
+      thunder_rain: [1273, 1276],
+    }
+
+    // Display the hourly forecast for the next 24 hours
+    const displayHourlyForecast = (hourlyData) => {
+      const currentHour = new Date().setMinutes(0, 0, 0);
+      const next24Hours = currentHour + 24 * 60 * 60 * 1000;
+
+      // Filter the hourly data to only include the next 24 hours
+      const next24HoursData = hourlyData.filter(({ time }) => {
+        const forecastTime = new Date(time).getTime();
+        return forecastTime >= currentHour && forecastTime <= next24Hours;
+      });
+
+      // Generate HTML for each hourly forecast and display it
+      hourlyWeather.innerHTML = next24HoursData.map((item) => {
+        const temperature = Math.floor(item.temp_c);
+        const time = item.time.split(' ')[1].substring(0, 5);
+        const weatherIcon = Object.keys(weatherCodes).find(icon => weatherCodes[icon].includes(item.condition.code));
+
+        return `<li class="weather-item">
+                <p class="time">${time}</p>
+                <img src="icons/${weatherIcon}.svg" class="weather-icon">
+                <p class="temperature">${temperature}°</p>
+              </li>`;
+      }).join('');
+    };
+
+    // Fetch and display weather details
+    const getWeatherDetails = async (API_URL) => {
+      window.innerWidth <= 768 && searchInput.blur();
+      document.body.classList.remove("show-no-results");
+
+      try {
+        // Fetch weather data from the API and parse the response as JSON
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        // Extract current weather details
+        const temperature = Math.floor(data.current.temp_c);
+        const description = data.current.condition.text;
+        const weatherIcon = Object.keys(weatherCodes).find(icon => weatherCodes[icon].includes(data.current.condition.code));
+
+        // Update the current weather display
+        currentWeatherDiv.querySelector(".weather-icon").src = `icons/${weatherIcon}.svg`;
+        currentWeatherDiv.querySelector(".temperature").innerHTML = `${temperature}<span>°C</span>`;
+        currentWeatherDiv.querySelector(".description").innerText = description;
+
+        // Combine hourly data from today and tomorrow
+        const combinedHourlyData = [...data.forecast?.forecastday[0]?.hour, ...data.forecast?.forecastday[1]?.hour];
+
+        searchInput.value = data.location.name;
+        displayHourlyForecast(combinedHourlyData);
+      } catch (error) {
+        document.body.classList.add("show-no-results");
+      }
+    }
+
+    // Set up the weather request for a specific city
+    const setupWeatherRequest = (cityName) => {
+      const API_URL = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${cityName}&days=2`;
+      getWeatherDetails(API_URL);
+    }
+
+    // Handle user input in the search box
+    searchInput.addEventListener("keyup", (e) => {
+      const cityName = searchInput.value.trim();
+
+      if (e.key == "Enter" && cityName) {
+        setupWeatherRequest(cityName);
+      }
+    });
+
+    // Get user's coordinates and fetch weather data for the current location
+    locationButton.addEventListener("click", () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const API_URL = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${latitude},${longitude}&days=2`;
+          getWeatherDetails(API_URL);
+          window.innerWidth >= 768 && searchInput.focus();
+        },
+        () => {
+          alert("Location access denied. Please enable permissions to use this feature.");
+        }
+      );
+    });
+
+    // Initial weather request for London as the default city
+    setupWeatherRequest("Doha");
+  </script>
+</body>
+</html>
