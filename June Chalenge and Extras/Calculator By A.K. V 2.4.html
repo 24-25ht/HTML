@@ -290,6 +290,22 @@
             border-color: var(--accent);
         }
 
+        .currency-search {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            margin-top: 8px;
+        }
+
+        .currency-search:focus {
+            border-color: var(--accent);
+        }
+
         .converter-select {
             width: 100%;
             padding: 12px 15px;
@@ -1013,6 +1029,8 @@
                             <label class="converter-label">Amount</label>
                             <input type="number" class="converter-input" id="currency-from-val" value="1"
                                 oninput="convertCurrency()">
+                            <input type="text" class="currency-search" id="currency-from-search"
+                                placeholder="Search currency or code..." oninput="applyCurrencySearch('from')">
                             <select class="converter-select" id="currency-from" onchange="convertCurrency()">
                                 <option value="USD">🇺🇸 US Dollar (USD)</option>
                                 <option value="EUR">🇪🇺 Euro (EUR)</option>
@@ -1049,7 +1067,6 @@
                                 <option value="TWD">🇹🇼 New Taiwan Dollar (TWD)</option>
                                 <option value="AED">🇦🇪 UAE Dirham (AED)</option>
                                 <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
-                                <option value="ILS">🇮🇱 Israeli Shekel (ILS)</option>
                                 <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
                                 <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
                                 <option value="NGN">🇳🇬 Nigerian Naira (NGN)</option>
@@ -1079,6 +1096,8 @@
                         <div class="converter-input-group">
                             <label class="converter-label">Converted</label>
                             <input type="number" class="converter-input" id="currency-to-val" readonly>
+                            <input type="text" class="currency-search" id="currency-to-search"
+                                placeholder="Search currency or code..." oninput="applyCurrencySearch('to')">
                             <select class="converter-select" id="currency-to" onchange="convertCurrency()">
                                 <option value="EUR">🇪🇺 Euro (EUR)</option>
                                 <option value="USD">🇺🇸 US Dollar (USD)</option>
@@ -1115,7 +1134,6 @@
                                 <option value="TWD">🇹🇼 New Taiwan Dollar (TWD)</option>
                                 <option value="AED">🇦🇪 UAE Dirham (AED)</option>
                                 <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
-                                <option value="ILS">🇮🇱 Israeli Shekel (ILS)</option>
                                 <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
                                 <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
                                 <option value="NGN">🇳🇬 Nigerian Naira (NGN)</option>
@@ -2139,6 +2157,7 @@
         const FIXER_API_KEY = 'b2a838426ad6efb467b0673c10eaedd5'; // Replace with your key
         let liveRates = null;
         let useLiveRates = false;
+        let currencyOptionPool = [];
 
         const currencyRates = {
             USD: 1, EUR: 0.841655, GBP: 0.732954, JPY: 153.321272, AUD: 1.404314,
@@ -2146,14 +2165,69 @@
             BRL: 5.186564, MXN: 17.196759, ARS: 1452.25, CLP: 857.041543, COP: 3671.546006,
             PEN: 3.357543, SEK: 8.890513, NOK: 9.480935, DKK: 6.278556, PLN: 3.546261,
             CZK: 20.382855, HUF: 318.762623, TRY: 43.666614, RUB: 77.204496, ISK: 121.939107,
-            HKD: 7.816806, SGD: 1.262138, THB: 31.093616, IDR: 16783.878, MYR: 3.916281,
-            PHP: 58.276661, VND: 25945.82834, TWD: 31.366828, AED: 3.6725, SAR: 3.75,
-            ILS: 3.073141, ZAR: 15.878597, EGP: 46.861995, NGN: 1349.997335, KES: 128.968217,
+            HKD: 7.816806, SGD: 1.262138, THB: 31.093616, IDR: 16783.878001, MYR: 3.916281,
+            PHP: 58.276661, VND: 25945.828336, TWD: 31.366828, AED: 3.6725, SAR: 3.75,
+            ZAR: 15.878597, EGP: 46.861995, NGN: 1349.997335, KES: 128.968217,
             NZD: 1.652256, UAH: 43.08214, PKR: 279.533546, BDT: 122.32859, LKR: 309.229721,
             KZT: 492.332384, QAR: 3.64, KWD: 0.306374, OMR: 0.384497, DOP: 62.692517,
             CRC: 494.901251, UYU: 38.362267, RON: 4.276373, BGN: 1.596545, GHS: 11.006339,
-            MAD: 9.112427, BTC: 0.00001493651979, ETH: 0.0005157270978
+            MAD: 9.112427, BTC: 0.0000150706814962173, ETH: 0.000521178070911488
         };
+
+        function initCurrencySearch() {
+            const fromSel = document.getElementById('currency-from');
+            if (!fromSel) return;
+            currencyOptionPool = Array.from(fromSel.options).map(opt => ({
+                value: opt.value,
+                text: opt.textContent
+            }));
+            applyCurrencySearch('from');
+            applyCurrencySearch('to');
+        }
+
+        function applyCurrencySearch(which) {
+            const select = document.getElementById(`currency-${which}`);
+            const search = document.getElementById(`currency-${which}-search`);
+            if (!select || !search || currencyOptionPool.length === 0) return;
+
+            const currentValue = select.value;
+            const query = search.value.trim().toLowerCase();
+            let filtered = currencyOptionPool.filter(item => {
+                const haystack = `${item.text} ${item.value}`.toLowerCase();
+                return haystack.includes(query);
+            });
+
+            if (currentValue && !filtered.some(item => item.value === currentValue)) {
+                const currentItem = currencyOptionPool.find(item => item.value === currentValue);
+                if (currentItem) filtered.unshift(currentItem);
+            }
+
+            select.innerHTML = '';
+            if (filtered.length === 0) {
+                const noMatch = document.createElement('option');
+                noMatch.value = '';
+                noMatch.textContent = 'No currency found';
+                noMatch.disabled = true;
+                noMatch.selected = true;
+                select.appendChild(noMatch);
+                return;
+            }
+
+            filtered.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.value;
+                opt.textContent = item.text;
+                select.appendChild(opt);
+            });
+
+            if (filtered.some(item => item.value === currentValue)) {
+                select.value = currentValue;
+            } else {
+                select.value = filtered[0].value;
+            }
+
+            convertCurrency();
+        }
 
         function toggleCurrencyMode() {
             useLiveRates = document.getElementById('currency-mode').checked;
@@ -2481,7 +2555,7 @@
         updateStdDisplay();
         updateSciDisplay();
         updateProgDisplay();
-        convertCurrency();
+        initCurrencySearch();
         convertVolume();
         convertLength();
         convertWeight();
