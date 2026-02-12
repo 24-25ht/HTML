@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEON RUSH - Car Racing Game</title>
+    <link rel="icon" type="image/svg+xml" href="neon-rush-favicon.svg">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
         
@@ -30,6 +31,7 @@
             height: 100%;
             z-index: -1;
             overflow: hidden;
+            pointer-events: none;
         }
         
         .bg-animation::before {
@@ -52,21 +54,23 @@
         
         /* Floating particles */
         .particle {
-            position: fixed;
+            position: absolute;
+            top: 105%;
             width: 4px;
             height: 4px;
             background: cyan;
             border-radius: 50%;
             box-shadow: 0 0 10px cyan, 0 0 20px cyan;
-            animation: float 15s infinite;
-            opacity: 0.6;
+            animation: float 15s linear infinite;
+            opacity: 0;
+            will-change: transform, opacity;
         }
         
         @keyframes float {
-            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
             10% { opacity: 0.6; }
             90% { opacity: 0.6; }
-            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+            100% { transform: translateY(-130vh) rotate(720deg); opacity: 0; }
         }
         
         /* MAIN MENU */
@@ -813,17 +817,20 @@
     
     <!-- Floating Particles -->
     <script>
-        for(let i = 0; i < 20; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 15 + 's';
-            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
-            if(Math.random() > 0.5) {
-                particle.style.background = '#ff00ff';
-                particle.style.boxShadow = '0 0 10px #ff00ff, 0 0 20px #ff00ff';
+        const particleContainer = document.querySelector('.bg-animation');
+        if (particleContainer) {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = -(Math.random() * 15) + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                if (Math.random() > 0.5) {
+                    particle.style.background = '#ff00ff';
+                    particle.style.boxShadow = '0 0 10px #ff00ff, 0 0 20px #ff00ff';
+                }
+                particleContainer.appendChild(particle);
             }
-            document.body.appendChild(particle);
         }
     </script>
 

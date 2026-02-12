@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <linearGradient id="car" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00ffff"/>
+      <stop offset="100%" stop-color="#ff00ff"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#00ffff" stroke-opacity="0.5"/>
+
+  <path d="M15 60 L27 6" stroke="#00ffff" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
+  <path d="M49 60 L37 6" stroke="#ff00ff" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>
+  <rect x="30" y="9" width="4" height="42" rx="2" fill="#ffffff" fill-opacity="0.18"/>
+
+  <g filter="url(#glow)">
+    <path d="M20 46 L20 27 Q20 20 32 18 Q44 20 44 27 L44 46 Q44 51 32 51 Q20 51 20 46Z" fill="url(#car)"/>
+    <path d="M24 29 Q32 24 40 29 L40 35 L24 35Z" fill="#0b1022" fill-opacity="0.9"/>
+    <ellipse cx="24" cy="22" rx="3" ry="2.8" fill="#fff176"/>
+    <ellipse cx="40" cy="22" rx="3" ry="2.8" fill="#fff176"/>
+    <rect x="23" y="36" width="2.8" height="11" rx="1.2" fill="#ffffff" fill-opacity="0.45"/>
+    <rect x="38.2" y="36" width="2.8" height="11" rx="1.2" fill="#ffffff" fill-opacity="0.45"/>
+    <rect x="30.6" y="29" width="2.8" height="17" rx="1.4" fill="#ffffff" fill-opacity="0.3"/>
+  </g>
+</svg>
