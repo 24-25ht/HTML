@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
     <title>OBSIDIAN GAMBIT</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="shortcut icon" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -380,10 +382,15 @@
             position: relative;
             display: flex;
             align-items: center;
+            justify-content: center
+        }
+
+        .sl {
+            background: #c8ad7e
         }
 
         .sd {
-            background: #7a5a38
+            background: #101a2f
         }
 
         .sq.lm.sl {
@@ -421,7 +428,10 @@
             border-radius: 50%;
             background: rgba(0, 0, 0, .22);
             pointer-events: none;
-            position: absolute
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%)
         }
 
         .piece {
@@ -618,6 +628,25 @@
             display: flex;
             justify-content: center;
             margin-top: 1.2rem
+        }
+
+        .resume-clear-opts {
+            display: flex;
+            flex-direction: column;
+            gap: .55rem;
+            margin-top: .95rem
+        }
+
+        .resume-clear-note {
+            font-size: .76rem;
+            opacity: .8;
+            margin-top: .3rem
+        }
+
+        .trash-ic {
+            margin-right: .35rem;
+            font-size: 1rem;
+            vertical-align: -1px
         }
 
         .promo-grid {
@@ -826,9 +855,10 @@
             <div class="mbtn">
                 <button class="btn btn-p" onclick="openSetup('single')">⚔ Single Player</button>
                 <button class="btn btn-p" onclick="openSetup('dual')">🛡 Dual Player</button>
-                <button class="btn" id="resumeBtn" style="display:none" onclick="resumeGame()">▶ Resume Game</button>
-                <button class="btn" onclick="openModal('lbModal')">🏆 Leaderboard</button>
-                <button class="btn" onclick="openModal('dualModal')">👥 Dual Records</button>
+                <button class="btn" id="resumeBtn" style="display:none" onclick="resumeGame()"
+                    oncontextmenu="openResumeClearMenu(event)">▶ Resume Game</button>
+                <button class="btn" onclick="openModal('lbModal')" oncontextmenu="openLbClearMenu(event)">🏆 Leaderboard</button>
+                <button class="btn" onclick="openModal('dualModal')" oncontextmenu="openDualClearMenu(event)">👥 Dual Records</button>
                 <button class="btn" onclick="openModal('tutModal')">📜 Tutorial</button>
                 <button class="btn" onclick="openModal('aboutModal')">🗿 About</button>
             </div>
@@ -897,6 +927,40 @@
                 <p>Take your time, strategist.</p>
                 <div class="sa"><button class="btn btn-p" onclick="togglePause()">▶ Resume</button><button
                         class="btn btn-d" onclick="quitGame()">✖ Quit</button></div>
+            </div>
+        </div>
+        <div class="modal-ov" id="resumeClearModal">
+            <div class="modal">
+                <h2>Saved Match Options</h2>
+                <p id="resumeClearInfo">Choose how to remove saved match data.</p>
+                <div class="resume-clear-opts">
+                    <button class="btn btn-d" onclick="deleteSavedMatch()"><span class="trash-ic"
+                            aria-hidden="true">&#128465;</span>Delete One Save</button>
+                </div>
+                <p class="resume-clear-note">This removes only the saved game.</p>
+                <div class="close-row"><button class="btn" onclick="closeModal('resumeClearModal')">Cancel</button></div>
+            </div>
+        </div>
+        <div class="modal-ov" id="lbClearModal">
+            <div class="modal">
+                <h2>Leaderboard Options</h2>
+                <p id="lbClearInfo">Choose how to clear leaderboard data.</p>
+                <div class="resume-clear-opts">
+                    <button class="btn btn-d" onclick="clearLeaderboardData()"><span class="trash-ic"
+                            aria-hidden="true">&#128465;</span>Clear Leaderboard</button>
+                </div>
+                <div class="close-row"><button class="btn" onclick="closeModal('lbClearModal')">Cancel</button></div>
+            </div>
+        </div>
+        <div class="modal-ov" id="dualClearModal">
+            <div class="modal">
+                <h2>Dual Records Options</h2>
+                <p id="dualClearInfo">Choose how to clear dual records data.</p>
+                <div class="resume-clear-opts">
+                    <button class="btn btn-d" onclick="clearDualRecordsData()"><span class="trash-ic"
+                            aria-hidden="true">&#128465;</span>Clear Dual Records</button>
+                </div>
+                <div class="close-row"><button class="btn" onclick="closeModal('dualClearModal')">Cancel</button></div>
             </div>
         </div>
         <div class="modal-ov" id="resignModal">
@@ -990,9 +1054,14 @@
                 <div class="tut-section">
                     <h4>💡 Tip</h4>
                     <p>The king glows red when in check. Only legal moves are shown — you can never make an illegal
-                        move!</p>
+                        move! To individually delete data, right-click <b>Leaderboard</b> or <b>Dual Records</b>.
+                        <b>Clear Fully</b> clears all data: saved game, leaderboard, and dual records.</p>
                 </div>
-                <div class="close-row"><button class="btn" onclick="closeModal('tutModal')">Close</button></div>
+                <div class="sa">
+                    <button class="btn btn-d" onclick="clearAllSavedData()"><span class="trash-ic"
+                            aria-hidden="true">&#128465;</span>Clear Fully</button>
+                    <button class="btn" onclick="closeModal('tutModal')">Close</button>
+                </div>
             </div>
         </div>
         <div class="modal-ov" id="aboutModal">
@@ -1683,6 +1752,78 @@
 
         function checkResume() {
             try { const d = localStorage.getItem('obsGambit_save'); document.getElementById('resumeBtn').style.display = d ? 'block' : 'none'; } catch (e) { document.getElementById('resumeBtn').style.display = 'none'; }
+        }
+
+        function openResumeClearMenu(ev) {
+            if (ev) ev.preventDefault();
+            try {
+                const raw = localStorage.getItem('obsGambit_save');
+                if (!raw) { checkResume(); return false; }
+                let info = 'Choose how to remove saved match data.';
+                try {
+                    const d = JSON.parse(raw);
+                    const wn = d && d.names && d.names.w ? d.names.w : 'White';
+                    const bn = d && d.names && d.names.b ? d.names.b : (d && d.mode === 'single' ? 'AI' : 'Black');
+                    const mv = d && Array.isArray(d.notation) ? d.notation.length : 0;
+                    info = `Saved match: ${wn} vs ${bn} (${mv} move${mv === 1 ? '' : 's'}).`;
+                } catch (e) { }
+                document.getElementById('resumeClearInfo').textContent = info;
+                openModal('resumeClearModal');
+            } catch (e) { console.error(e); }
+            return false;
+        }
+
+        function openLbClearMenu(ev) {
+            if (ev) ev.preventDefault();
+            const c = loadLB().length;
+            document.getElementById('lbClearInfo').textContent = c ? `Saved leaderboard entries: ${c}.` : 'No leaderboard entries saved.';
+            openModal('lbClearModal');
+            return false;
+        }
+
+        function openDualClearMenu(ev) {
+            if (ev) ev.preventDefault();
+            const c = loadDual().length;
+            document.getElementById('dualClearInfo').textContent = c ? `Saved dual records: ${c}.` : 'No dual records saved.';
+            openModal('dualClearModal');
+            return false;
+        }
+
+        function deleteSavedMatch() {
+            try { localStorage.removeItem('obsGambit_save'); } catch (e) { }
+            closeModal('resumeClearModal');
+            checkResume();
+        }
+
+        function clearLeaderboardData() {
+            try { localStorage.removeItem('obsGambit_lb'); } catch (e) { }
+            closeModal('resumeClearModal');
+            closeModal('lbClearModal');
+            checkResume();
+            renderLB();
+        }
+
+        function clearDualRecordsData() {
+            try { localStorage.removeItem('obsGambit_dual'); } catch (e) { }
+            closeModal('resumeClearModal');
+            closeModal('dualClearModal');
+            checkResume();
+            renderDual();
+        }
+
+        function clearAllSavedData() {
+            try {
+                localStorage.removeItem('obsGambit_save');
+                localStorage.removeItem('obsGambit_lb');
+                localStorage.removeItem('obsGambit_dual');
+            } catch (e) { }
+            closeModal('resumeClearModal');
+            closeModal('lbClearModal');
+            closeModal('dualClearModal');
+            closeModal('tutModal');
+            checkResume();
+            renderLB();
+            renderDual();
         }
 
         function resumeGame() {
