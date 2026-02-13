@@ -37,6 +37,12 @@ const gameOver = (isVictory) => {
     gameModal.classList.add("show");
 }
 
+const handleLetterGuess = (letter) => {
+    const button = keyboardDiv.querySelector(`button[data-letter="${letter}"]`);
+    if (!button || button.disabled || gameModal.classList.contains("show")) return;
+    initGame(button, letter);
+}
+
 const initGame = (button, clickedLetter) => {
     // Checking if clickedLetter is exist on the currentWord
     if(currentWord.includes(clickedLetter)) {
@@ -64,10 +70,18 @@ const initGame = (button, clickedLetter) => {
 // Creating keyboard buttons and adding event listeners
 for (let i = 97; i <= 122; i++) {
     const button = document.createElement("button");
-    button.innerText = String.fromCharCode(i);
+    const letter = String.fromCharCode(i);
+    button.innerText = letter;
+    button.dataset.letter = letter;
     keyboardDiv.appendChild(button);
-    button.addEventListener("click", (e) => initGame(e.target, String.fromCharCode(i)));
+    button.addEventListener("click", () => handleLetterGuess(letter));
 }
+
+document.addEventListener("keydown", (e) => {
+    const letter = e.key.toLowerCase();
+    if (!/^[a-z]$/.test(letter)) return;
+    handleLetterGuess(letter);
+});
 
 getRandomWord();
 playAgainBtn.addEventListener("click", getRandomWord);
