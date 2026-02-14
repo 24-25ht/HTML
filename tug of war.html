@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>ROPEWRATH</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f0a030'/%3E%3Cstop offset='100%25' stop-color='%23e03050'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230d0f18'/%3E%3Cpath d='M12 32c8-10 14-10 22 0s14 10 18 0' fill='none' stroke='%23c8a870' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='32' r='5' fill='url(%23g)'/%3E%3Ccircle cx='52' cy='32' r='5' fill='url(%23g)'/%3E%3C/svg%3E">
     <style>
@@ -43,10 +44,14 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: var(--bg);
+            position: relative;
+            background:
+                radial-gradient(circle at 16% 16%, rgba(240, 160, 48, 0.11), transparent 42%),
+                radial-gradient(circle at 84% 18%, rgba(224, 48, 80, 0.12), transparent 44%),
+                linear-gradient(160deg, #09090e 0%, #11121c 55%, #151423 100%);
             color: var(--text);
             font-family: 'Game', sans-serif;
-            touch-action: none;
+            touch-action: manipulation;
             user-select: none;
             -webkit-user-select: none
         }
@@ -54,7 +59,199 @@
         canvas {
             display: block;
             width: 100%;
-            height: 100%
+            height: 100%;
+            position: relative;
+            z-index: 0
+        }
+
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 15% 80%, rgba(240, 160, 48, 0.08), transparent 46%),
+                radial-gradient(circle at 85% 24%, rgba(224, 48, 80, 0.08), transparent 44%)
+        }
+
+        .ambient-bg::before,
+        .ambient-bg::after {
+            content: '';
+            position: absolute;
+            inset: -25%;
+            pointer-events: none
+        }
+
+        .ambient-bg::before {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.06), transparent 55%);
+            filter: blur(18px);
+            animation: hazeDriftA 24s linear infinite
+        }
+
+        .ambient-bg::after {
+            background: radial-gradient(circle at 70% 65%, rgba(255, 255, 255, 0.05), transparent 58%);
+            filter: blur(22px);
+            animation: hazeDriftB 30s linear infinite
+        }
+
+        .ambient-bg .mote {
+            position: absolute;
+            border-radius: 50%;
+            width: var(--s);
+            height: var(--s);
+            left: var(--l);
+            opacity: 0;
+            background: radial-gradient(circle at 32% 30%, var(--m1, rgba(255, 255, 255, 0.95)), var(--m2, rgba(255, 255, 255, 0.24)) 58%, rgba(255, 255, 255, 0) 74%);
+            box-shadow:
+                0 0 14px var(--mg, rgba(255, 255, 255, 0.62)),
+                0 0 26px var(--mg, rgba(255, 255, 255, 0.38));
+            animation: ambientFloat var(--d) linear infinite;
+            animation-delay: var(--delay)
+        }
+
+        .ambient-bg .glow-orb {
+            position: absolute;
+            left: var(--gl);
+            width: var(--gs);
+            height: var(--gs);
+            border-radius: 50%;
+            opacity: 0;
+            background: radial-gradient(circle at 35% 35%, var(--c1), var(--c2) 60%, rgba(0, 0, 0, 0) 75%);
+            filter: blur(0.4px) saturate(120%);
+            mix-blend-mode: screen;
+            animation:
+                orbDrift var(--gd) ease-in-out infinite,
+                orbPulse var(--gp) ease-in-out infinite;
+            animation-delay: var(--gdelay), var(--gdelay)
+        }
+
+        .ambient-bg.no-motes .mote,
+        .ambient-bg.no-motes .glow-orb {
+            display: none
+        }
+
+        .menu-fx {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden
+        }
+
+        .menu-fx .mote {
+            position: absolute;
+            border-radius: 50%;
+            width: var(--s);
+            height: var(--s);
+            left: var(--l);
+            opacity: 0;
+            background: radial-gradient(circle at 32% 30%, var(--m1, rgba(255, 255, 255, 0.95)), var(--m2, rgba(255, 255, 255, 0.22)) 60%, rgba(255, 255, 255, 0) 76%);
+            box-shadow:
+                0 0 13px var(--mg, rgba(255, 255, 255, 0.55)),
+                0 0 22px var(--mg, rgba(255, 255, 255, 0.32));
+            animation: ambientFloat var(--d) linear infinite;
+            animation-delay: var(--delay)
+        }
+
+        .menu-fx .glow-orb {
+            position: absolute;
+            left: var(--gl);
+            width: var(--gs);
+            height: var(--gs);
+            border-radius: 50%;
+            opacity: 0;
+            background: radial-gradient(circle at 35% 35%, var(--c1), var(--c2) 62%, rgba(0, 0, 0, 0) 78%);
+            mix-blend-mode: screen;
+            animation:
+                orbDrift var(--gd) ease-in-out infinite,
+                orbPulse var(--gp) ease-in-out infinite;
+            animation-delay: var(--gdelay), var(--gdelay)
+        }
+
+        .menu-fx.no-motes .mote,
+        .menu-fx.no-motes .glow-orb {
+            display: none
+        }
+
+        @keyframes ambientFloat {
+            0% {
+                transform: translate3d(0, 112vh, 0) scale(0.72);
+                opacity: 0
+            }
+
+            12% {
+                opacity: var(--o)
+            }
+
+            100% {
+                transform: translate3d(var(--x), -18vh, 0) scale(1.12);
+                opacity: 0
+            }
+        }
+
+        @keyframes hazeDriftA {
+            0% {
+                transform: translate3d(-4%, 2%, 0) rotate(0deg)
+            }
+
+            100% {
+                transform: translate3d(6%, -5%, 0) rotate(8deg)
+            }
+        }
+
+        @keyframes hazeDriftB {
+            0% {
+                transform: translate3d(5%, -3%, 0) rotate(0deg)
+            }
+
+            100% {
+                transform: translate3d(-6%, 6%, 0) rotate(-9deg)
+            }
+        }
+
+        @keyframes orbDrift {
+            0% {
+                transform: translate3d(0, 110vh, 0) scale(0.68);
+                opacity: 0
+            }
+
+            12% {
+                opacity: var(--go)
+            }
+
+            100% {
+                transform: translate3d(var(--gx), -22vh, 0) scale(var(--gscale));
+                opacity: 0
+            }
+        }
+
+        @keyframes orbPulse {
+            0% {
+                filter: blur(0.4px) brightness(0.95)
+            }
+
+            50% {
+                filter: blur(0.9px) brightness(1.3)
+            }
+
+            100% {
+                filter: blur(0.4px) brightness(0.95)
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .ambient-bg .mote,
+            .ambient-bg .glow-orb,
+            .menu-fx .mote,
+            .menu-fx .glow-orb,
+            .ambient-bg::before,
+            .ambient-bg::after,
+            .overlay-bg::before,
+            .overlay-bg::after {
+                animation: none !important
+            }
         }
 
         .overlay {
@@ -68,12 +265,33 @@
             align-items: center;
             justify-content: center;
             z-index: 10;
-            pointer-events: none
+            pointer-events: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: clamp(10px, 2.5vh, 22px) 0
         }
 
         .overlay.active {
             display: flex;
             pointer-events: all
+        }
+
+        .overlay::-webkit-scrollbar {
+            width: 10px
+        }
+
+        .overlay::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04)
+        }
+
+        .overlay::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(240, 160, 48, 0.7), rgba(224, 48, 80, 0.7));
+            border-radius: 999px
+        }
+
+        .overlay.long-scroll {
+            justify-content: flex-start
         }
 
         .overlay-bg {
@@ -82,9 +300,40 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(6, 6, 12, 0.92);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px)
+            background:
+                linear-gradient(140deg, rgba(8, 8, 14, 0.72) 0%, rgba(12, 12, 22, 0.8) 55%, rgba(10, 10, 18, 0.86) 100%);
+            backdrop-filter: blur(12px) saturate(120%);
+            -webkit-backdrop-filter: blur(12px) saturate(120%);
+            overflow: hidden
+        }
+
+        .overlay-bg::before,
+        .overlay-bg::after {
+            content: '';
+            position: absolute;
+            inset: -20%;
+            pointer-events: none
+        }
+
+        .overlay-bg::before {
+            background-image:
+                radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.13) 0 1px, transparent 2px),
+                radial-gradient(circle at 64% 34%, rgba(240, 160, 48, 0.14) 0 1px, transparent 2px),
+                radial-gradient(circle at 88% 76%, rgba(224, 48, 80, 0.13) 0 1px, transparent 2px),
+                radial-gradient(circle at 32% 74%, rgba(255, 255, 255, 0.1) 0 1px, transparent 2px);
+            background-size: 180px 180px, 220px 220px, 200px 200px, 240px 240px;
+            opacity: 0.42;
+            animation: overlayParticleDriftA 28s linear infinite
+        }
+
+        .overlay-bg::after {
+            background-image:
+                radial-gradient(circle at 24% 42%, rgba(255, 255, 255, 0.1) 0 1px, transparent 2px),
+                radial-gradient(circle at 74% 18%, rgba(240, 160, 48, 0.1) 0 1px, transparent 2px),
+                radial-gradient(circle at 44% 86%, rgba(224, 48, 80, 0.1) 0 1px, transparent 2px);
+            background-size: 260px 260px, 200px 200px, 240px 240px;
+            opacity: 0.32;
+            animation: overlayParticleDriftB 34s linear infinite
         }
 
         .overlay-content {
@@ -93,7 +342,53 @@
             text-align: center;
             padding: 20px;
             max-width: 500px;
-            width: 90%
+            width: 90%;
+            margin: auto;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 16px;
+            background:
+                linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 42%, rgba(255, 255, 255, 0.05) 100%);
+            box-shadow:
+                0 20px 46px rgba(0, 0, 0, 0.46),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(14px) saturate(125%);
+            -webkit-backdrop-filter: blur(14px) saturate(125%)
+        }
+
+        .overlay.long-scroll .overlay-content {
+            margin: auto;
+            max-height: none;
+            overflow: visible
+        }
+
+        #homeScreen .overlay-content,
+        #menuScreen .overlay-content {
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none
+        }
+
+        @keyframes overlayParticleDriftA {
+            0% {
+                transform: translate3d(0, 0, 0)
+            }
+
+            100% {
+                transform: translate3d(-8%, -12%, 0)
+            }
+        }
+
+        @keyframes overlayParticleDriftB {
+            0% {
+                transform: translate3d(0, 0, 0)
+            }
+
+            100% {
+                transform: translate3d(10%, -8%, 0)
+            }
         }
 
         .title {
@@ -125,21 +420,24 @@
             font-weight: 700;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            border: 2px solid var(--dim);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 6px;
-            background: transparent;
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text);
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
-            min-width: 200px
+            min-width: 200px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24)
         }
 
         .btn:hover,
         .btn:focus {
             border-color: var(--accent);
             color: #fff;
-            background: rgba(112, 72, 232, 0.15);
+            background: rgba(112, 72, 232, 0.25);
             transform: translateY(-2px);
             outline: none
         }
@@ -149,14 +447,38 @@
         }
 
         .btn.primary {
-            border-color: var(--accent);
-            background: rgba(112, 72, 232, 0.2)
+            border-color: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(112, 72, 232, 0.45), rgba(112, 72, 232, 0.22))
         }
 
         .btn.small {
             padding: 0.5em 1.5em;
             font-size: clamp(0.7rem, 1.8vw, 0.9rem);
             min-width: auto
+        }
+
+        .home-stack {
+            width: min(360px, 92vw);
+            display: grid;
+            gap: 12px;
+            justify-items: center;
+            margin: 0.6em auto 0
+        }
+
+        .home-stack .btn {
+            width: min(360px, 92vw);
+            min-width: auto;
+            border-radius: 999px;
+            margin: 0;
+            padding: 0.9em 2em
+        }
+
+        .home-note {
+            margin-top: 1em;
+            font-size: clamp(0.62rem, 1.6vw, 0.8rem);
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase
         }
 
         .mode-select {
@@ -172,17 +494,20 @@
             min-width: 140px;
             max-width: 200px;
             padding: 1.2em;
-            border: 2px solid var(--dim);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.25s;
-            background: rgba(255, 255, 255, 0.02)
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22)
         }
 
         .mode-card:hover,
         .mode-card.selected {
-            border-color: var(--accent);
-            background: rgba(112, 72, 232, 0.12);
+            border-color: rgba(112, 72, 232, 0.9);
+            background: rgba(112, 72, 232, 0.2);
             transform: translateY(-3px)
         }
 
@@ -209,7 +534,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0.6em 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05)
+            border-bottom: 1px solid rgba(255, 255, 255, 0.09)
         }
 
         .settings-row label {
@@ -395,7 +720,8 @@
             align-items: center;
             justify-content: center;
             opacity: 0.5;
-            transition: opacity 0.1s
+            transition: opacity 0.1s;
+            touch-action: none
         }
 
         .touch-zone.active {
@@ -471,7 +797,8 @@
 
         @media(hover:none)and(pointer:coarse) {
             .touch-zone {
-                display: flex
+                display: flex;
+                height: 45%
             }
         }
 
@@ -608,9 +935,252 @@
             flex-wrap: wrap
         }
 
+        .panel-shell {
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 14px;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(240, 160, 48, 0.16), transparent 45%),
+                radial-gradient(circle at 82% 8%, rgba(224, 48, 80, 0.15), transparent 42%),
+                rgba(255, 255, 255, 0.07);
+            box-shadow: 0 20px 42px rgba(0, 0, 0, 0.42);
+            backdrop-filter: blur(12px) saturate(120%);
+            -webkit-backdrop-filter: blur(12px) saturate(120%);
+            text-align: left
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            gap: 0.55em;
+            justify-content: center;
+            margin-bottom: 0.5em
+        }
+
+        .panel-icon {
+            font-size: 1.35em;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.2))
+        }
+
+        .panel-title {
+            font-size: clamp(1rem, 2.8vw, 1.35rem);
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text)
+        }
+
+        .panel-sub {
+            text-align: center;
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.66em;
+            margin-bottom: 0.9em
+        }
+
+        .tutorial-card,
+        .about-section {
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            background: rgba(8, 8, 14, 0.5);
+            padding: 0.85em
+        }
+
+        .stylized-list {
+            display: grid;
+            gap: 0.62em;
+            margin: 0.35em 0 1.1em
+        }
+
+        .stylized-item {
+            display: grid;
+            grid-template-columns: 34px 1fr;
+            gap: 0.72em;
+            align-items: flex-start;
+            padding: 0.65em 0.72em;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05)
+        }
+
+        .item-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            font-size: 1.02em;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(240, 160, 48, 0.32), rgba(224, 48, 80, 0.28));
+            border: 1px solid rgba(255, 255, 255, 0.12)
+        }
+
+        .item-title {
+            font-size: 0.72em;
+            color: #fff;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.16em;
+            font-weight: 700
+        }
+
+        .item-text {
+            font-size: 0.78em;
+            line-height: 1.45;
+            color: var(--dim)
+        }
+
+        .item-text code {
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.08em 0.38em;
+            letter-spacing: 0.03em;
+            font-size: 0.95em
+        }
+
+        .about-title {
+            text-align: center;
+            font-size: 0.82em;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 0.55em
+        }
+
+        .about-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.45em;
+            margin-top: 0.35em
+        }
+
+        .about-badge {
+            font-size: 0.64em;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            padding: 0.42em 0.82em;
+            background: rgba(255, 255, 255, 0.04)
+        }
+
+        .play-top-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.6em;
+            flex-wrap: wrap;
+            margin: 0.25em 0 0.8em
+        }
+
+        .records-panel {
+            margin-top: 1em;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.8em;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px)
+        }
+
+        .records-title {
+            font-size: 0.76em;
+            letter-spacing: 0.11em;
+            color: var(--text);
+            text-transform: uppercase;
+            margin-bottom: 0.55em;
+            font-weight: 700
+        }
+
+        .records-table-wrap {
+            overflow-x: auto
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 520px
+        }
+
+        .records-table th,
+        .records-table td {
+            text-align: left;
+            padding: 0.5em 0.45em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.74em
+        }
+
+        .records-table th {
+            color: var(--dim);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase
+        }
+
+        .records-table td {
+            color: var(--text)
+        }
+
+        .records-table tr:last-child td {
+            border-bottom: none
+        }
+
+        .records-empty {
+            color: var(--dim);
+            font-size: 0.72em;
+            letter-spacing: 0.04em;
+            padding: 0.3em 0.2em
+        }
+
+        body.is-desktop .overlay-content {
+            max-width: min(760px, 92vw)
+        }
+
+        body.is-desktop #menuScreen .overlay-content {
+            max-width: min(1080px, 95vw)
+        }
+
+        body.is-desktop #menuScreen .mode-card {
+            min-width: 200px;
+            max-width: 260px
+        }
+
+        body.is-desktop .home-stack,
+        body.is-desktop .home-stack .btn {
+            width: min(520px, 72vw)
+        }
+
+        body.is-phone .overlay-content {
+            width: 95%;
+            max-height: calc(100vh - 12px);
+            padding: 16px 14px
+        }
+
+        body.is-phone .overlay.long-scroll .overlay-content {
+            max-height: none
+        }
+
+        body.is-phone .btn {
+            min-width: auto
+        }
+
         @media (max-width:600px) {
             .name-grid {
                 grid-template-columns: 1fr
+            }
+
+            .records-table {
+                min-width: 460px
+            }
+
+            .play-top-actions .btn {
+                flex: 1 1 140px
             }
         }
     </style>
@@ -619,6 +1189,7 @@
 <body>
 
     <canvas id="gc"></canvas>
+    <div class="ambient-bg" id="ambientBg" aria-hidden="true"></div>
 
     <div class="hud" id="hud" style="display:none">
         <div class="hud-block">
@@ -653,12 +1224,35 @@
     <div class="round-banner" id="roundBanner"></div>
     <div class="particles" id="particles"></div>
 
-    <!-- MENU -->
-    <div class="overlay active" id="menuScreen">
+    <!-- HOME -->
+    <div class="overlay active" id="homeScreen">
         <div class="overlay-bg"></div>
+        <div class="menu-fx" id="homeMenuFx" aria-hidden="true"></div>
         <div class="overlay-content">
             <div class="title">RopeWrath</div>
             <div class="subtitle">Tug-of-War</div>
+            <div class="home-stack">
+                <button class="btn primary" id="homePlayBtn">PLAY</button>
+                <button class="btn" id="homeRecordsBtn">DUAL RECORDS</button>
+                <button class="btn" id="homeTutorialBtn">TUTORIAL</button>
+                <button class="btn" id="homeSettingsBtn">SETTINGS</button>
+                <button class="btn" id="homeAboutBtn">ABOUT</button>
+            </div>
+            <div class="home-note">Enter Play for Local PVP and VS AI modes</div>
+        </div>
+    </div>
+
+    <!-- PLAY MENU -->
+    <div class="overlay long-scroll" id="menuScreen">
+        <div class="overlay-bg"></div>
+        <div class="menu-fx" id="playMenuFx" aria-hidden="true"></div>
+        <div class="overlay-content">
+            <div class="title">RopeWrath</div>
+            <div class="subtitle">Tug-of-War</div>
+            <div class="play-top-actions">
+                <button class="btn small" id="settingsBtn">SETTINGS</button>
+                <button class="btn small" id="playMenuMainBtn">MAIN MENU</button>
+            </div>
             <div class="mode-select" id="modeSelect">
                 <div class="mode-card selected" data-mode="local">
                     <div class="icon">👥</div>
@@ -680,7 +1274,8 @@
             </div>
             <div class="avatar-note">Pick your avatar.</div>
             <div class="team-row">
-                <span id="teamLabelP1" style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">Player 1 Team</span>
+                <span id="teamLabelP1" style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">Player
+                    1 Team</span>
             </div>
             <div class="team-row" id="teamP1">
                 <button class="team-pick sel" data-team="🐻">🐻</button>
@@ -690,7 +1285,8 @@
                 <button class="team-pick" data-team="🐺">🐺</button>
             </div>
             <div class="team-row">
-                <span id="teamLabelP2" style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">Player 2 Team</span>
+                <span id="teamLabelP2" style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">Player
+                    2 Team</span>
             </div>
             <div class="team-row" id="teamP2">
                 <button class="team-pick" data-team="🐻">🐻</button>
@@ -702,24 +1298,107 @@
             <div class="name-grid">
                 <div class="name-field">
                     <label id="nameLabelP1" for="nameP1">Player 1 Name</label>
-                    <input class="name-input" id="nameP1" type="text" maxlength="18" value="Player 1" autocomplete="off">
+                    <input class="name-input" id="nameP1" type="text" maxlength="18" value="Player 1"
+                        autocomplete="off">
                 </div>
                 <div class="name-field">
                     <label id="nameLabelP2" for="nameP2">Player 2 Name</label>
-                    <input class="name-input" id="nameP2" type="text" maxlength="18" value="Player 2" autocomplete="off">
+                    <input class="name-input" id="nameP2" type="text" maxlength="18" value="Player 2"
+                        autocomplete="off">
                 </div>
             </div>
             <div class="kb-hint" id="kbHint">
                 <span id="kbHintLeft">P1: A / Left Arrow</span>
-                <span id="kbHintRight">P2: L / Right Arrow | Pause: Esc</span>
+                <span id="kbHintRight">P2: L / Right Arrow | Phone: Tap both sides | Pause: Esc</span>
             </div>
             <button class="btn primary" id="startBtn">START MATCH</button>
-            <button class="btn small" id="settingsBtn">⚙ SETTINGS</button>
+        </div>
+    </div>
+
+    <!-- DUAL RECORDS -->
+    <div class="overlay long-scroll" id="recordsScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content">
+            <div style="font-size:1.35em;font-weight:900;letter-spacing:0.15em;margin-bottom:0.7em">DUAL RECORDS</div>
+            <div class="records-panel" style="margin-top:0">
+                <div class="records-title">Local PVP Match History</div>
+                <div class="records-table-wrap">
+                    <table class="records-table">
+                        <thead>
+                            <tr>
+                                <th>Winner</th>
+                                <th>Loser</th>
+                                <th>Scoreline</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsBody"></tbody>
+                    </table>
+                </div>
+                <div class="records-empty" id="recordsEmpty">No dual records yet. Finish a local match to add one.</div>
+            </div>
+            <div style="margin-top:1.2em"><button class="btn small" id="recordsBackBtn">BACK</button></div>
+        </div>
+    </div>
+    <!-- TUTORIAL -->
+    <div class="overlay long-scroll" id="tutorialScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content panel-shell">
+            <div class="panel-head">
+                <span class="panel-icon"><i class="fa-solid fa-book-open"></i></span>
+                <div class="panel-title">Tutorial</div>
+            </div>
+            <div class="panel-sub">Quick Controls and Gameplay Guide</div>
+            <div class="tutorial-card">
+                <div class="stylized-list">
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-trophy"></i></span>
+                        <div>
+                            <div class="item-title">Goal</div>
+                            <div class="item-text">Pull the center marker into your side to take rounds and win the
+                                match.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-gamepad"></i></span>
+                        <div>
+                            <div class="item-title">Local PVP</div>
+                            <div class="item-text">Player 1 uses <code>A</code> or <code>Left Arrow</code>. Player 2
+                                uses <code>L</code> or <code>Right Arrow</code>.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-robot"></i></span>
+                        <div>
+                            <div class="item-title">VS AI</div>
+                            <div class="item-text">Use <code>Space</code>, <code>A</code>, or <code>Left Arrow</code>.
+                                The AI controls the right side.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-mobile-screen"></i></span>
+                        <div>
+                            <div class="item-title">Phone</div>
+                            <div class="item-text">Tap left side for Player 1. In local mode, tap right side for Player
+                                2.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-bolt"></i></span>
+                        <div>
+                            <div class="item-title">Pro Tip</div>
+                            <div class="item-text">Keep a steady rhythm to hit stronger pulls and stack combo momentum.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn small" id="tutorialBack">BACK</button>
         </div>
     </div>
 
     <!-- SETTINGS -->
-    <div class="overlay" id="settingsScreen">
+    <div class="overlay long-scroll" id="settingsScreen">
         <div class="overlay-bg"></div>
         <div class="overlay-content">
             <div style="font-size:1.4em;font-weight:900;letter-spacing:0.15em;margin-bottom:1em">SETTINGS</div>
@@ -734,6 +1413,59 @@
             <div class="settings-row"><label>Sound FX</label><button class="toggle on" id="toggleSound"></button></div>
             <div class="settings-row"><label>Dark Rope</label><button class="toggle" id="toggleDarkRope"></button></div>
             <div style="margin-top:1.5em"><button class="btn small" id="settingsBack">← BACK</button></div>
+        </div>
+    </div>
+    <!-- ABOUT -->
+    <div class="overlay long-scroll" id="aboutScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content panel-shell">
+            <div class="panel-head">
+                <span class="panel-icon"><i class="fa-solid fa-circle-info"></i></span>
+                <div class="panel-title">About</div>
+            </div>
+            <div class="panel-sub">RopeWrath Overview</div>
+            <div class="about-section" style="margin-top:0">
+                <div class="about-title">RopeWrath</div>
+                <div class="stylized-list">
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                        <div>
+                            <div class="item-title">Game</div>
+                            <div class="item-text">Fast tug-of-war with Local PVP and VS AI modes.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-keyboard"></i></span>
+                        <div>
+                            <div class="item-title">Desktop Controls</div>
+                            <div class="item-text">Local P1 uses A/Left Arrow, P2 uses L/Right Arrow. VS AI uses
+                                Space/A/Left Arrow.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-mobile-screen"></i></span>
+                        <div>
+                            <div class="item-title">Phone Controls</div>
+                            <div class="item-text">Tap left side for Player 1. In local mode, tap right side for Player
+                                2.</div>
+                        </div>
+                    </div>
+                    <div class="stylized-item">
+                        <span class="item-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+                        <div>
+                            <div class="item-title">Dual Records</div>
+                            <div class="item-text">Local PVP results are saved with names, emojis, scoreline, and match
+                                date.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-badges">
+                    <span class="about-badge">Version 1.5</span>
+                    <span class="about-badge">Menu Upgrade</span>
+                    <span class="about-badge">Mobile First</span>
+                </div>
+            </div>
+            <div style="margin-top:1.2em"><button class="btn small" id="aboutBackBtn">BACK</button></div>
         </div>
     </div>
 
@@ -789,25 +1521,147 @@
         // ── Canvas Setup ──
         const canvas = document.getElementById('gc');
         const ctx = canvas.getContext('2d');
+        const ambientBg = document.getElementById('ambientBg');
+        const homeMenuFx = document.getElementById('homeMenuFx');
+        const playMenuFx = document.getElementById('playMenuFx');
+        const menuFxLayers = [homeMenuFx, playMenuFx].filter(Boolean);
         let W, H;
         function resize() {
             W = canvas.width = canvas.clientWidth * devicePixelRatio;
             H = canvas.height = canvas.clientHeight * devicePixelRatio;
             ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
         }
-        window.addEventListener('resize', resize);
-        resize();
+        function fillParticleLayer(layer, opts) {
+            if (!layer) return;
+            const o = opts || {};
+            const moteCount = o.moteCount || 24;
+            const orbCount = o.orbCount || 0;
+            const orbSizeMin = o.orbSizeMin || 28;
+            const orbSizeMax = o.orbSizeMax || 90;
+            const moteSizeMin = o.moteSizeMin || 1.8;
+            const moteSizeMax = o.moteSizeMax || 4.2;
+            const driftX = o.driftX || 110;
+            const orbOpacityMin = o.orbOpacityMin || 0.16;
+            const orbOpacityVar = o.orbOpacityVar || 0.28;
+            const orbColors = o.orbColors || [
+                ['rgba(240,160,48,0.45)', 'rgba(240,160,48,0.14)'],
+                ['rgba(224,48,80,0.44)', 'rgba(224,48,80,0.12)'],
+                ['rgba(112,72,232,0.4)', 'rgba(112,72,232,0.12)'],
+                ['rgba(180,220,255,0.38)', 'rgba(180,220,255,0.1)']
+            ];
+            const moteColors = o.moteColors || [
+                ['rgba(255, 232, 142, 1)', 'rgba(255, 179, 73, 0.48)', 'rgba(255, 178, 78, 0.72)'],
+                ['rgba(255, 184, 229, 1)', 'rgba(240, 88, 146, 0.45)', 'rgba(240, 88, 146, 0.68)'],
+                ['rgba(194, 250, 255, 1)', 'rgba(96, 196, 255, 0.44)', 'rgba(96, 196, 255, 0.66)'],
+                ['rgba(210, 196, 255, 1)', 'rgba(138, 120, 255, 0.44)', 'rgba(138, 120, 255, 0.66)'],
+                ['rgba(196, 255, 234, 1)', 'rgba(96, 224, 186, 0.43)', 'rgba(96, 224, 186, 0.64)']
+            ];
+            layer.innerHTML = '';
+            for (let i = 0; i < orbCount; i++) {
+                const g = document.createElement('span');
+                g.className = 'glow-orb';
+                const color = orbColors[(Math.random() * orbColors.length) | 0];
+                g.style.setProperty('--gl', (Math.random() * 100).toFixed(2) + '%');
+                g.style.setProperty('--gs', (orbSizeMin + Math.random() * (orbSizeMax - orbSizeMin)).toFixed(2) + 'px');
+                g.style.setProperty('--go', (orbOpacityMin + Math.random() * orbOpacityVar).toFixed(2));
+                g.style.setProperty('--gd', (18 + Math.random() * 28).toFixed(2) + 's');
+                g.style.setProperty('--gp', (4.4 + Math.random() * 6.5).toFixed(2) + 's');
+                g.style.setProperty('--gx', ((Math.random() - 0.5) * driftX).toFixed(2) + 'px');
+                g.style.setProperty('--gscale', (0.72 + Math.random() * 0.9).toFixed(2));
+                g.style.setProperty('--gdelay', (-Math.random() * 26).toFixed(2) + 's');
+                g.style.setProperty('--c1', color[0]);
+                g.style.setProperty('--c2', color[1]);
+                layer.appendChild(g);
+            }
+            for (let i = 0; i < moteCount; i++) {
+                const m = document.createElement('span');
+                m.className = 'mote';
+                const c = moteColors[(Math.random() * moteColors.length) | 0];
+                m.style.setProperty('--s', (moteSizeMin + Math.random() * (moteSizeMax - moteSizeMin)).toFixed(2) + 'px');
+                m.style.setProperty('--l', (Math.random() * 100).toFixed(2) + '%');
+                m.style.setProperty('--o', (0.68 + Math.random() * 0.3).toFixed(2));
+                m.style.setProperty('--d', (12 + Math.random() * 22).toFixed(2) + 's');
+                m.style.setProperty('--x', ((Math.random() - 0.5) * driftX).toFixed(2) + 'px');
+                m.style.setProperty('--delay', (-Math.random() * 24).toFixed(2) + 's');
+                m.style.setProperty('--m1', c[0]);
+                m.style.setProperty('--m2', c[1]);
+                m.style.setProperty('--mg', c[2]);
+                layer.appendChild(m);
+            }
+        }
+        function initAmbientMotes() {
+            if (!ambientBg) return;
+            const isPhone = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900;
+            fillParticleLayer(ambientBg, {
+                moteCount: isPhone ? 26 : 46,
+                orbCount: 0,
+                moteSizeMin: 3.2,
+                moteSizeMax: 8.2,
+                driftX: 140
+            });
+        }
+        function initMenuParticles() {
+            const isPhone = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 900;
+            fillParticleLayer(homeMenuFx, {
+                moteCount: isPhone ? 14 : 22,
+                orbCount: 0,
+                moteSizeMin: 2.8,
+                moteSizeMax: 6.8,
+                driftX: 90,
+                orbOpacityMin: 0.12,
+                orbOpacityVar: 0.18
+            });
+            fillParticleLayer(playMenuFx, {
+                moteCount: isPhone ? 18 : 30,
+                orbCount: 0,
+                moteSizeMin: 2.9,
+                moteSizeMax: 7.2,
+                driftX: 100,
+                orbOpacityMin: 0.13,
+                orbOpacityVar: 0.2
+            });
+        }
+        function syncAmbientState() {
+            const off = !S.particles;
+            if (ambientBg) ambientBg.classList.toggle('no-motes', off);
+            menuFxLayers.forEach(layer => layer.classList.toggle('no-motes', off));
+        }
+        function detectPhoneView() {
+            const ua = navigator.userAgent || '';
+            const mobileUA = /Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini/i.test(ua);
+            const coarseSmall = window.matchMedia('(max-width: 900px) and (pointer: coarse)').matches;
+            return mobileUA || coarseSmall;
+        }
+        function applyDeviceClass() {
+            const phone = detectPhoneView();
+            document.body.classList.toggle('is-phone', phone);
+            document.body.classList.toggle('is-desktop', !phone);
+        }
+        function refreshViewport() {
+            applyDeviceClass();
+            resize();
+            initAmbientMotes();
+            initMenuParticles();
+            syncAmbientState();
+        }
+        window.addEventListener('resize', refreshViewport);
+        window.addEventListener('orientationchange', refreshViewport);
+        refreshViewport();
 
         // ── Game State ──
         const GS = {
             MENU: 0, COUNTDOWN: 1, PLAYING: 2, ROUND_END: 3, MATCH_END: 4, PAUSED: 5
         };
         let state = GS.MENU;
+        let settingsReturnScreen = 'homeScreen';
         let matchMode = 'local';
         let ropePos = 0; // -1 to 1, 0 is center
         let ropeVel = 0;
         let scoreL = 0, scoreR = 0, round = 1;
         let matchNameL = S.nameP1, matchNameR = S.nameP2;
+        const dualRecords = [];
+        const MAX_DUAL_RECORDS = 30;
+        const DUAL_RECORDS_KEY = 'ropewrath_dual_records_v2';
         let staminaL = 1, staminaR = 1;
         let countdownVal = 3, countdownTimer = 0;
         let roundEndTimer = 0;
@@ -901,6 +1755,65 @@
         function show(id, v = true) { document.getElementById(id).style.display = v ? '' : 'none' }
         function showOverlay(id, v = true) { const el = document.getElementById(id); if (v) { el.style.display = ''; el.classList.add('active') } else { el.classList.remove('active'); el.style.display = 'none' } }
         function setText(id, t) { document.getElementById(id).textContent = t }
+        function openSettings(fromScreenId) {
+            settingsReturnScreen = fromScreenId;
+            showOverlay(fromScreenId, false);
+            showOverlay('settingsScreen', true);
+        }
+        function loadDualRecords() {
+            try {
+                const raw = localStorage.getItem(DUAL_RECORDS_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return;
+                dualRecords.length = 0;
+                parsed.slice(0, MAX_DUAL_RECORDS).forEach(r => {
+                    if (!r || typeof r !== 'object') return;
+                    if (!r.winnerName || !r.loserName || !r.scoreline || !r.date) return;
+                    dualRecords.push(r);
+                });
+            } catch (e) { }
+        }
+        function saveDualRecords() {
+            try { localStorage.setItem(DUAL_RECORDS_KEY, JSON.stringify(dualRecords)); } catch (e) { }
+        }
+        function escapeHtml(txt) {
+            return String(txt).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function formatRecordDate(ts) {
+            const d = new Date(ts);
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        function renderDualRecords() {
+            const body = document.getElementById('recordsBody');
+            const empty = document.getElementById('recordsEmpty');
+            if (!body || !empty) return;
+            if (!dualRecords.length) {
+                body.innerHTML = '';
+                empty.style.display = '';
+                return;
+            }
+            empty.style.display = 'none';
+            body.innerHTML = dualRecords.map(r => {
+                const winner = `${escapeHtml(r.winnerEmoji)} ${escapeHtml(r.winnerName)}`;
+                const loser = `${escapeHtml(r.loserEmoji)} ${escapeHtml(r.loserName)}`;
+                return `<tr><td>${winner}</td><td>${loser}</td><td>${escapeHtml(r.scoreline)}</td><td>${escapeHtml(formatRecordDate(r.date))}</td></tr>`;
+            }).join('');
+        }
+        function addDualRecord(winnerSide) {
+            if (matchMode !== 'local') return;
+            const rec = winnerSide === 0 ? {
+                winnerName: matchNameL, winnerEmoji: S.teamP1, loserName: matchNameR, loserEmoji: S.teamP2
+            } : {
+                winnerName: matchNameR, winnerEmoji: S.teamP2, loserName: matchNameL, loserEmoji: S.teamP1
+            };
+            rec.scoreline = scoreL + '-' + scoreR;
+            rec.date = Date.now();
+            dualRecords.unshift(rec);
+            if (dualRecords.length > MAX_DUAL_RECORDS) dualRecords.length = MAX_DUAL_RECORDS;
+            saveDualRecords();
+            renderDualRecords();
+        }
         function getSelectedMode() {
             const selected = document.querySelector('.mode-card.selected');
             if (!selected) return S.mode;
@@ -919,10 +1832,10 @@
         function updateControlHints() {
             if (S.mode === 'ai') {
                 setText('kbHintLeft', 'You: Space / A / Left Arrow');
-                setText('kbHintRight', 'AI: Auto pull | Pause: Esc');
+                setText('kbHintRight', 'Phone: Tap LEFT side | AI Auto | Pause: Esc');
             } else {
                 setText('kbHintLeft', 'P1: A / Left Arrow');
-                setText('kbHintRight', 'P2: L / Right Arrow | Pause: Esc');
+                setText('kbHintRight', 'P2: L / Right Arrow | Phone: Tap both sides | Pause: Esc');
             }
         }
         function updateModeUI() {
@@ -974,17 +1887,59 @@
         document.getElementById('nameP1').addEventListener('input', function () { S.nameP1 = sanitizeName(this.value, 'Player 1') });
         document.getElementById('nameP2').addEventListener('input', function () { S.nameP2 = sanitizeName(this.value, getSelectedMode() === 'ai' ? 'AI' : 'Player 2') });
         updateModeUI();
+        loadDualRecords();
+        renderDualRecords();
 
         document.querySelectorAll('.toggle').forEach(t => {
             t.addEventListener('click', () => { t.classList.toggle('on') });
         });
         document.getElementById('toggleShake').addEventListener('click', function () { S.shake = this.classList.contains('on') });
-        document.getElementById('toggleParticles').addEventListener('click', function () { S.particles = this.classList.contains('on') });
+        document.getElementById('toggleParticles').addEventListener('click', function () {
+            S.particles = this.classList.contains('on');
+            syncAmbientState();
+        });
         document.getElementById('toggleSound').addEventListener('click', function () { S.sound = this.classList.contains('on') });
         document.getElementById('toggleDarkRope').addEventListener('click', function () { S.darkRope = this.classList.contains('on') });
 
-        document.getElementById('settingsBtn').addEventListener('click', () => { showOverlay('menuScreen', false); showOverlay('settingsScreen', true) });
-        document.getElementById('settingsBack').addEventListener('click', () => { showOverlay('settingsScreen', false); showOverlay('menuScreen', true) });
+        document.getElementById('homePlayBtn').addEventListener('click', () => {
+            state = GS.MENU;
+            showOverlay('homeScreen', false);
+            showOverlay('tutorialScreen', false);
+            showOverlay('recordsScreen', false);
+            showOverlay('aboutScreen', false);
+            showOverlay('menuScreen', true);
+        });
+        document.getElementById('homeRecordsBtn').addEventListener('click', () => {
+            showOverlay('homeScreen', false);
+            showOverlay('recordsScreen', true);
+        });
+        document.getElementById('recordsBackBtn').addEventListener('click', () => {
+            showOverlay('recordsScreen', false);
+            showOverlay('homeScreen', true);
+        });
+        document.getElementById('homeTutorialBtn').addEventListener('click', () => {
+            showOverlay('homeScreen', false);
+            showOverlay('tutorialScreen', true);
+        });
+        document.getElementById('tutorialBack').addEventListener('click', () => {
+            showOverlay('tutorialScreen', false);
+            showOverlay('homeScreen', true);
+        });
+        document.getElementById('homeSettingsBtn').addEventListener('click', () => openSettings('homeScreen'));
+        document.getElementById('homeAboutBtn').addEventListener('click', () => {
+            showOverlay('homeScreen', false);
+            showOverlay('aboutScreen', true);
+        });
+        document.getElementById('aboutBackBtn').addEventListener('click', () => {
+            showOverlay('aboutScreen', false);
+            showOverlay('homeScreen', true);
+        });
+        document.getElementById('settingsBtn').addEventListener('click', () => openSettings('menuScreen'));
+        document.getElementById('playMenuMainBtn').addEventListener('click', goMenu);
+        document.getElementById('settingsBack').addEventListener('click', () => {
+            showOverlay('settingsScreen', false);
+            showOverlay(settingsReturnScreen, true);
+        });
         document.getElementById('startBtn').addEventListener('click', () => { ensureAudio(); startMatch() });
         document.getElementById('pauseBtn').addEventListener('click', () => { if (state === GS.PLAYING) pauseGame() });
         document.getElementById('resumeBtn').addEventListener('click', resumeGame);
@@ -995,14 +1950,22 @@
         function goMenu() {
             state = GS.MENU;
             show('hud', false); show('staminaL', false); show('staminaR', false);
+            showOverlay('tutorialScreen', false);
+            showOverlay('recordsScreen', false);
+            showOverlay('aboutScreen', false);
             showOverlay('settingsScreen', false);
             showOverlay('pauseScreen', false);
             showOverlay('winScreen', false);
-            showOverlay('menuScreen', true);
+            showOverlay('menuScreen', false);
+            showOverlay('homeScreen', true);
         }
 
         // ── Game Flow ──
         function startMatch() {
+            showOverlay('homeScreen', false);
+            showOverlay('tutorialScreen', false);
+            showOverlay('recordsScreen', false);
+            showOverlay('aboutScreen', false);
             showOverlay('settingsScreen', false);
             showOverlay('pauseScreen', false);
             showOverlay('winScreen', false);
@@ -1270,6 +2233,7 @@
                 setTimeout(() => {
                     state = GS.MATCH_END;
                     const w = scoreL >= winsNeeded ? 0 : 1;
+                    addDualRecord(w);
                     document.getElementById('winEmoji').textContent = w === 0 ? S.teamP1 : S.teamP2;
                     const winnerName = w === 0 ? matchNameL : matchNameR;
                     document.getElementById('winText').textContent = winnerName + ' WINS';
