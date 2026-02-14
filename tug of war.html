@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>ROPEWRATH</title>
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪢</text></svg>">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f0a030'/%3E%3Cstop offset='100%25' stop-color='%23e03050'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230d0f18'/%3E%3Cpath d='M12 32c8-10 14-10 22 0s14 10 18 0' fill='none' stroke='%23c8a870' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='32' r='5' fill='url(%23g)'/%3E%3Ccircle cx='52' cy='32' r='5' fill='url(%23g)'/%3E%3C/svg%3E">
     <style>
         *,
         *::before,
@@ -63,7 +63,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -72,6 +72,7 @@
         }
 
         .overlay.active {
+            display: flex;
             pointer-events: all
         }
 
@@ -264,6 +265,37 @@
             pointer-events: all
         }
 
+        .hud-block {
+            display: flex;
+            flex-direction: column;
+            min-width: clamp(100px, 20vw, 220px);
+            gap: 2px
+        }
+
+        .hud-block.right {
+            align-items: flex-end;
+            text-align: right
+        }
+
+        .hud-player {
+            font-size: clamp(0.58rem, 1.55vw, 0.8rem);
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: clamp(90px, 24vw, 260px)
+        }
+
+        .hud-player.p1 {
+            color: rgba(240, 160, 48, 0.72)
+        }
+
+        .hud-player.p2 {
+            color: rgba(224, 48, 80, 0.72)
+        }
+
         .hud-score {
             font-size: clamp(1.2rem, 3.5vw, 2rem);
             font-weight: 900;
@@ -280,6 +312,17 @@
 
         .hud-center {
             text-align: center
+        }
+
+        .hud-record {
+            font-size: clamp(0.52rem, 1.45vw, 0.75rem);
+            color: var(--dim);
+            letter-spacing: 0.05em;
+            margin-top: 0.25em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: min(76vw, 560px)
         }
 
         .hud-round {
@@ -467,6 +510,49 @@
             flex-wrap: wrap
         }
 
+        .avatar-note {
+            margin: 0.3em 0 0.2em;
+            font-size: clamp(0.62rem, 1.6vw, 0.78rem);
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase
+        }
+
+        .name-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 0.8em;
+            margin: 0.3em 0 1em
+        }
+
+        .name-field label {
+            display: block;
+            text-align: left;
+            font-size: 0.68em;
+            color: var(--dim);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.35em
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 0.55em 0.7em;
+            border: 1px solid var(--dim);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.92em;
+            letter-spacing: 0.03em
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(112, 72, 232, 0.15)
+        }
+
         .team-pick {
             font-size: clamp(1.8rem, 5vw, 2.5rem);
             cursor: pointer;
@@ -517,7 +603,15 @@
             margin: 1em 0;
             font-size: clamp(0.65rem, 1.6vw, 0.8rem);
             color: var(--dim);
-            letter-spacing: 0.05em
+            letter-spacing: 0.05em;
+            gap: 1em;
+            flex-wrap: wrap
+        }
+
+        @media (max-width:600px) {
+            .name-grid {
+                grid-template-columns: 1fr
+            }
         }
     </style>
 </head>
@@ -527,14 +621,21 @@
     <canvas id="gc"></canvas>
 
     <div class="hud" id="hud" style="display:none">
-        <div class="hud-score p1" id="scoreL">0</div>
+        <div class="hud-block">
+            <div class="hud-player p1" id="hudPlayerL">P1</div>
+            <div class="hud-score p1" id="scoreL">0</div>
+        </div>
         <div class="hud-center">
             <div class="hud-round" id="roundInfo">ROUND 1 OF 3</div>
             <div class="hud-timer" id="timer"></div>
+            <div class="hud-record" id="scoreLine">0 - 0</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-            <div class="hud-score p2" id="scoreR">0</div>
-            <button class="hud-pause" id="pauseBtn" aria-label="Pause">⏸</button>
+        <div class="hud-block right">
+            <div class="hud-player p2" id="hudPlayerR">P2</div>
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="hud-score p2" id="scoreR">0</div>
+                <button class="hud-pause" id="pauseBtn" aria-label="Pause">⏸</button>
+            </div>
         </div>
     </div>
 
@@ -577,8 +678,9 @@
                     <button class="diff-btn" data-diff="2">HARD</button>
                 </div>
             </div>
+            <div class="avatar-note">Pick your avatar.</div>
             <div class="team-row">
-                <span style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">P1 Team</span>
+                <span id="teamLabelP1" style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">Player 1 Team</span>
             </div>
             <div class="team-row" id="teamP1">
                 <button class="team-pick sel" data-team="🐻">🐻</button>
@@ -588,7 +690,7 @@
                 <button class="team-pick" data-team="🐺">🐺</button>
             </div>
             <div class="team-row">
-                <span style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">P2 Team</span>
+                <span id="teamLabelP2" style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">Player 2 Team</span>
             </div>
             <div class="team-row" id="teamP2">
                 <button class="team-pick" data-team="🐻">🐻</button>
@@ -597,9 +699,19 @@
                 <button class="team-pick" data-team="🦊">🦊</button>
                 <button class="team-pick" data-team="🐺">🐺</button>
             </div>
+            <div class="name-grid">
+                <div class="name-field">
+                    <label id="nameLabelP1" for="nameP1">Player 1 Name</label>
+                    <input class="name-input" id="nameP1" type="text" maxlength="18" value="Player 1" autocomplete="off">
+                </div>
+                <div class="name-field">
+                    <label id="nameLabelP2" for="nameP2">Player 2 Name</label>
+                    <input class="name-input" id="nameP2" type="text" maxlength="18" value="Player 2" autocomplete="off">
+                </div>
+            </div>
             <div class="kb-hint" id="kbHint">
-                <span>P1: A / Q key</span>
-                <span>P2: L / P key</span>
+                <span id="kbHintLeft">P1: A / Left Arrow</span>
+                <span id="kbHintRight">P2: L / Right Arrow | Pause: Esc</span>
             </div>
             <button class="btn primary" id="startBtn">START MATCH</button>
             <button class="btn small" id="settingsBtn">⚙ SETTINGS</button>
@@ -640,8 +752,8 @@
         <div class="overlay-bg"></div>
         <div class="overlay-content">
             <div class="winner-emoji" id="winEmoji">🏆</div>
-            <div class="winner-text" id="winText">PLAYER 1 WINS</div>
-            <div class="winner-sub" id="winSub">3 — 1</div>
+            <div class="winner-text" id="winText">WINNER</div>
+            <div class="winner-sub" id="winSub">0 - 0</div>
             <button class="btn primary" id="rematchBtn">REMATCH</button><br>
             <button class="btn small" id="menuBtn">MENU</button>
         </div>
@@ -672,7 +784,7 @@
         function sfxRoundWin() { playTone(600, 0.12, 0.15); setTimeout(() => playTone(750, 0.18, 0.15), 100) }
 
         // ── Settings ──
-        const S = { sound: true, shake: true, particles: true, darkRope: false, rounds: 3, mode: 'local', aiDiff: 1, teamP1: '🐻', teamP2: '🦁' };
+        const S = { sound: true, shake: true, particles: true, darkRope: false, rounds: 3, mode: 'local', aiDiff: 1, teamP1: '🐻', teamP2: '🦁', nameP1: 'Player 1', nameP2: 'Player 2' };
 
         // ── Canvas Setup ──
         const canvas = document.getElementById('gc');
@@ -691,9 +803,11 @@
             MENU: 0, COUNTDOWN: 1, PLAYING: 2, ROUND_END: 3, MATCH_END: 4, PAUSED: 5
         };
         let state = GS.MENU;
+        let matchMode = 'local';
         let ropePos = 0; // -1 to 1, 0 is center
         let ropeVel = 0;
         let scoreL = 0, scoreR = 0, round = 1;
+        let matchNameL = S.nameP1, matchNameR = S.nameP2;
         let staminaL = 1, staminaR = 1;
         let countdownVal = 3, countdownTimer = 0;
         let roundEndTimer = 0;
@@ -740,14 +854,20 @@
         let inputPullL = false, inputPullR = false;
 
         document.addEventListener('keydown', e => {
+            const tag = e.target && e.target.tagName ? e.target.tagName : '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
             if (keys[e.code]) return;
             keys[e.code] = true;
             ensureAudio();
             if (state === GS.PLAYING) {
-                if (e.code === 'KeyA' || e.code === 'KeyQ') inputPullL = true;
-                if (e.code === 'KeyL' || e.code === 'KeyP') inputPullR = true;
+                const leftPressed = e.code === 'KeyA' || e.code === 'ArrowLeft' || (matchMode === 'ai' && e.code === 'Space');
+                const rightPressed = matchMode === 'local' && (e.code === 'KeyL' || e.code === 'ArrowRight');
+                if (leftPressed || rightPressed) e.preventDefault();
+                if (leftPressed) inputPullL = true;
+                if (rightPressed) inputPullR = true;
             }
             if (e.code === 'Escape') {
+                e.preventDefault();
                 if (state === GS.PLAYING) pauseGame();
                 else if (state === GS.PAUSED) resumeGame();
             }
@@ -755,7 +875,19 @@
         document.addEventListener('keyup', e => { keys[e.code] = false });
 
         function setupTouch(el, side) {
-            const onDown = e => { e.preventDefault(); ensureAudio(); if (side === 'L') { touchActiveL = true; if (state === GS.PLAYING) inputPullL = true; el.classList.add('active') } else { touchActiveR = true; if (state === GS.PLAYING) inputPullR = true; el.classList.add('active') } };
+            const onDown = e => {
+                e.preventDefault();
+                ensureAudio();
+                if (side === 'L') {
+                    touchActiveL = true;
+                    if (state === GS.PLAYING) inputPullL = true;
+                    el.classList.add('active');
+                } else {
+                    touchActiveR = true;
+                    if (state === GS.PLAYING && matchMode === 'local') inputPullR = true;
+                    el.classList.add('active');
+                }
+            };
             const onUp = e => { e.preventDefault(); if (side === 'L') { touchActiveL = false; el.classList.remove('active') } else { touchActiveR = false; el.classList.remove('active') } };
             el.addEventListener('pointerdown', onDown, { passive: false });
             el.addEventListener('pointerup', onUp, { passive: false });
@@ -769,15 +901,52 @@
         function show(id, v = true) { document.getElementById(id).style.display = v ? '' : 'none' }
         function showOverlay(id, v = true) { const el = document.getElementById(id); if (v) { el.style.display = ''; el.classList.add('active') } else { el.classList.remove('active'); el.style.display = 'none' } }
         function setText(id, t) { document.getElementById(id).textContent = t }
+        function getSelectedMode() {
+            const selected = document.querySelector('.mode-card.selected');
+            if (!selected) return S.mode;
+            return selected.dataset.mode === 'ai' ? 'ai' : 'local';
+        }
+        function sanitizeName(v, fallback) {
+            const out = (v || '').replace(/\s+/g, ' ').trim();
+            return out ? out.slice(0, 18) : fallback;
+        }
+        function shortName(v, max = 12) {
+            return v.length > max ? v.slice(0, max - 3) + '...' : v;
+        }
+        function getScoreLine() {
+            return `${S.teamP1} ${matchNameL} ${scoreL} - ${scoreR} ${S.teamP2} ${matchNameR}`;
+        }
+        function updateControlHints() {
+            if (S.mode === 'ai') {
+                setText('kbHintLeft', 'You: Space / A / Left Arrow');
+                setText('kbHintRight', 'AI: Auto pull | Pause: Esc');
+            } else {
+                setText('kbHintLeft', 'P1: A / Left Arrow');
+                setText('kbHintRight', 'P2: L / Right Arrow | Pause: Esc');
+            }
+        }
+        function updateModeUI() {
+            S.mode = getSelectedMode();
+            document.getElementById('aiOptions').style.display = S.mode === 'ai' ? '' : 'none';
+            document.getElementById('nameLabelP2').textContent = S.mode === 'ai' ? 'AI Name' : 'Player 2 Name';
+            document.getElementById('teamLabelP2').textContent = S.mode === 'ai' ? 'AI Team' : 'Player 2 Team';
+            if (S.mode === 'ai') {
+                const p2Input = document.getElementById('nameP2');
+                if (!p2Input.value.trim() || /^player 2$/i.test(p2Input.value.trim())) p2Input.value = 'AI';
+                document.getElementById('touchR').style.display = 'none';
+            } else {
+                document.getElementById('touchR').style.display = '';
+            }
+            updateControlHints();
+        }
 
         // ── Menu Logic ──
         document.querySelectorAll('.mode-card').forEach(c => {
             c.addEventListener('click', () => {
                 document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('selected'));
                 c.classList.add('selected');
-                S.mode = c.dataset.mode;
-                document.getElementById('aiOptions').style.display = S.mode === 'ai' ? '' : 'none';
-                document.getElementById('kbHint').style.display = S.mode === 'ai' ? 'none' : '';
+                S.mode = getSelectedMode();
+                updateModeUI();
             });
         });
         document.querySelectorAll('.diff-btn[data-diff]').forEach(b => {
@@ -802,6 +971,9 @@
         }
         setupTeamPick('teamP1', 'teamP1');
         setupTeamPick('teamP2', 'teamP2');
+        document.getElementById('nameP1').addEventListener('input', function () { S.nameP1 = sanitizeName(this.value, 'Player 1') });
+        document.getElementById('nameP2').addEventListener('input', function () { S.nameP2 = sanitizeName(this.value, getSelectedMode() === 'ai' ? 'AI' : 'Player 2') });
+        updateModeUI();
 
         document.querySelectorAll('.toggle').forEach(t => {
             t.addEventListener('click', () => { t.classList.toggle('on') });
@@ -823,13 +995,27 @@
         function goMenu() {
             state = GS.MENU;
             show('hud', false); show('staminaL', false); show('staminaR', false);
+            showOverlay('settingsScreen', false);
+            showOverlay('pauseScreen', false);
+            showOverlay('winScreen', false);
             showOverlay('menuScreen', true);
         }
 
         // ── Game Flow ──
         function startMatch() {
+            showOverlay('settingsScreen', false);
+            showOverlay('pauseScreen', false);
+            showOverlay('winScreen', false);
             showOverlay('menuScreen', false);
             show('hud', true); show('staminaL', true); show('staminaR', true);
+            S.mode = getSelectedMode();
+            matchMode = S.mode;
+            matchNameL = sanitizeName(document.getElementById('nameP1').value, 'Player 1');
+            matchNameR = sanitizeName(document.getElementById('nameP2').value, matchMode === 'ai' ? 'AI' : 'Player 2');
+            S.nameP1 = matchNameL; S.nameP2 = matchNameR;
+            document.getElementById('nameP1').value = matchNameL;
+            document.getElementById('nameP2').value = matchNameR;
+            inputPullL = false; inputPullR = false; touchActiveL = false; touchActiveR = false;
             scoreL = 0; scoreR = 0; round = 1;
             updateHUD();
             startRound();
@@ -862,6 +1048,9 @@
         function updateHUD() {
             setText('scoreL', scoreL);
             setText('scoreR', scoreR);
+            setText('hudPlayerL', `${S.teamP1} ${shortName(matchNameL, 14)}`);
+            setText('hudPlayerR', `${S.teamP2} ${shortName(matchNameR, 14)}`);
+            setText('scoreLine', getScoreLine());
             setText('roundInfo', 'ROUND ' + round + ' OF ' + S.rounds);
         }
 
@@ -968,7 +1157,7 @@
         }
 
         function updateAI(dt) {
-            if (S.mode !== 'ai') return;
+            if (matchMode !== 'ai') return;
             aiTimer -= dt;
             if (aiTimer <= 0) {
                 // AI difficulty affects rhythm accuracy and reaction
@@ -1061,7 +1250,7 @@
             }
 
             // Win check
-            if (Math.abs(ropePos) >= WIN_THRESHOLD) {
+            if (state === GS.PLAYING && Math.abs(ropePos) >= WIN_THRESHOLD) {
                 endRound(ropePos < 0 ? 0 : 1);
             }
         }
@@ -1082,9 +1271,10 @@
                     state = GS.MATCH_END;
                     const w = scoreL >= winsNeeded ? 0 : 1;
                     document.getElementById('winEmoji').textContent = w === 0 ? S.teamP1 : S.teamP2;
-                    document.getElementById('winText').textContent = (w === 0 ? 'PLAYER 1' : 'PLAYER 2') + ' WINS';
+                    const winnerName = w === 0 ? matchNameL : matchNameR;
+                    document.getElementById('winText').textContent = winnerName + ' WINS';
                     document.getElementById('winText').style.color = w === 0 ? 'var(--p1)' : 'var(--p2)';
-                    document.getElementById('winSub').textContent = scoreL + ' — ' + scoreR;
+                    document.getElementById('winSub').textContent = getScoreLine();
                     showOverlay('winScreen', true);
                     sfxWin();
                 }, 1200);
@@ -1259,9 +1449,9 @@
             // Player labels
             ctx.font = `bold ${clamp(cw * 0.018, 9, 14)}px 'Game',sans-serif`;
             ctx.fillStyle = 'rgba(240,160,48,0.6)';
-            ctx.fillText('P1', charLX, charY + p1size * 0.8);
+            ctx.fillText(shortName(matchNameL, 8), charLX, charY + p1size * 0.8);
             ctx.fillStyle = 'rgba(224,48,80,0.6)';
-            ctx.fillText('P2', charRX, charY + p1size * 0.8);
+            ctx.fillText(shortName(matchNameR, 8), charRX, charY + p1size * 0.8);
 
             // Helpers pulling rope line
             ctx.strokeStyle = 'rgba(200,168,112,0.15)';
@@ -1364,7 +1554,7 @@
             if (state === GS.PLAYING) {
                 gameTime += dt;
                 processPull(0, dt);
-                if (S.mode === 'ai') {
+                if (matchMode === 'ai') {
                     updateAI(dt);
                 }
                 processPull(1, dt);
@@ -1372,11 +1562,11 @@
                 updateStaminaUI();
 
                 // Continuous pulling detection for held keys/touch
-                if (keys['KeyA'] || keys['KeyQ'] || touchActiveL) {
+                if (keys['KeyA'] || keys['ArrowLeft'] || touchActiveL || (matchMode === 'ai' && keys['Space'])) {
                     // Re-trigger pull on rhythm
                     if (pullTimerL <= 0) inputPullL = true;
                 }
-                if (S.mode === 'local' && (keys['KeyL'] || keys['KeyP'] || touchActiveR)) {
+                if (matchMode === 'local' && (keys['KeyL'] || keys['ArrowRight'] || touchActiveR)) {
                     if (pullTimerR <= 0) inputPullR = true;
                 }
             }
