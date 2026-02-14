@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ROPEWRATH</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪢</text></svg>">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        @font-face {
+            font-family: 'Game';
+            src: local('Segoe UI'), local('Helvetica Neue'), local('Arial')
+        }
+
+        :root {
+            --bg: #0a0a0f;
+            --bg2: #12121a;
+            --text: #e8e6e1;
+            --dim: #5a586e;
+            --p1: #f0a030;
+            --p1g: #f5c842;
+            --p1d: #c07820;
+            --p2: #e03050;
+            --p2g: #ff5070;
+            --p2d: #a02040;
+            --accent: #7048e8;
+            --win: #40d060;
+            --rope: #c8a870;
+            --rope-hi: #ffe0a0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Game', sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            pointer-events: none
+        }
+
+        .overlay.active {
+            pointer-events: all
+        }
+
+        .overlay-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 6, 12, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px)
+        }
+
+        .overlay-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            background: linear-gradient(135deg, var(--p1), var(--p2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.1em;
+            text-transform: uppercase;
+            line-height: 1
+        }
+
+        .subtitle {
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            color: var(--dim);
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            margin-bottom: 2em
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8em 2.5em;
+            margin: 0.4em;
+            font-size: clamp(0.85rem, 2.2vw, 1.1rem);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border: 2px solid var(--dim);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            min-width: 200px
+        }
+
+        .btn:hover,
+        .btn:focus {
+            border-color: var(--accent);
+            color: #fff;
+            background: rgba(112, 72, 232, 0.15);
+            transform: translateY(-2px);
+            outline: none
+        }
+
+        .btn:active {
+            transform: translateY(0)
+        }
+
+        .btn.primary {
+            border-color: var(--accent);
+            background: rgba(112, 72, 232, 0.2)
+        }
+
+        .btn.small {
+            padding: 0.5em 1.5em;
+            font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+            min-width: auto
+        }
+
+        .mode-select {
+            display: flex;
+            gap: 1em;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1em 0
+        }
+
+        .mode-card {
+            flex: 1;
+            min-width: 140px;
+            max-width: 200px;
+            padding: 1.2em;
+            border: 2px solid var(--dim);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: rgba(255, 255, 255, 0.02)
+        }
+
+        .mode-card:hover,
+        .mode-card.selected {
+            border-color: var(--accent);
+            background: rgba(112, 72, 232, 0.12);
+            transform: translateY(-3px)
+        }
+
+        .mode-card .icon {
+            font-size: 2em;
+            margin-bottom: 0.3em
+        }
+
+        .mode-card .label {
+            font-weight: 700;
+            font-size: 0.9em;
+            letter-spacing: 0.1em;
+            text-transform: uppercase
+        }
+
+        .mode-card .desc {
+            font-size: 0.7em;
+            color: var(--dim);
+            margin-top: 0.3em
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6em 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05)
+        }
+
+        .settings-row label {
+            font-size: 0.85em;
+            letter-spacing: 0.05em
+        }
+
+        .toggle {
+            width: 44px;
+            height: 24px;
+            border-radius: 12px;
+            background: var(--dim);
+            cursor: pointer;
+            position: relative;
+            transition: 0.3s;
+            border: none
+        }
+
+        .toggle.on {
+            background: var(--accent)
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            transition: 0.3s
+        }
+
+        .toggle.on::after {
+            left: 22px
+        }
+
+        .hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: clamp(8px, 2vw, 16px);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 5;
+            pointer-events: none
+        }
+
+        .hud>* {
+            pointer-events: all
+        }
+
+        .hud-score {
+            font-size: clamp(1.2rem, 3.5vw, 2rem);
+            font-weight: 900;
+            letter-spacing: 0.05em
+        }
+
+        .hud-score.p1 {
+            color: var(--p1)
+        }
+
+        .hud-score.p2 {
+            color: var(--p2)
+        }
+
+        .hud-center {
+            text-align: center
+        }
+
+        .hud-round {
+            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+            color: var(--dim);
+            letter-spacing: 0.2em;
+            text-transform: uppercase
+        }
+
+        .hud-timer {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            font-weight: 700;
+            color: var(--text)
+        }
+
+        .hud-pause {
+            background: none;
+            border: none;
+            color: var(--dim);
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: 0.2s
+        }
+
+        .hud-pause:hover {
+            color: var(--text)
+        }
+
+        .stamina-bar {
+            position: absolute;
+            bottom: clamp(60px, 15vh, 100px);
+            width: clamp(80px, 18vw, 140px);
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            z-index: 5
+        }
+
+        .stamina-bar.left {
+            left: clamp(10px, 3vw, 30px)
+        }
+
+        .stamina-bar.right {
+            right: clamp(10px, 3vw, 30px)
+        }
+
+        .stamina-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.1s
+        }
+
+        .stamina-fill.p1 {
+            background: linear-gradient(90deg, var(--p1d), var(--p1))
+        }
+
+        .stamina-fill.p2 {
+            background: linear-gradient(90deg, var(--p2), var(--p2d))
+        }
+
+        .touch-zone {
+            position: absolute;
+            bottom: 0;
+            width: 50%;
+            height: 35%;
+            z-index: 6;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+            transition: opacity 0.1s
+        }
+
+        .touch-zone.active {
+            opacity: 1
+        }
+
+        .touch-zone.left {
+            left: 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.05)
+        }
+
+        .touch-zone.right {
+            right: 0
+        }
+
+        .touch-hint {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            opacity: 0.3;
+            pointer-events: none
+        }
+
+        .touch-zone.active .touch-hint {
+            opacity: 0.7
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(4rem, 15vw, 8rem);
+            font-weight: 900;
+            z-index: 8;
+            opacity: 0;
+            transition: none;
+            pointer-events: none
+        }
+
+        .round-banner {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            z-index: 8;
+            opacity: 0;
+            pointer-events: none
+        }
+
+        .pull-indicator {
+            position: absolute;
+            font-size: clamp(0.8rem, 2vw, 1.1rem);
+            font-weight: 900;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 7;
+            letter-spacing: 0.05em
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            overflow: hidden
+        }
+
+        @media(hover:none)and(pointer:coarse) {
+            .touch-zone {
+                display: flex
+            }
+        }
+
+        .winner-emoji {
+            font-size: clamp(3rem, 10vw, 6rem);
+            margin-bottom: 0.2em
+        }
+
+        .winner-text {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.1em
+        }
+
+        .winner-sub {
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            color: var(--dim);
+            margin-bottom: 1.5em;
+            letter-spacing: 0.1em
+        }
+
+        .screen {
+            display: none
+        }
+
+        .screen.active {
+            display: block
+        }
+
+        .team-row {
+            display: flex;
+            gap: 1em;
+            justify-content: center;
+            margin: 1em 0;
+            flex-wrap: wrap
+        }
+
+        .team-pick {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            cursor: pointer;
+            padding: 0.3em;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            transition: 0.2s;
+            background: none
+        }
+
+        .team-pick:hover,
+        .team-pick.sel {
+            border-color: var(--accent);
+            background: rgba(112, 72, 232, 0.15)
+        }
+
+        .ai-diff {
+            display: flex;
+            gap: 0.5em;
+            justify-content: center;
+            margin: 0.8em 0;
+            flex-wrap: wrap
+        }
+
+        .diff-btn {
+            padding: 0.4em 1.2em;
+            border: 1px solid var(--dim);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8em;
+            letter-spacing: 0.08em;
+            transition: 0.2s
+        }
+
+        .diff-btn:hover,
+        .diff-btn.sel {
+            border-color: var(--accent);
+            background: rgba(112, 72, 232, 0.15);
+            color: #fff
+        }
+
+        .kb-hint {
+            display: flex;
+            justify-content: space-between;
+            margin: 1em 0;
+            font-size: clamp(0.65rem, 1.6vw, 0.8rem);
+            color: var(--dim);
+            letter-spacing: 0.05em
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gc"></canvas>
+
+    <div class="hud" id="hud" style="display:none">
+        <div class="hud-score p1" id="scoreL">0</div>
+        <div class="hud-center">
+            <div class="hud-round" id="roundInfo">ROUND 1 OF 3</div>
+            <div class="hud-timer" id="timer"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+            <div class="hud-score p2" id="scoreR">0</div>
+            <button class="hud-pause" id="pauseBtn" aria-label="Pause">⏸</button>
+        </div>
+    </div>
+
+    <div class="stamina-bar left" id="staminaL" style="display:none">
+        <div class="stamina-fill p1" id="staminaFillL"></div>
+    </div>
+    <div class="stamina-bar right" id="staminaR" style="display:none">
+        <div class="stamina-fill p2" id="staminaFillR"></div>
+    </div>
+
+    <div class="touch-zone left" id="touchL"><span class="touch-hint">👈 TAP</span></div>
+    <div class="touch-zone right" id="touchR"><span class="touch-hint">TAP 👉</span></div>
+
+    <div class="countdown" id="countdown"></div>
+    <div class="round-banner" id="roundBanner"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- MENU -->
+    <div class="overlay active" id="menuScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content">
+            <div class="title">RopeWrath</div>
+            <div class="subtitle">Tug-of-War</div>
+            <div class="mode-select" id="modeSelect">
+                <div class="mode-card selected" data-mode="local">
+                    <div class="icon">👥</div>
+                    <div class="label">Local PVP</div>
+                    <div class="desc">Same device</div>
+                </div>
+                <div class="mode-card" data-mode="ai">
+                    <div class="icon">🤖</div>
+                    <div class="label">VS AI</div>
+                    <div class="desc">Solo challenge</div>
+                </div>
+            </div>
+            <div id="aiOptions" style="display:none">
+                <div class="ai-diff">
+                    <button class="diff-btn" data-diff="0">EASY</button>
+                    <button class="diff-btn sel" data-diff="1">MEDIUM</button>
+                    <button class="diff-btn" data-diff="2">HARD</button>
+                </div>
+            </div>
+            <div class="team-row">
+                <span style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">P1 Team</span>
+            </div>
+            <div class="team-row" id="teamP1">
+                <button class="team-pick sel" data-team="🐻">🐻</button>
+                <button class="team-pick" data-team="🐉">🐉</button>
+                <button class="team-pick" data-team="🦁">🦁</button>
+                <button class="team-pick" data-team="🦊">🦊</button>
+                <button class="team-pick" data-team="🐺">🐺</button>
+            </div>
+            <div class="team-row">
+                <span style="font-size:0.75em;color:var(--dim);width:100%;margin-bottom:-0.5em">P2 Team</span>
+            </div>
+            <div class="team-row" id="teamP2">
+                <button class="team-pick" data-team="🐻">🐻</button>
+                <button class="team-pick" data-team="🐉">🐉</button>
+                <button class="team-pick sel" data-team="🦁">🦁</button>
+                <button class="team-pick" data-team="🦊">🦊</button>
+                <button class="team-pick" data-team="🐺">🐺</button>
+            </div>
+            <div class="kb-hint" id="kbHint">
+                <span>P1: A / Q key</span>
+                <span>P2: L / P key</span>
+            </div>
+            <button class="btn primary" id="startBtn">START MATCH</button>
+            <button class="btn small" id="settingsBtn">⚙ SETTINGS</button>
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="overlay" id="settingsScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content">
+            <div style="font-size:1.4em;font-weight:900;letter-spacing:0.15em;margin-bottom:1em">SETTINGS</div>
+            <div class="settings-row"><label>Rounds (Best of)</label>
+                <div><button class="diff-btn" data-rounds="1">1</button><button class="diff-btn sel"
+                        data-rounds="3">3</button><button class="diff-btn" data-rounds="5">5</button></div>
+            </div>
+            <div class="settings-row"><label>Screen Shake</label><button class="toggle on" id="toggleShake"></button>
+            </div>
+            <div class="settings-row"><label>Particles</label><button class="toggle on" id="toggleParticles"></button>
+            </div>
+            <div class="settings-row"><label>Sound FX</label><button class="toggle on" id="toggleSound"></button></div>
+            <div class="settings-row"><label>Dark Rope</label><button class="toggle" id="toggleDarkRope"></button></div>
+            <div style="margin-top:1.5em"><button class="btn small" id="settingsBack">← BACK</button></div>
+        </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="overlay" id="pauseScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content">
+            <div style="font-size:1.8em;font-weight:900;letter-spacing:0.2em;margin-bottom:0.8em">PAUSED</div>
+            <button class="btn primary" id="resumeBtn">RESUME</button><br>
+            <button class="btn small" id="quitBtn">QUIT TO MENU</button>
+        </div>
+    </div>
+
+    <!-- WINNER -->
+    <div class="overlay" id="winScreen">
+        <div class="overlay-bg"></div>
+        <div class="overlay-content">
+            <div class="winner-emoji" id="winEmoji">🏆</div>
+            <div class="winner-text" id="winText">PLAYER 1 WINS</div>
+            <div class="winner-sub" id="winSub">3 — 1</div>
+            <button class="btn primary" id="rematchBtn">REMATCH</button><br>
+            <button class="btn small" id="menuBtn">MENU</button>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // ── Audio Engine (Web Audio API, no network) ──
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let actx = null;
+        function ensureAudio() { if (!actx) try { actx = new AudioCtx() } catch (e) { } }
+        function playTone(freq, dur, vol = 0.12, type = 'triangle') {
+            if (!actx || !S.sound) return;
+            try {
+                const o = actx.createOscillator(), g = actx.createGain();
+                o.type = type; o.frequency.value = freq;
+                g.gain.setValueAtTime(vol, actx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+                o.connect(g); g.connect(actx.destination);
+                o.start(); o.stop(actx.currentTime + dur);
+            } catch (e) { }
+        }
+        function sfxPull(p) { playTone(p === 0 ? 220 : 330, 0.06, 0.08, 'square') }
+        function sfxPerfect() { playTone(880, 0.15, 0.15, 'sine'); setTimeout(() => playTone(1100, 0.12, 0.12, 'sine'), 80) }
+        function sfxCountdown(n) { playTone(n === 0 ? 660 : 440, 0.2, 0.18, 'triangle') }
+        function sfxWin() { playTone(523, 0.15, 0.2, 'sine'); setTimeout(() => playTone(659, 0.15, 0.18, 'sine'), 120); setTimeout(() => playTone(784, 0.25, 0.2, 'sine'), 240) }
+        function sfxRoundWin() { playTone(600, 0.12, 0.15); setTimeout(() => playTone(750, 0.18, 0.15), 100) }
+
+        // ── Settings ──
+        const S = { sound: true, shake: true, particles: true, darkRope: false, rounds: 3, mode: 'local', aiDiff: 1, teamP1: '🐻', teamP2: '🦁' };
+
+        // ── Canvas Setup ──
+        const canvas = document.getElementById('gc');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        function resize() {
+            W = canvas.width = canvas.clientWidth * devicePixelRatio;
+            H = canvas.height = canvas.clientHeight * devicePixelRatio;
+            ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // ── Game State ──
+        const GS = {
+            MENU: 0, COUNTDOWN: 1, PLAYING: 2, ROUND_END: 3, MATCH_END: 4, PAUSED: 5
+        };
+        let state = GS.MENU;
+        let ropePos = 0; // -1 to 1, 0 is center
+        let ropeVel = 0;
+        let scoreL = 0, scoreR = 0, round = 1;
+        let staminaL = 1, staminaR = 1;
+        let countdownVal = 3, countdownTimer = 0;
+        let roundEndTimer = 0;
+        let pullTimerL = 0, pullTimerR = 0; // cooldown between pulls
+        let comboL = 0, comboR = 0;
+        let comboTimerL = 0, comboTimerR = 0;
+        let lastPullTimeL = 0, lastPullTimeR = 0;
+        let rhythmWindowL = false, rhythmWindowR = false;
+        let rhythmFlashL = 0, rhythmFlashR = 0;
+        let gameTime = 0;
+        let shakeX = 0, shakeY = 0, shakeDecay = 0;
+        let particleList = [];
+        let pullIndicators = [];
+        let flagWavePhase = 0;
+        let ropeSegments = [];
+        const ROPE_SEG = 24;
+        const WIN_THRESHOLD = 0.92;
+        const PULL_FORCE = 0.018;
+        const DRAG = 0.97;
+        const RETURN_FORCE = 0.0003;
+        const STAMINA_COST = 0.045;
+        const STAMINA_REGEN = 0.012;
+        const PULL_COOLDOWN = 0.08;
+        const COMBO_WINDOW = 0.45;
+        const COMBO_BONUS = 0.3;
+        const PERFECT_WINDOW_START = 0.28;
+        const PERFECT_WINDOW_END = 0.38;
+        const PERFECT_BONUS = 0.7;
+
+        // AI state
+        let aiTimer = 0, aiNextPull = 0, aiRhythm = 0.3;
+
+        function initRopeSegments() {
+            ropeSegments = [];
+            for (let i = 0; i <= ROPE_SEG; i++) {
+                ropeSegments.push({ x: 0, y: 0, vx: 0, vy: 0 });
+            }
+        }
+        initRopeSegments();
+
+        // ── Input ──
+        const keys = {};
+        let touchActiveL = false, touchActiveR = false;
+        let inputPullL = false, inputPullR = false;
+
+        document.addEventListener('keydown', e => {
+            if (keys[e.code]) return;
+            keys[e.code] = true;
+            ensureAudio();
+            if (state === GS.PLAYING) {
+                if (e.code === 'KeyA' || e.code === 'KeyQ') inputPullL = true;
+                if (e.code === 'KeyL' || e.code === 'KeyP') inputPullR = true;
+            }
+            if (e.code === 'Escape') {
+                if (state === GS.PLAYING) pauseGame();
+                else if (state === GS.PAUSED) resumeGame();
+            }
+        });
+        document.addEventListener('keyup', e => { keys[e.code] = false });
+
+        function setupTouch(el, side) {
+            const onDown = e => { e.preventDefault(); ensureAudio(); if (side === 'L') { touchActiveL = true; if (state === GS.PLAYING) inputPullL = true; el.classList.add('active') } else { touchActiveR = true; if (state === GS.PLAYING) inputPullR = true; el.classList.add('active') } };
+            const onUp = e => { e.preventDefault(); if (side === 'L') { touchActiveL = false; el.classList.remove('active') } else { touchActiveR = false; el.classList.remove('active') } };
+            el.addEventListener('pointerdown', onDown, { passive: false });
+            el.addEventListener('pointerup', onUp, { passive: false });
+            el.addEventListener('pointercancel', onUp, { passive: false });
+            el.addEventListener('pointerleave', onUp, { passive: false });
+        }
+        setupTouch(document.getElementById('touchL'), 'L');
+        setupTouch(document.getElementById('touchR'), 'R');
+
+        // ── UI Helpers ──
+        function show(id, v = true) { document.getElementById(id).style.display = v ? '' : 'none' }
+        function showOverlay(id, v = true) { const el = document.getElementById(id); if (v) { el.style.display = ''; el.classList.add('active') } else { el.classList.remove('active'); el.style.display = 'none' } }
+        function setText(id, t) { document.getElementById(id).textContent = t }
+
+        // ── Menu Logic ──
+        document.querySelectorAll('.mode-card').forEach(c => {
+            c.addEventListener('click', () => {
+                document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('selected'));
+                c.classList.add('selected');
+                S.mode = c.dataset.mode;
+                document.getElementById('aiOptions').style.display = S.mode === 'ai' ? '' : 'none';
+                document.getElementById('kbHint').style.display = S.mode === 'ai' ? 'none' : '';
+            });
+        });
+        document.querySelectorAll('.diff-btn[data-diff]').forEach(b => {
+            b.addEventListener('click', () => {
+                document.querySelectorAll('.diff-btn[data-diff]').forEach(x => x.classList.remove('sel'));
+                b.classList.add('sel'); S.aiDiff = +b.dataset.diff;
+            });
+        });
+        document.querySelectorAll('.diff-btn[data-rounds]').forEach(b => {
+            b.addEventListener('click', () => {
+                document.querySelectorAll('.diff-btn[data-rounds]').forEach(x => x.classList.remove('sel'));
+                b.classList.add('sel'); S.rounds = +b.dataset.rounds;
+            });
+        });
+        function setupTeamPick(containerId, key) {
+            document.getElementById(containerId).querySelectorAll('.team-pick').forEach(b => {
+                b.addEventListener('click', () => {
+                    document.getElementById(containerId).querySelectorAll('.team-pick').forEach(x => x.classList.remove('sel'));
+                    b.classList.add('sel'); S[key] = b.dataset.team;
+                });
+            });
+        }
+        setupTeamPick('teamP1', 'teamP1');
+        setupTeamPick('teamP2', 'teamP2');
+
+        document.querySelectorAll('.toggle').forEach(t => {
+            t.addEventListener('click', () => { t.classList.toggle('on') });
+        });
+        document.getElementById('toggleShake').addEventListener('click', function () { S.shake = this.classList.contains('on') });
+        document.getElementById('toggleParticles').addEventListener('click', function () { S.particles = this.classList.contains('on') });
+        document.getElementById('toggleSound').addEventListener('click', function () { S.sound = this.classList.contains('on') });
+        document.getElementById('toggleDarkRope').addEventListener('click', function () { S.darkRope = this.classList.contains('on') });
+
+        document.getElementById('settingsBtn').addEventListener('click', () => { showOverlay('menuScreen', false); showOverlay('settingsScreen', true) });
+        document.getElementById('settingsBack').addEventListener('click', () => { showOverlay('settingsScreen', false); showOverlay('menuScreen', true) });
+        document.getElementById('startBtn').addEventListener('click', () => { ensureAudio(); startMatch() });
+        document.getElementById('pauseBtn').addEventListener('click', () => { if (state === GS.PLAYING) pauseGame() });
+        document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+        document.getElementById('quitBtn').addEventListener('click', () => { showOverlay('pauseScreen', false); goMenu() });
+        document.getElementById('rematchBtn').addEventListener('click', () => { showOverlay('winScreen', false); startMatch() });
+        document.getElementById('menuBtn').addEventListener('click', () => { showOverlay('winScreen', false); goMenu() });
+
+        function goMenu() {
+            state = GS.MENU;
+            show('hud', false); show('staminaL', false); show('staminaR', false);
+            showOverlay('menuScreen', true);
+        }
+
+        // ── Game Flow ──
+        function startMatch() {
+            showOverlay('menuScreen', false);
+            show('hud', true); show('staminaL', true); show('staminaR', true);
+            scoreL = 0; scoreR = 0; round = 1;
+            updateHUD();
+            startRound();
+        }
+
+        function startRound() {
+            ropePos = 0; ropeVel = 0;
+            staminaL = 1; staminaR = 1;
+            comboL = 0; comboR = 0;
+            comboTimerL = 0; comboTimerR = 0;
+            pullTimerL = 0; pullTimerR = 0;
+            lastPullTimeL = 0; lastPullTimeR = 0;
+            rhythmWindowL = false; rhythmWindowR = false;
+            rhythmFlashL = 0; rhythmFlashR = 0;
+            gameTime = 0; aiTimer = 0;
+            particleList = []; pullIndicators = [];
+            initRopeSegments();
+            countdownVal = 3; countdownTimer = 0;
+            state = GS.COUNTDOWN;
+            showRoundBanner('ROUND ' + round);
+        }
+
+        function showRoundBanner(text) {
+            const el = document.getElementById('roundBanner');
+            el.textContent = text;
+            el.style.opacity = '1'; el.style.transition = 'none';
+            setTimeout(() => { el.style.transition = 'opacity 0.6s'; el.style.opacity = '0' }, 800);
+        }
+
+        function updateHUD() {
+            setText('scoreL', scoreL);
+            setText('scoreR', scoreR);
+            setText('roundInfo', 'ROUND ' + round + ' OF ' + S.rounds);
+        }
+
+        function pauseGame() {
+            if (state !== GS.PLAYING) return;
+            state = GS.PAUSED;
+            showOverlay('pauseScreen', true);
+        }
+        function resumeGame() {
+            showOverlay('pauseScreen', false);
+            state = GS.PLAYING;
+            lastFrameTime = performance.now();
+        }
+
+        // ── Particles ──
+        function spawnParticle(x, y, color, count = 3) {
+            if (!S.particles) return;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 3;
+                particleList.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2, life: 0.6 + Math.random() * 0.4, maxLife: 1, color, size: 2 + Math.random() * 3 });
+            }
+            if (particleList.length > 200) particleList.splice(0, particleList.length - 200);
+        }
+
+        function spawnPullIndicator(x, y, text, color) {
+            pullIndicators.push({ x, y, text, color, life: 0.8, maxLife: 0.8 });
+            if (pullIndicators.length > 10) pullIndicators.shift();
+        }
+
+        function triggerShake(intensity = 3) {
+            if (!S.shake) return;
+            shakeX = (Math.random() - 0.5) * intensity;
+            shakeY = (Math.random() - 0.5) * intensity;
+            shakeDecay = 0.15;
+            // Vibrate on mobile
+            if (navigator.vibrate) try { navigator.vibrate(30) } catch (e) { }
+        }
+
+        // ── Physics & Gameplay ──
+        function processPull(side, dt) {
+            const isL = side === 0;
+            let stamina = isL ? staminaL : staminaR;
+            let pullTimer = isL ? pullTimerL : pullTimerR;
+            let pull = isL ? inputPullL : inputPullR;
+
+            if (pull && pullTimer <= 0 && stamina > STAMINA_COST * 0.5) {
+                const now = gameTime;
+                const lastPull = isL ? lastPullTimeL : lastPullTimeR;
+                const interval = now - lastPull;
+
+                // Combo
+                let combo = isL ? comboL : comboR;
+                let comboTimer = isL ? comboTimerL : comboTimerR;
+                if (comboTimer > 0) { combo = Math.min(combo + 1, 5) } else { combo = 1 }
+
+                let force = PULL_FORCE;
+
+                // Rhythm/perfect pull detection
+                let isPerfect = false;
+                if (interval >= PERFECT_WINDOW_START && interval <= PERFECT_WINDOW_END) {
+                    isPerfect = true;
+                    force *= (1 + PERFECT_BONUS);
+                }
+
+                // Combo multiplier
+                force *= (1 + combo * COMBO_BONUS * 0.2);
+
+                // Stamina cost (higher combo = slightly more cost)
+                let cost = STAMINA_COST * (1 + combo * 0.05);
+                if (stamina < cost) force *= (stamina / cost);
+                stamina = Math.max(0, stamina - cost);
+
+                // Apply force
+                const dir = isL ? -1 : 1;
+                ropeVel += force * dir;
+
+                // Effects
+                const cw = canvas.clientWidth, ch = canvas.clientHeight;
+                const px = isL ? cw * 0.15 : cw * 0.85;
+                const py = ch * 0.5;
+
+                if (isPerfect) {
+                    sfxPerfect();
+                    spawnParticle(px, py, isL ? '#f5c842' : '#ff5070', 8);
+                    spawnPullIndicator(px, py - 30, 'PERFECT!', isL ? '#f5c842' : '#ff5070');
+                    triggerShake(5);
+                    if (isL) rhythmFlashL = 0.3; else rhythmFlashR = 0.3;
+                } else {
+                    sfxPull(side);
+                    spawnParticle(px, py, isL ? '#f0a030' : '#e03050', 2);
+                    if (combo >= 3) spawnPullIndicator(px, py - 30, 'x' + combo, isL ? '#f0a030' : '#e03050');
+                    triggerShake(2);
+                }
+
+                if (isL) {
+                    pullTimerL = PULL_COOLDOWN; lastPullTimeL = now; comboL = combo; comboTimerL = COMBO_WINDOW;
+                } else {
+                    pullTimerR = PULL_COOLDOWN; lastPullTimeR = now; comboR = combo; comboTimerR = COMBO_WINDOW;
+                }
+                if (isL) staminaL = stamina; else staminaR = stamina;
+            }
+            if (isL) inputPullL = false; else inputPullR = false;
+        }
+
+        function updateAI(dt) {
+            if (S.mode !== 'ai') return;
+            aiTimer -= dt;
+            if (aiTimer <= 0) {
+                // AI difficulty affects rhythm accuracy and reaction
+                const diffSpeeds = [0.38, 0.32, 0.26];
+                const diffForce = [0.7, 0.9, 1.1];
+                const baseInterval = diffSpeeds[S.aiDiff];
+
+                // Adaptive: if losing, pull faster
+                let urgency = 1;
+                if (ropePos < -0.3) urgency = 1.2;
+                if (ropePos < -0.6) urgency = 1.4;
+                if (ropePos > 0.3) urgency = 0.85;
+
+                // Add slight randomness
+                const interval = baseInterval / urgency * (0.85 + Math.random() * 0.3);
+                aiTimer = interval;
+
+                // AI pulls
+                if (staminaR > 0.1) {
+                    inputPullR = true;
+                }
+            }
+        }
+
+        function updatePhysics(dt) {
+            // Timers
+            pullTimerL = Math.max(0, pullTimerL - dt);
+            pullTimerR = Math.max(0, pullTimerR - dt);
+            comboTimerL = Math.max(0, comboTimerL - dt);
+            comboTimerR = Math.max(0, comboTimerR - dt);
+            rhythmFlashL = Math.max(0, rhythmFlashL - dt);
+            rhythmFlashR = Math.max(0, rhythmFlashR - dt);
+
+            // Stamina regen
+            staminaL = Math.min(1, staminaL + STAMINA_REGEN * dt);
+            staminaR = Math.min(1, staminaR + STAMINA_REGEN * dt);
+
+            // Rope physics
+            ropeVel *= Math.pow(DRAG, dt * 60);
+            // Slight return-to-center force (makes comebacks possible)
+            ropeVel -= ropePos * RETURN_FORCE * dt * 60;
+            ropePos += ropeVel;
+            ropePos = Math.max(-1, Math.min(1, ropePos));
+
+            // Rope segments simulation
+            const cw = canvas.clientWidth, ch = canvas.clientHeight;
+            const ropeY = ch * 0.52;
+            const leftX = cw * 0.08;
+            const rightX = cw * 0.92;
+            const centerShift = ropePos * (cw * 0.35);
+
+            for (let i = 0; i <= ROPE_SEG; i++) {
+                const t = i / ROPE_SEG;
+                const targetX = leftX + (rightX - leftX) * t + centerShift;
+                const sag = Math.sin(t * Math.PI) * 18 * (1 - Math.abs(ropeVel) * 8);
+                const wave = Math.sin(t * Math.PI * 3 + gameTime * 8) * 2 * Math.abs(ropeVel) * 15;
+                const targetY = ropeY + sag + wave;
+                const seg = ropeSegments[i];
+                const spring = 0.15;
+                seg.vx += (targetX - seg.x) * spring;
+                seg.vy += (targetY - seg.y) * spring;
+                seg.vx *= 0.7; seg.vy *= 0.7;
+                seg.x += seg.vx; seg.y += seg.vy;
+            }
+
+            // Screen shake decay
+            if (shakeDecay > 0) {
+                shakeDecay -= dt;
+                if (shakeDecay <= 0) { shakeX = 0; shakeY = 0 }
+                else { shakeX *= 0.85; shakeY *= 0.85 }
+            }
+
+            // Particles
+            for (let i = particleList.length - 1; i >= 0; i--) {
+                const p = particleList[i];
+                p.x += p.vx; p.y += p.vy; p.vy += 0.15;
+                p.life -= dt;
+                if (p.life <= 0) particleList.splice(i, 1);
+            }
+            for (let i = pullIndicators.length - 1; i >= 0; i--) {
+                const pi = pullIndicators[i];
+                pi.y -= 40 * dt; pi.life -= dt;
+                if (pi.life <= 0) pullIndicators.splice(i, 1);
+            }
+
+            // Center particles (tension sparks)
+            if (Math.abs(ropeVel) > 0.003 && S.particles) {
+                const mx = cw * 0.5 + centerShift;
+                spawnParticle(mx, ropeY, '#ffe0a0', 1);
+            }
+
+            // Win check
+            if (Math.abs(ropePos) >= WIN_THRESHOLD) {
+                endRound(ropePos < 0 ? 0 : 1);
+            }
+        }
+
+        function endRound(winner) {
+            state = GS.ROUND_END;
+            roundEndTimer = 1.5;
+            if (winner === 0) scoreL++; else scoreR++;
+            sfxRoundWin();
+            triggerShake(8);
+            const cw = canvas.clientWidth, ch = canvas.clientHeight;
+            spawnParticle(cw * 0.5, ch * 0.5, winner === 0 ? '#f0a030' : '#e03050', 25);
+            updateHUD();
+
+            const winsNeeded = Math.ceil(S.rounds / 2);
+            if (scoreL >= winsNeeded || scoreR >= winsNeeded) {
+                setTimeout(() => {
+                    state = GS.MATCH_END;
+                    const w = scoreL >= winsNeeded ? 0 : 1;
+                    document.getElementById('winEmoji').textContent = w === 0 ? S.teamP1 : S.teamP2;
+                    document.getElementById('winText').textContent = (w === 0 ? 'PLAYER 1' : 'PLAYER 2') + ' WINS';
+                    document.getElementById('winText').style.color = w === 0 ? 'var(--p1)' : 'var(--p2)';
+                    document.getElementById('winSub').textContent = scoreL + ' — ' + scoreR;
+                    showOverlay('winScreen', true);
+                    sfxWin();
+                }, 1200);
+            } else {
+                setTimeout(() => { round++; updateHUD(); startRound() }, 1500);
+            }
+        }
+
+        // ── Stamina HUD ──
+        function updateStaminaUI() {
+            document.getElementById('staminaFillL').style.width = (staminaL * 100) + '%';
+            document.getElementById('staminaFillR').style.width = (staminaR * 100) + '%';
+        }
+
+        // ── Rendering ──
+        function render() {
+            const cw = canvas.clientWidth, ch = canvas.clientHeight;
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
+
+            // Background
+            const grad = ctx.createLinearGradient(0, 0, 0, ch);
+            grad.addColorStop(0, '#0a0a12');
+            grad.addColorStop(1, '#0f0f1a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(-10, -10, cw + 20, ch + 20);
+
+            // Ground
+            const groundY = ch * 0.72;
+            ctx.fillStyle = '#101018';
+            ctx.fillRect(0, groundY, cw, ch - groundY);
+            ctx.fillStyle = '#1a1a28';
+            ctx.fillRect(0, groundY, cw, 3);
+
+            // Mud/dirt area near center
+            const centerShift = ropePos * (cw * 0.35);
+            const mudX = cw * 0.5;
+            ctx.fillStyle = 'rgba(80,60,30,0.12)';
+            ctx.beginPath();
+            ctx.ellipse(mudX + centerShift, groundY + 2, cw * 0.15, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Win zones
+            const wzW = cw * 0.06;
+            ctx.fillStyle = 'rgba(240,160,48,0.06)';
+            ctx.fillRect(0, 0, wzW, ch);
+            ctx.fillStyle = 'rgba(224,48,80,0.06)';
+            ctx.fillRect(cw - wzW, 0, wzW, ch);
+
+            // Win zone lines
+            ctx.strokeStyle = 'rgba(240,160,48,0.25)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath(); ctx.moveTo(wzW, 0); ctx.lineTo(wzW, ch); ctx.stroke();
+            ctx.strokeStyle = 'rgba(224,48,80,0.25)';
+            ctx.beginPath(); ctx.moveTo(cw - wzW, 0); ctx.lineTo(cw - wzW, ch); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Center line
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(cw * 0.5, 0); ctx.lineTo(cw * 0.5, ch); ctx.stroke();
+
+            // Rope
+            if (ropeSegments.length > 1) {
+                const ropeColor = S.darkRope ? '#5a4a3a' : '#c8a870';
+                const ropeHi = S.darkRope ? '#7a6a5a' : '#ffe0a0';
+                // Shadow
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.lineWidth = 10;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(ropeSegments[0].x, ropeSegments[0].y + 4);
+                for (let i = 1; i <= ROPE_SEG; i++) {
+                    ctx.lineTo(ropeSegments[i].x, ropeSegments[i].y + 4);
+                }
+                ctx.stroke();
+
+                // Main rope
+                ctx.strokeStyle = ropeColor;
+                ctx.lineWidth = 7;
+                ctx.beginPath();
+                ctx.moveTo(ropeSegments[0].x, ropeSegments[0].y);
+                for (let i = 1; i <= ROPE_SEG; i++) {
+                    ctx.lineTo(ropeSegments[i].x, ropeSegments[i].y);
+                }
+                ctx.stroke();
+
+                // Highlight
+                ctx.strokeStyle = ropeHi;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(ropeSegments[0].x, ropeSegments[0].y - 2);
+                for (let i = 1; i <= ROPE_SEG; i++) {
+                    ctx.lineTo(ropeSegments[i].x, ropeSegments[i].y - 2);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+
+                // Center flag
+                const midIdx = Math.floor(ROPE_SEG / 2);
+                const flagX = ropeSegments[midIdx].x;
+                const flagY = ropeSegments[midIdx].y;
+
+                // Flag pole
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(flagX, flagY);
+                ctx.lineTo(flagX, flagY - 25);
+                ctx.stroke();
+
+                // Flag wave
+                flagWavePhase += 0.06;
+                const flagColor = ropePos < -0.1 ? 'rgba(240,160,48,0.8)' : ropePos > 0.1 ? 'rgba(224,48,80,0.8)' : 'rgba(160,140,200,0.6)';
+                ctx.fillStyle = flagColor;
+                ctx.beginPath();
+                ctx.moveTo(flagX, flagY - 25);
+                for (let i = 0; i <= 8; i++) {
+                    const t = i / 8;
+                    const wx = flagX + 12 * t + Math.sin(flagWavePhase + t * 3) * 3;
+                    const wy = flagY - 25 + t * 10;
+                    ctx.lineTo(wx, wy);
+                }
+                ctx.lineTo(flagX, flagY - 15);
+                ctx.closePath();
+                ctx.fill();
+
+                // Tension glow at center marker
+                const tension = Math.min(1, Math.abs(ropeVel) * 30);
+                if (tension > 0.1) {
+                    const glowGrad = ctx.createRadialGradient(flagX, flagY, 0, flagX, flagY, 30);
+                    glowGrad.addColorStop(0, `rgba(255,224,160,${tension * 0.4})`);
+                    glowGrad.addColorStop(1, 'rgba(255,224,160,0)');
+                    ctx.fillStyle = glowGrad;
+                    ctx.beginPath();
+                    ctx.arc(flagX, flagY, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Characters
+            const charY = ch * 0.52;
+            const charLX = cw * 0.1 + centerShift * 0.3;
+            const charRX = cw * 0.9 + centerShift * 0.3;
+            const bobL = Math.sin(gameTime * 6) * 3 * (pullTimerL > 0 ? 3 : 1);
+            const bobR = Math.sin(gameTime * 6 + Math.PI) * 3 * (pullTimerR > 0 ? 3 : 1);
+
+            // P1 character
+            const p1size = clamp(cw * 0.05, 24, 50);
+            ctx.font = `${p1size}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Effort glow
+            if (rhythmFlashL > 0) {
+                ctx.shadowColor = '#f5c842';
+                ctx.shadowBlur = 20 * rhythmFlashL * 3;
+            }
+            ctx.fillText(S.teamP1, charLX, charY + bobL);
+            ctx.shadowBlur = 0;
+
+            // P2 character
+            if (rhythmFlashR > 0) {
+                ctx.shadowColor = '#ff5070';
+                ctx.shadowBlur = 20 * rhythmFlashR * 3;
+            }
+            ctx.fillText(S.teamP2, charRX, charY + bobR);
+            ctx.shadowBlur = 0;
+
+            // Player labels
+            ctx.font = `bold ${clamp(cw * 0.018, 9, 14)}px 'Game',sans-serif`;
+            ctx.fillStyle = 'rgba(240,160,48,0.6)';
+            ctx.fillText('P1', charLX, charY + p1size * 0.8);
+            ctx.fillStyle = 'rgba(224,48,80,0.6)';
+            ctx.fillText('P2', charRX, charY + p1size * 0.8);
+
+            // Helpers pulling rope line
+            ctx.strokeStyle = 'rgba(200,168,112,0.15)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(charLX + p1size * 0.4, charY); ctx.lineTo(ropeSegments[0].x, ropeSegments[0].y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(charRX - p1size * 0.4, charY); ctx.lineTo(ropeSegments[ROPE_SEG].x, ropeSegments[ROPE_SEG].y); ctx.stroke();
+
+            // Particles
+            for (const p of particleList) {
+                const alpha = p.life / p.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Pull indicators
+            for (const pi of pullIndicators) {
+                const alpha = pi.life / pi.maxLife;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = pi.color;
+                ctx.font = `bold ${clamp(cw * 0.025, 11, 18)}px 'Game',sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText(pi.text, pi.x, pi.y);
+            }
+            ctx.globalAlpha = 1;
+
+            // Stamina warning flash
+            if (staminaL < 0.15) {
+                ctx.fillStyle = `rgba(240,160,48,${0.1 + Math.sin(gameTime * 10) * 0.05})`;
+                ctx.fillRect(0, 0, cw * 0.2, ch);
+            }
+            if (staminaR < 0.15) {
+                ctx.fillStyle = `rgba(224,48,80,${0.1 + Math.sin(gameTime * 10) * 0.05})`;
+                ctx.fillRect(cw * 0.8, 0, cw * 0.2, ch);
+            }
+
+            // Countdown overlay
+            if (state === GS.COUNTDOWN) {
+                ctx.fillStyle = 'rgba(6,6,12,0.5)';
+                ctx.fillRect(0, 0, cw, ch);
+                const cdText = countdownVal > 0 ? countdownVal.toString() : 'PULL!';
+                ctx.font = `900 ${clamp(cw * 0.15, 40, 120)}px 'Game',sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = countdownVal > 0 ? '#fff' : '#40d060';
+                ctx.shadowColor = countdownVal > 0 ? 'rgba(112,72,232,0.5)' : 'rgba(64,208,96,0.5)';
+                ctx.shadowBlur = 30;
+                ctx.fillText(cdText, cw * 0.5, ch * 0.45);
+                ctx.shadowBlur = 0;
+            }
+
+            // Tug indicator arrows
+            if (state === GS.PLAYING) {
+                const arrowAlpha = Math.min(1, Math.abs(ropePos) * 3) * 0.3;
+                if (ropePos < -0.05) {
+                    ctx.globalAlpha = arrowAlpha;
+                    ctx.fillStyle = 'var(--p1)';
+                    ctx.font = `${clamp(cw * 0.04, 16, 30)}px serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('◀', cw * 0.35 + centerShift, ch * 0.52);
+                    ctx.globalAlpha = 1;
+                }
+                if (ropePos > 0.05) {
+                    ctx.globalAlpha = arrowAlpha;
+                    ctx.fillStyle = 'var(--p2)';
+                    ctx.font = `${clamp(cw * 0.04, 16, 30)}px serif`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('▶', cw * 0.65 + centerShift, ch * 0.52);
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function clamp(v, min, max) { return Math.max(min, Math.min(max, v)) }
+
+        // ── Game Loop ──
+        let lastFrameTime = performance.now();
+
+        function gameLoop(now) {
+            const rawDt = (now - lastFrameTime) / 1000;
+            const dt = Math.min(rawDt, 0.05); // cap delta
+            lastFrameTime = now;
+
+            if (state === GS.COUNTDOWN) {
+                countdownTimer += dt;
+                if (countdownTimer >= 1) {
+                    countdownTimer = 0;
+                    sfxCountdown(countdownVal);
+                    countdownVal--;
+                    if (countdownVal < 0) {
+                        state = GS.PLAYING;
+                    }
+                }
+            }
+
+            if (state === GS.PLAYING) {
+                gameTime += dt;
+                processPull(0, dt);
+                if (S.mode === 'ai') {
+                    updateAI(dt);
+                }
+                processPull(1, dt);
+                updatePhysics(dt);
+                updateStaminaUI();
+
+                // Continuous pulling detection for held keys/touch
+                if (keys['KeyA'] || keys['KeyQ'] || touchActiveL) {
+                    // Re-trigger pull on rhythm
+                    if (pullTimerL <= 0) inputPullL = true;
+                }
+                if (S.mode === 'local' && (keys['KeyL'] || keys['KeyP'] || touchActiveR)) {
+                    if (pullTimerR <= 0) inputPullR = true;
+                }
+            }
+
+            if (state === GS.ROUND_END) {
+                roundEndTimer -= dt;
+                // Still update some physics for visual
+                updatePhysics(dt);
+            }
+
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>
