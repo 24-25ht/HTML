@@ -1927,6 +1927,17 @@
                 dc.onmessage = e => onLanMessage(JSON.parse(e.data));
             }
 
+            function monitorICE() {
+                if (!pc) return;
+                pc.oniceconnectionstatechange = () => {
+                    const s = pc.iceConnectionState;
+                    if (s === 'failed' || s === 'disconnected') {
+                        document.getElementById('lanHostStatus').textContent = 'Connection failed (Network Check).';
+                        document.getElementById('lanJoinStatus').textContent = 'Connection failed (Network Check).';
+                    }
+                };
+            }
+
             return {
                 async host() {
                     localColor = 'w';
@@ -1941,18 +1952,21 @@
                     localColor = 'b';
                     pc = new RTCPeerConnection(cfg);
                     pc.ondatachannel = e => wire(e.channel);
-                    await pc.setRemoteDescription(
-                        new RTCSessionDescription(JSON.parse(atob(offerB64)))
-                    );
+                    const sdp = JSON.parse(atob(offerB64));
+                    if (sdp.type !== 'offer') throw new Error('Invalid code type. Expected an OFFER code, but got ' + sdp.type.toUpperCase() + '.');
+                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
                     await pc.setLocalDescription(await pc.createAnswer());
                     await waitICE();
+                    monitorICE();
                     return btoa(JSON.stringify(pc.localDescription));
                 },
 
                 async accept(ansB64) {
-                    await pc.setRemoteDescription(
-                        new RTCSessionDescription(JSON.parse(atob(ansB64)))
-                    );
+                    if (connected) return;
+                    const sdp = JSON.parse(atob(ansB64));
+                    if (sdp.type !== 'answer') throw new Error('Invalid code type. Expected an ANSWER code, but got ' + sdp.type.toUpperCase() + '.');
+                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                    monitorICE();
                 },
 
                 send(o) { if (dc?.readyState === 'open') dc.send(JSON.stringify(o)); },
@@ -2010,12 +2024,19 @@
         async function lanDoAcceptAnswer() {
             const v = document.getElementById('lanAnswerTA').value.trim();
             if (!v) { document.getElementById('lanHostStatus').textContent = 'Paste the response code first.'; return; }
+            const btn = document.getElementById('lanConnectBtn');
+            btn.disabled = true;
             try {
                 document.getElementById('lanHostStatus').textContent = 'Connecting...';
                 await LAN.accept(v);
                 // dc.onopen → onLanConnected() fires when the channel opens
             } catch (e) {
-                document.getElementById('lanHostStatus').textContent = 'Invalid code. ' + e.message;
+                btn.disabled = false;
+                if (e.message && e.message.includes('wrong state')) {
+                    document.getElementById('lanHostStatus').textContent = 'Already connected or invalid state.';
+                } else {
+                    document.getElementById('lanHostStatus').textContent = 'Error: ' + e.message;
+                }
             }
         }
 
@@ -2109,7 +2130,7 @@
                 <textarea id="lanAnswerTA" class="fi" placeholder="Paste response code here..."
                     style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
                 <div class="sa">
-                    <button class="btn btn-p" onclick="lanDoAcceptAnswer()">⚔ Connect</button>
+                    <button id="lanConnectBtn" class="btn btn-p" onclick="lanDoAcceptAnswer()">⚔ Connect</button>
                     <button class="btn" onclick="closeLanModal()">Cancel</button>
                 </div>
                 <p id="lanHostStatus"
