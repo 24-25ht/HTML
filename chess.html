@@ -1289,6 +1289,9 @@
             renderAll();
             if (gRes) { setTimeout(() => handleGameOver(gRes), 400); return; }
             if (U.mode === 'single' && G.turn === 'b') { U.aiThink = true; renderBars(); setTimeout(doAI, 250); }
+            if (U.mode === 'lan' && !_lanRemote && LAN.active()) {
+                LAN.sendMove(mv.fr, mv.fc, mv.tr, mv.tc, mv.promo);
+            }
             saveGameState();
         }
 
@@ -1572,6 +1575,7 @@
         function sqClick(dr, dc) {
             if (G.over || U.aiThink || U.paused) return;
             if (U.mode === 'single' && G.turn !== 'w') return;
+            if (U.mode === 'lan' && G.turn !== LAN.color()) return;
             const [r, c] = dispToBoard(dr, dc);
             const p = G.board[r][c];
             if (U.selSq) {
@@ -1684,6 +1688,11 @@
                 document.getElementById('resignWhiteBtn').textContent = whiteName;
                 document.getElementById('resignBlackBtn').textContent = blackName;
                 openModal('resignModal');
+                return;
+            }
+            if (U.mode === 'lan') {
+                LAN.sendResign();
+                handleGameOver({ type: 'resign', winner: opp(G.turn) });
                 return;
             }
             handleGameOver({ type: 'resign', winner: opp(G.turn) });
@@ -2006,7 +2015,7 @@
                 await LAN.accept(v);
                 // dc.onopen → onLanConnected() fires when the channel opens
             } catch (e) {
-                document.getElementById('lanHostStatus').textContent = 'Invalid code. Try again.';
+                document.getElementById('lanHostStatus').textContent = 'Invalid code. ' + e.message;
             }
         }
 
@@ -2020,7 +2029,7 @@
                 lanShowStep('lanStepJoin2');
                 // dc.onopen → onLanConnected() fires when the host accepts
             } catch (e) {
-                document.getElementById('lanJoinStatus').textContent = 'Invalid code. Try again.';
+                document.getElementById('lanJoinStatus').textContent = 'Invalid code. ' + e.message;
             }
         }
 
@@ -2036,53 +2045,36 @@
         // >>> YOU MUST fill this in to start a Dual-Player-style game.
         function onLanConnected() {
             closeModal('lanModal');
-
-            // ╔═══════════════════════════════════════════════════════════╗
-            // ║  INTEGRATION REQUIRED                                     ║
-            // ║  Start a new game the same way your "Dual Player → Begin" ║
-            // ║  does, but with no time control.                          ║
-            // ║                                                           ║
-            // ║  Example (adapt variable/function names to YOUR code):    ║
-            // ║                                                           ║
-            // ║    gameMode = 'dual';     // or 'lan'                     ║
-            // ║    timeLimit = 0;         // no clock                     ║
-            // ║    player1Name = LAN.color()==='w' ? 'You' : 'Opponent';  ║
-            // ║    player2Name = LAN.color()==='b' ? 'You' : 'Opponent';  ║
-            // ║    initNewGame();         // reset board, show game screen ║
-            // ║                                                           ║
-            // ╚═══════════════════════════════════════════════════════════╝
+            startGame();
+            U.mode = 'lan';
+            U.timeCtl = 0;
+            stopClock();
+            if (LAN.color() === 'w') {
+                U.playerNames = { w: 'You', b: 'Opponent' };
+                U.viewTurn = 'w';
+            } else {
+                U.playerNames = { w: 'Opponent', b: 'You' };
+                U.viewTurn = 'b';
+            }
+            updatePieceSize();
+            renderAll();
         }
 
         // >>> CALLED when a message arrives from the peer.
         function onLanMessage(msg) {
             if (msg.t === 'm') {
-                // ╔═══════════════════════════════════════════════════════════╗
-                // ║  INTEGRATION REQUIRED — Apply the remote move             ║
-                // ║                                                           ║
-                // ║  msg.f  = [fromRow, fromCol]                              ║
-                // ║  msg.to = [toRow,   toCol]                                ║
-                // ║  msg.p  = 'q'|'r'|'b'|'n'|null  (promotion piece)        ║
-                // ║                                                           ║
-                // ║  OPTION A — call your internal move function directly:    ║
-                // ║    _lanRemote = true;                                     ║
-                // ║    makeMove(msg.f[0], msg.f[1], msg.to[0], msg.to[1]);   ║
-                // ║    if (msg.p) applyPromotion(msg.p);                      ║
-                // ║    _lanRemote = false;                                    ║
-                // ║                                                           ║
-                // ║  OPTION B — simulate clicks on board squares:             ║
-                // ║    _lanRemote = true;                                     ║
-                // ║    clickSquare(msg.f[0], msg.f[1]);   // select piece     ║
-                // ║    clickSquare(msg.to[0], msg.to[1]); // move piece       ║
-                // ║    if (msg.p) clickPromoButton(msg.p);                    ║
-                // ║    _lanRemote = false;                                    ║
-                // ╚═══════════════════════════════════════════════════════════╝
-
+                const [fr, fc] = msg.f;
+                const [tr, tc] = msg.to;
+                const promo = msg.p;
+                const mvs = legalMoves(G.board, G.castle, G.ep, G.turn);
+                const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
+                if (mv) {
+                    _lanRemote = true;
+                    execMove(mv);
+                    _lanRemote = false;
+                }
             } else if (msg.t === 'r') {
-                // ╔═══════════════════════════════════════════════════════════╗
-                // ║  INTEGRATION REQUIRED — Remote player resigned            ║
-                // ║  msg.c = 'w' or 'b' (who resigned)                       ║
-                // ║  Call your existing endGame / resign logic.               ║
-                // ╚═══════════════════════════════════════════════════════════╝
+                handleGameOver({ type: 'resign', winner: opp(msg.c) });
             }
         }
 
