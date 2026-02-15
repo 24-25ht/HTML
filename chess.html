@@ -489,7 +489,7 @@
         }
 
         .side {
-            width: 200px;
+            width: 240px;
             max-height: calc(100vh - 2rem);
             display: flex;
             flex-direction: column;
@@ -551,6 +551,8 @@
             display: flex;
             flex-direction: column;
             gap: .3rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201, 168, 76, .2) transparent;
         }
 
         .chat-msg {
@@ -584,35 +586,60 @@
             padding: .4rem;
             border-top: 1px solid var(--glassBdr);
             display: flex;
+            align-items: center;
             gap: .3rem;
+            background: rgba(0, 0, 0, .15);
         }
 
         .chat-input {
             flex: 1;
-            background: rgba(0, 0, 0, .2);
-            border: 1px solid rgba(255, 255, 255, .1);
+            min-width: 0;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
             color: var(--txt);
-            padding: .3rem .5rem;
-            border-radius: .25rem;
-            font-size: .8rem;
+            padding: .45rem .6rem;
+            border-radius: .35rem;
+            font-size: .82rem;
             outline: none;
+            transition: all .2s;
+        }
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, .06);
+            border-color: var(--gold);
         }
 
         .chat-send-btn {
             background: var(--gold);
             color: #000;
             border: none;
-            padding: 0 .6rem;
-            border-radius: .25rem;
+            width: 36px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .35rem;
             cursor: pointer;
-            font-weight: bold;
+            font-size: .95rem;
+            flex-shrink: 0;
+            transition: transform .1s, opacity .2s;
         }
 
-        .ml::-webkit-scrollbar {
+        .chat-send-btn:hover {
+            opacity: .9;
+        }
+
+        .chat-send-btn:active {
+            transform: scale(.95);
+        }
+
+        .ml::-webkit-scrollbar,
+        .chat-list::-webkit-scrollbar {
             width: 4px
         }
 
-        .ml::-webkit-scrollbar-thumb {
+        .ml::-webkit-scrollbar-thumb,
+        .chat-list::-webkit-scrollbar-thumb {
             background: rgba(201, 168, 76, .25);
             border-radius: 2px
         }
@@ -867,7 +894,7 @@
 
             .side {
                 width: 100%;
-                max-height: 160px;
+                max-height: 200px;
                 flex-direction: row
             }
 
