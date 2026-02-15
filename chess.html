@@ -855,10 +855,13 @@
             <div class="mbtn">
                 <button class="btn btn-p" onclick="openSetup('single')">⚔ Single Player</button>
                 <button class="btn btn-p" onclick="openSetup('dual')">🛡 Dual Player</button>
+                <button class="btn btn-p" onclick="showLanModal()">🌐 LAN Play</button>
                 <button class="btn" id="resumeBtn" style="display:none" onclick="resumeGame()"
                     oncontextmenu="openResumeClearMenu(event)">▶ Resume Game</button>
-                <button class="btn" onclick="openModal('lbModal')" oncontextmenu="openLbClearMenu(event)">🏆 Leaderboard</button>
-                <button class="btn" onclick="openModal('dualModal')" oncontextmenu="openDualClearMenu(event)">👥 Dual Records</button>
+                <button class="btn" onclick="openModal('lbModal')" oncontextmenu="openLbClearMenu(event)">🏆
+                    Leaderboard</button>
+                <button class="btn" onclick="openModal('dualModal')" oncontextmenu="openDualClearMenu(event)">👥 Dual
+                    Records</button>
                 <button class="btn" onclick="openModal('tutModal')">📜 Tutorial</button>
                 <button class="btn" onclick="openModal('aboutModal')">🗿 About</button>
             </div>
@@ -938,7 +941,8 @@
                             aria-hidden="true">&#128465;</span>Delete One Save</button>
                 </div>
                 <p class="resume-clear-note">This removes only the saved game.</p>
-                <div class="close-row"><button class="btn" onclick="closeModal('resumeClearModal')">Cancel</button></div>
+                <div class="close-row"><button class="btn" onclick="closeModal('resumeClearModal')">Cancel</button>
+                </div>
             </div>
         </div>
         <div class="modal-ov" id="lbClearModal">
@@ -1055,7 +1059,8 @@
                     <h4>💡 Tip</h4>
                     <p>The king glows red when in check. Only legal moves are shown — you can never make an illegal
                         move! To individually delete data, right-click <b>Leaderboard</b> or <b>Dual Records</b>.
-                        <b>Clear Fully</b> clears all data: saved game, leaderboard, and dual records.</p>
+                        <b>Clear Fully</b> clears all data: saved game, leaderboard, and dual records.
+                    </p>
                 </div>
                 <div class="sa">
                     <button class="btn btn-d" onclick="clearAllSavedData()"><span class="trash-ic"
@@ -1882,7 +1887,273 @@
             document.querySelectorAll('[data-d="apprentice"]').forEach(b => b.classList.add('act'));
             document.querySelectorAll('[data-t="0"]').forEach(b => b.classList.add('act'));
         })();
+
+        // ================================================================
+        //  LAN MULTIPLAYER MODULE — START
+        //  WebRTC DataChannel, manual SDP signaling, zero dependencies
+        // ================================================================
+
+        const LAN = (() => {
+            let pc = null, dc = null, connected = false, localColor = 'w';
+            const cfg = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+            function waitICE() {
+                return new Promise(resolve => {
+                    if (pc.iceGatheringState === 'complete') return resolve();
+                    const ck = () => {
+                        if (pc.iceGatheringState === 'complete') {
+                            pc.removeEventListener('icegatheringstatechange', ck);
+                            resolve();
+                        }
+                    };
+                    pc.addEventListener('icegatheringstatechange', ck);
+                    setTimeout(resolve, 6000); // LAN fallback
+                });
+            }
+
+            function wire(ch) {
+                dc = ch;
+                dc.onopen = () => { connected = true; onLanConnected(); };
+                dc.onclose = () => { connected = false; };
+                dc.onmessage = e => onLanMessage(JSON.parse(e.data));
+            }
+
+            return {
+                async host() {
+                    localColor = 'w';
+                    pc = new RTCPeerConnection(cfg);
+                    wire(pc.createDataChannel('chess'));
+                    await pc.setLocalDescription(await pc.createOffer());
+                    await waitICE();
+                    return btoa(JSON.stringify(pc.localDescription));
+                },
+
+                async join(offerB64) {
+                    localColor = 'b';
+                    pc = new RTCPeerConnection(cfg);
+                    pc.ondatachannel = e => wire(e.channel);
+                    await pc.setRemoteDescription(
+                        new RTCSessionDescription(JSON.parse(atob(offerB64)))
+                    );
+                    await pc.setLocalDescription(await pc.createAnswer());
+                    await waitICE();
+                    return btoa(JSON.stringify(pc.localDescription));
+                },
+
+                async accept(ansB64) {
+                    await pc.setRemoteDescription(
+                        new RTCSessionDescription(JSON.parse(atob(ansB64)))
+                    );
+                },
+
+                send(o) { if (dc?.readyState === 'open') dc.send(JSON.stringify(o)); },
+                sendMove(fr, fc, tr, tc, promo) {
+                    this.send({ t: 'm', f: [fr, fc], to: [tr, tc], p: promo || null });
+                },
+                sendResign() { this.send({ t: 'r', c: localColor }); },
+
+                close() {
+                    try { dc?.close(); } catch (e) { }
+                    try { pc?.close(); } catch (e) { }
+                    dc = pc = null; connected = false;
+                },
+
+                active() { return connected; },
+                color() { return localColor; },
+                myTurn(t) { return t === localColor; }
+            };
+        })();
+
+        // Flag: true while we're programmatically applying a remote move
+        let _lanRemote = false;
+
+        // ---------- LAN Modal UI ----------
+
+        function showLanModal() {
+            openModal('lanModal');
+            lanShowStep('lanStep1');
+            document.getElementById('lanStatus').textContent = '';
+        }
+
+        function closeLanModal() {
+            closeModal('lanModal');
+            LAN.close();
+        }
+
+        function lanShowStep(id) {
+            ['lanStep1', 'lanStepHost1', 'lanStepJoin1', 'lanStepJoin2'].forEach(s =>
+                document.getElementById(s).style.display = (s === id) ? 'block' : 'none'
+            );
+        }
+
+        async function lanDoHost() {
+            document.getElementById('lanStatus').textContent = 'Generating offer...';
+            try {
+                const code = await LAN.host();
+                document.getElementById('lanOfferTA').value = code;
+                document.getElementById('lanHostStatus').textContent = '';
+                lanShowStep('lanStepHost1');
+            } catch (e) {
+                document.getElementById('lanStatus').textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function lanDoAcceptAnswer() {
+            const v = document.getElementById('lanAnswerTA').value.trim();
+            if (!v) { document.getElementById('lanHostStatus').textContent = 'Paste the response code first.'; return; }
+            try {
+                document.getElementById('lanHostStatus').textContent = 'Connecting...';
+                await LAN.accept(v);
+                // dc.onopen → onLanConnected() fires when the channel opens
+            } catch (e) {
+                document.getElementById('lanHostStatus').textContent = 'Invalid code. Try again.';
+            }
+        }
+
+        async function lanDoJoin() {
+            const v = document.getElementById('lanPasteOfferTA').value.trim();
+            if (!v) { document.getElementById('lanJoinStatus').textContent = 'Paste the host code first.'; return; }
+            try {
+                document.getElementById('lanJoinStatus').textContent = '';
+                const answer = await LAN.join(v);
+                document.getElementById('lanResponseTA').value = answer;
+                lanShowStep('lanStepJoin2');
+                // dc.onopen → onLanConnected() fires when the host accepts
+            } catch (e) {
+                document.getElementById('lanJoinStatus').textContent = 'Invalid code. Try again.';
+            }
+        }
+
+        function lanCopy(taId) {
+            const ta = document.getElementById(taId);
+            ta.select(); ta.setSelectionRange(0, 999999);
+            try { navigator.clipboard.writeText(ta.value); } catch (e) { document.execCommand('copy'); }
+        }
+
+        // ---------- LAN Game Integration ----------
+
+        // >>> CALLED when the WebRTC data channel opens on BOTH sides.
+        // >>> YOU MUST fill this in to start a Dual-Player-style game.
+        function onLanConnected() {
+            closeModal('lanModal');
+
+            // ╔═══════════════════════════════════════════════════════════╗
+            // ║  INTEGRATION REQUIRED                                     ║
+            // ║  Start a new game the same way your "Dual Player → Begin" ║
+            // ║  does, but with no time control.                          ║
+            // ║                                                           ║
+            // ║  Example (adapt variable/function names to YOUR code):    ║
+            // ║                                                           ║
+            // ║    gameMode = 'dual';     // or 'lan'                     ║
+            // ║    timeLimit = 0;         // no clock                     ║
+            // ║    player1Name = LAN.color()==='w' ? 'You' : 'Opponent';  ║
+            // ║    player2Name = LAN.color()==='b' ? 'You' : 'Opponent';  ║
+            // ║    initNewGame();         // reset board, show game screen ║
+            // ║                                                           ║
+            // ╚═══════════════════════════════════════════════════════════╝
+        }
+
+        // >>> CALLED when a message arrives from the peer.
+        function onLanMessage(msg) {
+            if (msg.t === 'm') {
+                // ╔═══════════════════════════════════════════════════════════╗
+                // ║  INTEGRATION REQUIRED — Apply the remote move             ║
+                // ║                                                           ║
+                // ║  msg.f  = [fromRow, fromCol]                              ║
+                // ║  msg.to = [toRow,   toCol]                                ║
+                // ║  msg.p  = 'q'|'r'|'b'|'n'|null  (promotion piece)        ║
+                // ║                                                           ║
+                // ║  OPTION A — call your internal move function directly:    ║
+                // ║    _lanRemote = true;                                     ║
+                // ║    makeMove(msg.f[0], msg.f[1], msg.to[0], msg.to[1]);   ║
+                // ║    if (msg.p) applyPromotion(msg.p);                      ║
+                // ║    _lanRemote = false;                                    ║
+                // ║                                                           ║
+                // ║  OPTION B — simulate clicks on board squares:             ║
+                // ║    _lanRemote = true;                                     ║
+                // ║    clickSquare(msg.f[0], msg.f[1]);   // select piece     ║
+                // ║    clickSquare(msg.to[0], msg.to[1]); // move piece       ║
+                // ║    if (msg.p) clickPromoButton(msg.p);                    ║
+                // ║    _lanRemote = false;                                    ║
+                // ╚═══════════════════════════════════════════════════════════╝
+
+            } else if (msg.t === 'r') {
+                // ╔═══════════════════════════════════════════════════════════╗
+                // ║  INTEGRATION REQUIRED — Remote player resigned            ║
+                // ║  msg.c = 'w' or 'b' (who resigned)                       ║
+                // ║  Call your existing endGame / resign logic.               ║
+                // ╚═══════════════════════════════════════════════════════════╝
+            }
+        }
+
+        // ================================================================
+        //  LAN MULTIPLAYER MODULE — END
+        // ================================================================
     </script>
+    <!-- ====== LAN MULTIPLAYER MODAL — START ====== -->
+    <div class="modal-ov" id="lanModal">
+        <div class="modal">
+            <h2>🌐 LAN Play</h2>
+
+            <!-- STEP 1: Choose Role -->
+            <div id="lanStep1">
+                <p>Connect peer-to-peer on your local network.<br>No server needed.</p>
+                <div class="mbtn" style="width:100%">
+                    <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game (White)</button>
+                    <button class="btn btn-p" onclick="lanShowStep('lanStepJoin1')">🔗 Join Game (Black)</button>
+                    <button class="btn" onclick="closeLanModal()">Cancel</button>
+                </div>
+                <p id="lanStatus" style="text-align:center; color:var(--danger); margin-top:10px; font-size:.8rem;"></p>
+            </div>
+
+            <!-- HOST STEP 2: Show offer, accept answer -->
+            <div id="lanStepHost1" style="display:none;">
+                <p style="margin-bottom:.5rem;">① Copy this code and send it to your opponent:</p>
+                <textarea id="lanOfferTA" class="fi" readonly
+                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
+                <button class="btn" onclick="lanCopy('lanOfferTA')" style="margin:.6rem 0; width:100%;">📋 Copy
+                    Code</button>
+                <p style="margin-bottom:.5rem;">② Paste their response code here:</p>
+                <textarea id="lanAnswerTA" class="fi" placeholder="Paste response code here..."
+                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
+                <div class="sa">
+                    <button class="btn btn-p" onclick="lanDoAcceptAnswer()">⚔ Connect</button>
+                    <button class="btn" onclick="closeLanModal()">Cancel</button>
+                </div>
+                <p id="lanHostStatus"
+                    style="text-align:center; color:var(--danger); margin-top:.8rem; font-size:.8rem;">
+                </p>
+            </div>
+
+            <!-- JOIN STEP 1: Paste offer -->
+            <div id="lanStepJoin1" style="display:none;">
+                <p style="margin-bottom:.5rem;">① Paste the host's code here:</p>
+                <textarea id="lanPasteOfferTA" class="fi" placeholder="Paste host code here..."
+                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
+                <div class="sa">
+                    <button class="btn btn-p" onclick="lanDoJoin()">Generate Response</button>
+                    <button class="btn" onclick="lanShowStep('lanStep1')">Back</button>
+                </div>
+                <p id="lanJoinStatus"
+                    style="text-align:center; color:var(--danger); margin-top:.8rem; font-size:.8rem;">
+                </p>
+            </div>
+
+            <!-- JOIN STEP 2: Show answer, wait -->
+            <div id="lanStepJoin2" style="display:none;">
+                <p style="margin-bottom:.5rem;">② Copy this response code and send it to the host:</p>
+                <textarea id="lanResponseTA" class="fi" readonly
+                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
+                <button class="btn" onclick="lanCopy('lanResponseTA')" style="margin:.6rem 0; width:100%;">📋 Copy
+                    Code</button>
+                <p style="text-align:center; opacity:.7; font-size:.85rem; margin-top:.5rem;">⏳ Waiting for host to
+                    connect...</p>
+                <button class="btn" onclick="closeLanModal()" style="width:100%; margin-top:.8rem;">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+    <!-- ====== LAN MULTIPLAYER MODAL — END ====== -->
 </body>
 
 </html>
