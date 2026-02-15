@@ -1903,9 +1903,16 @@
         // ================================================================
 
         const LAN = (() => {
-            let pc = null, dc = null, connected = false, localColor = 'w';
-            const cfg = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
+            let pc = null, dc = null, connected = false, localColor = 'w', iceTimer = null;
+            const cfg = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' }
+                ]
+            };
             function waitICE() {
                 return new Promise(resolve => {
                     if (pc.iceGatheringState === 'complete') return resolve();
@@ -1916,7 +1923,7 @@
                         }
                     };
                     pc.addEventListener('icegatheringstatechange', ck);
-                    setTimeout(resolve, 6000); // LAN fallback
+                    setTimeout(resolve, 8000); // LAN fallback
                 });
             }
 
@@ -1927,13 +1934,31 @@
                 dc.onmessage = e => onLanMessage(JSON.parse(e.data));
             }
 
+            function setLanStatus(msg, isErr) {
+                const s1 = document.getElementById('lanStatus');
+                const s2 = document.getElementById('lanHostStatus');
+                const s3 = document.getElementById('lanJoinStatus');
+                [s1, s2, s3].forEach(el => { if (el) { el.textContent = msg; el.style.color = isErr ? 'var(--danger)' : 'var(--gold)'; } });
+            }
+
             function monitorICE() {
                 if (!pc) return;
+                if (iceTimer) clearTimeout(iceTimer);
+                iceTimer = setTimeout(() => {
+                    if (pc && pc.iceConnectionState !== 'connected' && pc.iceConnectionState !== 'completed') {
+                        setLanStatus('Connection timed out. Check firewalls or same-network status.', true);
+                    }
+                }, 15000);
+
                 pc.oniceconnectionstatechange = () => {
                     const s = pc.iceConnectionState;
-                    if (s === 'failed' || s === 'disconnected') {
-                        document.getElementById('lanHostStatus').textContent = 'Connection failed (Network Check).';
-                        document.getElementById('lanJoinStatus').textContent = 'Connection failed (Network Check).';
+                    if (s === 'connected' || s === 'completed') {
+                        if (iceTimer) clearTimeout(iceTimer);
+                        setLanStatus('Connection established!', false);
+                    } else if (s === 'failed' || s === 'disconnected') {
+                        setLanStatus('Network check failed. Ensure both are on the same Wi-Fi.', true);
+                    } else {
+                        setLanStatus('Status: ' + s + '...', false);
                     }
                 };
             }
@@ -1963,10 +1988,15 @@
 
                 async accept(ansB64) {
                     if (connected) return;
-                    const sdp = JSON.parse(atob(ansB64));
-                    if (sdp.type !== 'answer') throw new Error('Invalid code type. Expected an ANSWER code, but got ' + sdp.type.toUpperCase() + '.');
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                    monitorICE();
+                    try {
+                        const sdp = JSON.parse(atob(ansB64));
+                        if (sdp.type !== 'answer') throw new Error('Invalid code type. Expected an ANSWER code.');
+                        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+                        monitorICE();
+                    } catch (e) {
+                        setLanStatus('Error: ' + e.message, true);
+                        throw e;
+                    }
                 },
 
                 send(o) { if (dc?.readyState === 'open') dc.send(JSON.stringify(o)); },
@@ -1976,6 +2006,7 @@
                 sendResign() { this.send({ t: 'r', c: localColor }); },
 
                 close() {
+                    if (iceTimer) clearTimeout(iceTimer);
                     try { dc?.close(); } catch (e) { }
                     try { pc?.close(); } catch (e) { }
                     dc = pc = null; connected = false;
@@ -1995,7 +2026,10 @@
         function showLanModal() {
             openModal('lanModal');
             lanShowStep('lanStep1');
-            document.getElementById('lanStatus').textContent = '';
+            setLanStatus('', false);
+            if (window.location.protocol === 'file:') {
+                setLanStatus('⚠️ Note: LAN play often fails on file://. Since you are using GitHub Pages, ensure you use the HTTPS link.', false);
+            }
         }
 
         function closeLanModal() {
@@ -2116,7 +2150,7 @@
                     <button class="btn btn-p" onclick="lanShowStep('lanStepJoin1')">🔗 Join Game (Black)</button>
                     <button class="btn" onclick="closeLanModal()">Cancel</button>
                 </div>
-                <p id="lanStatus" style="text-align:center; color:var(--danger); margin-top:10px; font-size:.8rem;"></p>
+                <p id="lanStatus" style="text-align:center; color:var(--gold); margin-top:10px; font-size:.8rem;"></p>
             </div>
 
             <!-- HOST STEP 2: Show offer, accept answer -->
@@ -2131,10 +2165,9 @@
                     style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
                 <div class="sa">
                     <button id="lanConnectBtn" class="btn btn-p" onclick="lanDoAcceptAnswer()">⚔ Connect</button>
-                    <button class="btn" onclick="closeLanModal()">Cancel</button>
+                    <button class="btn" onclick="showLanModal()">🔄 Reset</button>
                 </div>
-                <p id="lanHostStatus"
-                    style="text-align:center; color:var(--danger); margin-top:.8rem; font-size:.8rem;">
+                <p id="lanHostStatus" style="text-align:center; color:var(--gold); margin-top:.8rem; font-size:.8rem;">
                 </p>
             </div>
 
@@ -2147,8 +2180,7 @@
                     <button class="btn btn-p" onclick="lanDoJoin()">Generate Response</button>
                     <button class="btn" onclick="lanShowStep('lanStep1')">Back</button>
                 </div>
-                <p id="lanJoinStatus"
-                    style="text-align:center; color:var(--danger); margin-top:.8rem; font-size:.8rem;">
+                <p id="lanJoinStatus" style="text-align:center; color:var(--gold); margin-top:.8rem; font-size:.8rem;">
                 </p>
             </div>
 
@@ -2162,6 +2194,19 @@
                 <p style="text-align:center; opacity:.7; font-size:.85rem; margin-top:.5rem;">⏳ Waiting for host to
                     connect...</p>
                 <button class="btn" onclick="closeLanModal()" style="width:100%; margin-top:.8rem;">Cancel</button>
+            </div>
+
+            <!-- TROUBLESHOOTING -->
+            <div id="lanTrouble"
+                style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--glassBdr); font-size:.75rem; opacity:.8;">
+                <h4 style="color:var(--gold); margin-bottom:.4rem; font-size:.8rem;">💡 Troubleshooting</h4>
+                <ul style="text-align:left; padding-left:1.2rem; line-height:1.4;">
+                    <li>Ensure both devices are on the same Wi-Fi.</li>
+                    <li><b>Protocol:</b> Browser security often blocks LAN on <code>file://</code>. Use a local server
+                        (like Live Server) for best results.</li>
+                    <li><b>Your IP:</b> Try hosting via <code>http://192.168.18.1:PORT</code></li>
+                    <li><b>VPN:</b> Disable any active VPNs/Adblockers.</li>
+                </ul>
             </div>
 
         </div>
