@@ -8,6 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="shortcut icon" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -501,20 +502,35 @@
             border: 1px solid var(--glassBdr);
             border-radius: .5rem;
             backdrop-filter: blur(8px);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .chat-panel {
+            background: var(--glass);
+            border: 1px solid var(--glassBdr);
+            border-radius: .5rem;
+            backdrop-filter: blur(8px);
             flex: 1;
             min-height: 120px;
             display: flex;
             flex-direction: column;
-            overflow: hidden
+            overflow: hidden;
+            margin-top: .6rem;
         }
 
-        .mh-panel h3 {
+        .mh-panel h3,
+        .chat-panel h3 {
             font-family: 'Cinzel', serif;
             font-size: .75rem;
             color: var(--gold);
             padding: .5rem .65rem;
             border-bottom: 1px solid var(--glassBdr);
-            letter-spacing: .1em
+            letter-spacing: .1em;
+            margin: 0;
         }
 
         .ml {
@@ -523,7 +539,73 @@
             padding: .3rem 0;
             font-size: .8rem;
             scrollbar-width: thin;
-            scrollbar-color: rgba(201, 168, 76, .2) transparent
+            scrollbar-color: rgba(201, 168, 76, .2) transparent;
+            max-height: 200px;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: .5rem;
+            font-size: .8rem;
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+        }
+
+        .chat-msg {
+            padding: .25rem .5rem;
+            border-radius: .3rem;
+            background: rgba(255, 255, 255, .05);
+            word-break: break-word;
+        }
+
+        .chat-msg.sys {
+            color: var(--gold);
+            font-style: italic;
+            opacity: .8;
+            background: none;
+            padding: 0 .2rem;
+            font-size: .75rem;
+        }
+
+        .chat-msg.me {
+            align-self: flex-end;
+            background: rgba(201, 168, 76, .15);
+            border: 1px solid rgba(201, 168, 76, .1);
+        }
+
+        .chat-msg.opp {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, .08);
+        }
+
+        .chat-input-area {
+            padding: .4rem;
+            border-top: 1px solid var(--glassBdr);
+            display: flex;
+            gap: .3rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(0, 0, 0, .2);
+            border: 1px solid rgba(255, 255, 255, .1);
+            color: var(--txt);
+            padding: .3rem .5rem;
+            border-radius: .25rem;
+            font-size: .8rem;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 0 .6rem;
+            border-radius: .25rem;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         .ml::-webkit-scrollbar {
@@ -913,6 +995,15 @@
                     <div class="mh-panel">
                         <h3>📜 Moves</h3>
                         <div class="ml" id="moveList"></div>
+                    </div>
+                    <div class="chat-panel" id="chatPanel" style="display:none">
+                        <h3>💬 Chat</h3>
+                        <div class="chat-list" id="chatList"></div>
+                        <div class="chat-input-area">
+                            <input class="chat-input" id="chatInput" placeholder="Type a message..."
+                                onkeydown="if(event.key==='Enter') sendChat()">
+                            <button class="chat-send-btn" onclick="sendChat()">➤</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1898,127 +1989,78 @@
         })();
 
         // ================================================================
-        //  LAN MULTIPLAYER MODULE — START
-        //  WebRTC DataChannel, manual SDP signaling, zero dependencies
+        //  LAN MULTIPLAYER MODULE (PeerJS) — START
         // ================================================================
 
         const LAN = (() => {
-            let pc = null, dc = null, connected = false, localColor = 'w', iceTimer = null;
-            const cfg = {
-                iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' }
-                ]
-            };
-            function waitICE() {
-                return new Promise(resolve => {
-                    if (pc.iceGatheringState === 'complete') return resolve();
-                    const ck = () => {
-                        if (pc.iceGatheringState === 'complete') {
-                            pc.removeEventListener('icegatheringstatechange', ck);
-                            resolve();
-                        }
-                    };
-                    pc.addEventListener('icegatheringstatechange', ck);
-                    setTimeout(resolve, 8000); // LAN fallback
+            let peer = null, conn = null, myId = null, connected = false, localColor = 'w';
+
+            function initPeer(id) {
+                return new Promise((resolve, reject) => {
+                    if (peer) peer.destroy();
+                    peer = new Peer(id, { debug: 1 }); // debug: 1 for errors only
+                    peer.on('open', (id) => { myId = id; resolve(id); });
+                    peer.on('error', (err) => { reject(err); });
+                    peer.on('connection', (c) => {
+                        // Incoming connection (Host logic)
+                        if (conn) { c.close(); return; } // Only 1 player
+                        setupConn(c);
+                    });
                 });
             }
 
-            function wire(ch) {
-                dc = ch;
-                dc.onopen = () => { connected = true; onLanConnected(); };
-                dc.onclose = () => { connected = false; };
-                dc.onmessage = e => onLanMessage(JSON.parse(e.data));
-            }
-
-            function setLanStatus(msg, isErr) {
-                const s1 = document.getElementById('lanStatus');
-                const s2 = document.getElementById('lanHostStatus');
-                const s3 = document.getElementById('lanJoinStatus');
-                [s1, s2, s3].forEach(el => { if (el) { el.textContent = msg; el.style.color = isErr ? 'var(--danger)' : 'var(--gold)'; } });
-            }
-
-            function monitorICE() {
-                if (!pc) return;
-                if (iceTimer) clearTimeout(iceTimer);
-                iceTimer = setTimeout(() => {
-                    if (pc && pc.iceConnectionState !== 'connected' && pc.iceConnectionState !== 'completed') {
-                        setLanStatus('Connection timed out. Check firewalls or same-network status.', true);
-                    }
-                }, 15000);
-
-                pc.oniceconnectionstatechange = () => {
-                    const s = pc.iceConnectionState;
-                    if (s === 'connected' || s === 'completed') {
-                        if (iceTimer) clearTimeout(iceTimer);
-                        setLanStatus('Connection established!', false);
-                    } else if (s === 'failed' || s === 'disconnected') {
-                        setLanStatus('Network check failed. Ensure both are on the same Wi-Fi.', true);
-                    } else {
-                        setLanStatus('Status: ' + s + '...', false);
-                    }
-                };
+            function setupConn(c) {
+                conn = c;
+                conn.on('open', () => {
+                    connected = true;
+                    onLanConnected();
+                    addChatMsg('sys', 'Opponent connected.');
+                });
+                conn.on('data', (data) => {
+                    onLanMessage(data);
+                });
+                conn.on('close', () => {
+                    connected = false;
+                    addChatMsg('sys', 'Opponent disconnected.');
+                });
             }
 
             return {
                 async host() {
                     localColor = 'w';
-                    pc = new RTCPeerConnection(cfg);
-                    wire(pc.createDataChannel('chess'));
-                    await pc.setLocalDescription(await pc.createOffer());
-                    await waitICE();
-                    return btoa(JSON.stringify(pc.localDescription));
+                    // Generate a random 4-char ID using letters/numbers
+                    const id = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    await initPeer(id); // waits for 'open'
+                    return id;
                 },
 
-                async join(offerB64) {
+                async join(hostId) {
                     localColor = 'b';
-                    pc = new RTCPeerConnection(cfg);
-                    pc.ondatachannel = e => wire(e.channel);
-                    const sdp = JSON.parse(atob(offerB64));
-                    if (sdp.type !== 'offer') throw new Error('Invalid code type. Expected an OFFER code, but got ' + sdp.type.toUpperCase() + '.');
-                    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                    await pc.setLocalDescription(await pc.createAnswer());
-                    await waitICE();
-                    monitorICE();
-                    return btoa(JSON.stringify(pc.localDescription));
+                    // We don't need a specific ID, allow random
+                    await initPeer();
+                    const c = peer.connect(hostId);
+                    setupConn(c);
                 },
 
-                async accept(ansB64) {
-                    if (connected) return;
-                    try {
-                        const sdp = JSON.parse(atob(ansB64));
-                        if (sdp.type !== 'answer') throw new Error('Invalid code type. Expected an ANSWER code.');
-                        await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-                        monitorICE();
-                    } catch (e) {
-                        setLanStatus('Error: ' + e.message, true);
-                        throw e;
-                    }
-                },
-
-                send(o) { if (dc?.readyState === 'open') dc.send(JSON.stringify(o)); },
+                send(o) { if (conn && conn.open) conn.send(o); },
                 sendMove(fr, fc, tr, tc, promo) {
                     this.send({ t: 'm', f: [fr, fc], to: [tr, tc], p: promo || null });
                 },
+                sendChat(msg) { this.send({ t: 'c', msg }); },
                 sendResign() { this.send({ t: 'r', c: localColor }); },
 
                 close() {
-                    if (iceTimer) clearTimeout(iceTimer);
-                    try { dc?.close(); } catch (e) { }
-                    try { pc?.close(); } catch (e) { }
-                    dc = pc = null; connected = false;
+                    if (conn) conn.close();
+                    if (peer) peer.destroy();
+                    conn = peer = null; connected = false;
                 },
 
                 active() { return connected; },
                 color() { return localColor; },
-                myTurn(t) { return t === localColor; }
+                myId() { return myId; }
             };
         })();
 
-        // Flag: true while we're programmatically applying a remote move
         let _lanRemote = false;
 
         // ---------- LAN Modal UI ----------
@@ -2026,84 +2068,65 @@
         function showLanModal() {
             openModal('lanModal');
             lanShowStep('lanStep1');
-            setLanStatus('', false);
-            if (window.location.protocol === 'file:') {
-                setLanStatus('⚠️ Note: LAN play often fails on file://. Since you are using GitHub Pages, ensure you use the HTTPS link.', false);
-            }
+            document.getElementById('lanStatus').textContent = '';
+            // Reset input
+            document.getElementById('lanJoinId').value = '';
         }
 
         function closeLanModal() {
             closeModal('lanModal');
-            LAN.close();
+            // Don't close LAN connection here if active, only if cancelling setup
+            if (!LAN.active()) LAN.close();
         }
 
         function lanShowStep(id) {
-            ['lanStep1', 'lanStepHost1', 'lanStepJoin1', 'lanStepJoin2'].forEach(s =>
+            ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s =>
                 document.getElementById(s).style.display = (s === id) ? 'block' : 'none'
             );
         }
 
         async function lanDoHost() {
-            document.getElementById('lanStatus').textContent = 'Generating offer...';
+            document.getElementById('lanStatus').textContent = 'Generating Room ID...';
             try {
-                const code = await LAN.host();
-                document.getElementById('lanOfferTA').value = code;
-                document.getElementById('lanHostStatus').textContent = '';
-                lanShowStep('lanStepHost1');
+                const id = await LAN.host();
+                document.getElementById('lanHostIdDisplay').textContent = id;
+                document.getElementById('lanStatus').textContent = '';
+                lanShowStep('lanStepHost');
             } catch (e) {
                 document.getElementById('lanStatus').textContent = 'Error: ' + e.message;
             }
         }
 
-        async function lanDoAcceptAnswer() {
-            const v = document.getElementById('lanAnswerTA').value.trim();
-            if (!v) { document.getElementById('lanHostStatus').textContent = 'Paste the response code first.'; return; }
-            const btn = document.getElementById('lanConnectBtn');
-            btn.disabled = true;
-            try {
-                document.getElementById('lanHostStatus').textContent = 'Connecting...';
-                await LAN.accept(v);
-                // dc.onopen → onLanConnected() fires when the channel opens
-            } catch (e) {
-                btn.disabled = false;
-                if (e.message && e.message.includes('wrong state')) {
-                    document.getElementById('lanHostStatus').textContent = 'Already connected or invalid state.';
-                } else {
-                    document.getElementById('lanHostStatus').textContent = 'Error: ' + e.message;
-                }
-            }
-        }
-
         async function lanDoJoin() {
-            const v = document.getElementById('lanPasteOfferTA').value.trim();
-            if (!v) { document.getElementById('lanJoinStatus').textContent = 'Paste the host code first.'; return; }
+            const id = document.getElementById('lanJoinId').value.trim().toUpperCase();
+            if (!id) { document.getElementById('lanJoinStatus').textContent = 'Enter Room ID'; return; }
+            document.getElementById('lanJoinStatus').textContent = 'Connecting...';
             try {
-                document.getElementById('lanJoinStatus').textContent = '';
-                const answer = await LAN.join(v);
-                document.getElementById('lanResponseTA').value = answer;
-                lanShowStep('lanStepJoin2');
-                // dc.onopen → onLanConnected() fires when the host accepts
+                await LAN.join(id);
+                // Wait for connection to open (handled in setupConn -> onLanConnected)
             } catch (e) {
-                document.getElementById('lanJoinStatus').textContent = 'Invalid code. ' + e.message;
+                document.getElementById('lanJoinStatus').textContent = 'Error: ' + e.message;
             }
         }
 
-        function lanCopy(taId) {
-            const ta = document.getElementById(taId);
-            ta.select(); ta.setSelectionRange(0, 999999);
-            try { navigator.clipboard.writeText(ta.value); } catch (e) { document.execCommand('copy'); }
+        function lanCopyId() {
+            const txt = document.getElementById('lanHostIdDisplay').textContent;
+            navigator.clipboard.writeText(txt).then(() => {
+                const b = document.getElementById('copyBtn');
+                const o = b.textContent;
+                b.textContent = 'Copied!';
+                setTimeout(() => b.textContent = o, 1500);
+            });
         }
 
         // ---------- LAN Game Integration ----------
 
-        // >>> CALLED when the WebRTC data channel opens on BOTH sides.
-        // >>> YOU MUST fill this in to start a Dual-Player-style game.
         function onLanConnected() {
             closeModal('lanModal');
             startGame();
             U.mode = 'lan';
             U.timeCtl = 0;
-            stopClock();
+            stopClock(); // No clock in this simple version
             if (LAN.color() === 'w') {
                 U.playerNames = { w: 'You', b: 'Opponent' };
                 U.viewTurn = 'w';
@@ -2113,9 +2136,13 @@
             }
             updatePieceSize();
             renderAll();
+
+            // Show chat panel
+            document.getElementById('chatPanel').style.display = 'flex';
+            document.getElementById('chatList').innerHTML = '';
+            addChatMsg('sys', 'Connected via LAN. Good luck!');
         }
 
-        // >>> CALLED when a message arrives from the peer.
         function onLanMessage(msg) {
             if (msg.t === 'm') {
                 const [fr, fc] = msg.f;
@@ -2130,7 +2157,29 @@
                 }
             } else if (msg.t === 'r') {
                 handleGameOver({ type: 'resign', winner: opp(msg.c) });
+            } else if (msg.t === 'c') {
+                addChatMsg('opp', msg.msg);
             }
+        }
+
+        // ---------- Chat Logic ----------
+
+        function sendChat() {
+            const i = document.getElementById('chatInput');
+            const txt = i.value.trim();
+            if (!txt || !LAN.active()) return;
+            LAN.sendChat(txt);
+            addChatMsg('me', txt);
+            i.value = '';
+        }
+
+        function addChatMsg(type, txt) {
+            const list = document.getElementById('chatList');
+            const d = document.createElement('div');
+            d.className = 'chat-msg ' + type;
+            d.textContent = txt;
+            list.appendChild(d);
+            list.scrollTop = list.scrollHeight;
         }
 
         // ================================================================
@@ -2144,56 +2193,37 @@
 
             <!-- STEP 1: Choose Role -->
             <div id="lanStep1">
-                <p>Connect peer-to-peer on your local network.<br>No server needed.</p>
+                <p>Connect using a simple Room ID.<br>Both players must have internet.</p>
                 <div class="mbtn" style="width:100%">
-                    <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game (White)</button>
-                    <button class="btn btn-p" onclick="lanShowStep('lanStepJoin1')">🔗 Join Game (Black)</button>
+                    <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game</button>
+                    <button class="btn btn-p" onclick="lanShowStep('lanStepJoin')">🔗 Join Game</button>
                     <button class="btn" onclick="closeLanModal()">Cancel</button>
                 </div>
                 <p id="lanStatus" style="text-align:center; color:var(--gold); margin-top:10px; font-size:.8rem;"></p>
             </div>
 
-            <!-- HOST STEP 2: Show offer, accept answer -->
-            <div id="lanStepHost1" style="display:none;">
-                <p style="margin-bottom:.5rem;">① Copy this code and send it to your opponent:</p>
-                <textarea id="lanOfferTA" class="fi" readonly
-                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
-                <button class="btn" onclick="lanCopy('lanOfferTA')" style="margin:.6rem 0; width:100%;">📋 Copy
-                    Code</button>
-                <p style="margin-bottom:.5rem;">② Paste their response code here:</p>
-                <textarea id="lanAnswerTA" class="fi" placeholder="Paste response code here..."
-                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
-                <div class="sa">
-                    <button id="lanConnectBtn" class="btn btn-p" onclick="lanDoAcceptAnswer()">⚔ Connect</button>
-                    <button class="btn" onclick="showLanModal()">🔄 Reset</button>
-                </div>
-                <p id="lanHostStatus" style="text-align:center; color:var(--gold); margin-top:.8rem; font-size:.8rem;">
-                </p>
+            <!-- HOST STEP: Show Room ID -->
+            <div id="lanStepHost" style="display:none;">
+                <p style="margin-bottom:.5rem;">Share this Room ID with your friend:</p>
+                <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:.5rem; font-size:2rem; font-family:monospace; color:var(--gold); letter-spacing:.1em; margin-bottom:.8rem;"
+                    id="lanHostIdDisplay"></div>
+                <button class="btn" id="copyBtn" onclick="lanCopyId()" style="margin-bottom:1rem; width:100%;">📋 Copy
+                    ID</button>
+                <p style="text-align:center; opacity:.7; font-size:.85rem;">⏳ Waiting for opponent...</p>
+                <button class="btn" onclick="closeLanModal()" style="width:100%; margin-top:.8rem;">Cancel</button>
             </div>
 
-            <!-- JOIN STEP 1: Paste offer -->
-            <div id="lanStepJoin1" style="display:none;">
-                <p style="margin-bottom:.5rem;">① Paste the host's code here:</p>
-                <textarea id="lanPasteOfferTA" class="fi" placeholder="Paste host code here..."
-                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
+            <!-- JOIN STEP: Enter Room ID -->
+            <div id="lanStepJoin" style="display:none;">
+                <p style="margin-bottom:.5rem;">Enter the Host's Room ID:</p>
+                <input id="lanJoinId" class="fi" placeholder="Ex: ABCD"
+                    style="text-align:center; font-family:monospace; text-transform:uppercase; font-size:1.2rem; letter-spacing:.1em; margin-bottom:1rem;">
                 <div class="sa">
-                    <button class="btn btn-p" onclick="lanDoJoin()">Generate Response</button>
+                    <button class="btn btn-p" onclick="lanDoJoin()">⚔ Connect</button>
                     <button class="btn" onclick="lanShowStep('lanStep1')">Back</button>
                 </div>
                 <p id="lanJoinStatus" style="text-align:center; color:var(--gold); margin-top:.8rem; font-size:.8rem;">
                 </p>
-            </div>
-
-            <!-- JOIN STEP 2: Show answer, wait -->
-            <div id="lanStepJoin2" style="display:none;">
-                <p style="margin-bottom:.5rem;">② Copy this response code and send it to the host:</p>
-                <textarea id="lanResponseTA" class="fi" readonly
-                    style="height:72px; font-family:monospace; resize:none; font-size:.75rem; color:var(--gold);"></textarea>
-                <button class="btn" onclick="lanCopy('lanResponseTA')" style="margin:.6rem 0; width:100%;">📋 Copy
-                    Code</button>
-                <p style="text-align:center; opacity:.7; font-size:.85rem; margin-top:.5rem;">⏳ Waiting for host to
-                    connect...</p>
-                <button class="btn" onclick="closeLanModal()" style="width:100%; margin-top:.8rem;">Cancel</button>
             </div>
 
             <!-- TROUBLESHOOTING -->
@@ -2201,16 +2231,17 @@
                 style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--glassBdr); font-size:.75rem; opacity:.8;">
                 <h4 style="color:var(--gold); margin-bottom:.4rem; font-size:.8rem;">💡 Troubleshooting</h4>
                 <ul style="text-align:left; padding-left:1.2rem; line-height:1.4;">
-                    <li>Ensure both devices are on the same Wi-Fi.</li>
-                    <li><b>Protocol:</b> Browser security often blocks LAN on <code>file://</code>. Use a local server
-                        (like Live Server) for best results.</li>
-                    <li><b>Your IP:</b> Try hosting via <code>http://192.168.18.1:PORT</code></li>
-                    <li><b>VPN:</b> Disable any active VPNs/Adblockers.</li>
+                    <li>Ensure both players use the <b>GitHub Pages HTTPS link</b>.</li>
+                    <li>Both players should be on the same network/Wi-Fi for best performance.</li>
+                    <li><b>VPN/Adblock:</b> These can block the connection. Try disabling them if it hangs.</li>
+                    <li><b>Firewall:</b> Ensure browsers aren't blocked from communicating with each other.</li>
                 </ul>
             </div>
 
         </div>
+
     </div>
+
     <!-- ====== LAN MULTIPLAYER MODAL — END ====== -->
 </body>
 
