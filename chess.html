@@ -1000,7 +1000,7 @@
                         <h3>💬 Chat</h3>
                         <div class="chat-list" id="chatList"></div>
                         <div class="chat-input-area">
-                            <input class="chat-input" id="chatInput" placeholder="Type a message..."
+                            <input class="chat-input" id="chatInput" placeholder="Type here..."
                                 onkeydown="if(event.key==='Enter') sendChat()">
                             <button class="chat-send-btn" onclick="sendChat()">➤</button>
                         </div>
@@ -1167,7 +1167,7 @@
                 </p>
                 <p>Featuring a complete FIDE-legal engine with Minimax AI, alpha-beta pruning, and piece-square
                     evaluation tables.</p>
-                <p style="font-size:.75rem;margin-top:1rem;opacity:.6">Version 1.0 — The Obsidian Is Forged | Made By
+                <p style="font-size:.75rem;margin-top:1rem;opacity:.6">Version 6.8 — The Obsidian Is Enchanted | Made By
                     Abdullah Karim</p>
                 <div class="close-row"><button class="btn" onclick="closeModal('aboutModal')">Close</button></div>
             </div>
@@ -1572,7 +1572,7 @@
         }
 
         function renderBoard() {
-            if (U.viewTurn !== G.turn) scheduleTurnAnimation();
+            if (U.viewTurn !== G.turn && U.mode !== 'lan') scheduleTurnAnimation();
             const checkSq = inCheck(G.board, G.turn) ? findKing(G.board, G.turn) : null;
             const targets = new Set();
             U.legalMvs.forEach(m => targets.add(m.tr * 8 + m.tc));
@@ -1798,6 +1798,7 @@
         function togglePause() {
             if (G.over) return;
             U.paused = !U.paused;
+            if (U.mode === 'lan' && LAN.active()) LAN.send({ t: 'p', v: U.paused });
             if (U.paused) openModal('pauseModal'); else closeModal('pauseModal');
         }
 
@@ -1993,7 +1994,7 @@
         // ================================================================
 
         const LAN = (() => {
-            let peer = null, conn = null, myId = null, connected = false, localColor = 'w';
+            let peer = null, conn = null, myId = null, connected = false, localColor = 'w', myName = 'Player';
 
             function initPeer(id) {
                 return new Promise((resolve, reject) => {
@@ -2013,32 +2014,42 @@
                 conn = c;
                 conn.on('open', () => {
                     connected = true;
+                    // Send my name immediately
+                    conn.send({ t: 'nam', n: myName });
+                    // Host also sends time control
+                    if (localColor === 'w') {
+                        conn.send({ t: 'tim', v: U.timeCtl });
+                    }
                     onLanConnected();
-                    addChatMsg('sys', 'Opponent connected.');
                 });
                 conn.on('data', (data) => {
                     onLanMessage(data);
                 });
                 conn.on('close', () => {
                     connected = false;
-                    addChatMsg('sys', 'Opponent disconnected.');
+                    addChatMsg('sys', 'Opponent has left or is out of sync.');
+                    if (!G.over) {
+                        handleGameOver({ type: 'resign', winner: LAN.color(), reason: 'Opponent disconnected.' });
+                    }
                 });
             }
 
             return {
-                async host() {
+                async host(name) {
                     localColor = 'w';
+                    myName = name;
                     // Generate a random 4-char ID using letters/numbers
                     const id = Math.random().toString(36).substring(2, 6).toUpperCase();
                     await initPeer(id); // waits for 'open'
                     return id;
                 },
 
-                async join(hostId) {
+                async join(hostId, name) {
                     localColor = 'b';
+                    myName = name;
                     // We don't need a specific ID, allow random
                     await initPeer();
-                    const c = peer.connect(hostId);
+                    const c = peer.connect(hostId, { metadata: { name: myName } });
                     setupConn(c);
                 },
 
@@ -2057,7 +2068,8 @@
 
                 active() { return connected; },
                 color() { return localColor; },
-                myId() { return myId; }
+                myId() { return myId; },
+                myName() { return myName; }
             };
         })();
 
@@ -2083,12 +2095,25 @@
             ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s =>
                 document.getElementById(s).style.display = (s === id) ? 'block' : 'none'
             );
+            // Show time control only on step 1
+            if (id === 'lanStepJoin') {
+                document.getElementById('lanTimeG').style.display = 'none';
+            } else if (id === 'lanStep1') {
+                document.getElementById('lanTimeG').style.display = 'block';
+            }
+        }
+
+        function pickLanTime(el) {
+            el.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('act'));
+            el.classList.add('act');
+            U.timeCtl = parseInt(el.dataset.t);
         }
 
         async function lanDoHost() {
+            const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
             document.getElementById('lanStatus').textContent = 'Generating Room ID...';
             try {
-                const id = await LAN.host();
+                const id = await LAN.host(name);
                 document.getElementById('lanHostIdDisplay').textContent = id;
                 document.getElementById('lanStatus').textContent = '';
                 lanShowStep('lanStepHost');
@@ -2098,11 +2123,12 @@
         }
 
         async function lanDoJoin() {
+            const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
             const id = document.getElementById('lanJoinId').value.trim().toUpperCase();
             if (!id) { document.getElementById('lanJoinStatus').textContent = 'Enter Room ID'; return; }
             document.getElementById('lanJoinStatus').textContent = 'Connecting...';
             try {
-                await LAN.join(id);
+                await LAN.join(id, name);
                 // Wait for connection to open (handled in setupConn -> onLanConnected)
             } catch (e) {
                 document.getElementById('lanJoinStatus').textContent = 'Error: ' + e.message;
@@ -2125,13 +2151,11 @@
             closeModal('lanModal');
             startGame();
             U.mode = 'lan';
-            U.timeCtl = 0;
-            stopClock(); // No clock in this simple version
             if (LAN.color() === 'w') {
-                U.playerNames = { w: 'You', b: 'Opponent' };
+                U.playerNames = { w: LAN.myName(), b: 'Opponent' };
                 U.viewTurn = 'w';
             } else {
-                U.playerNames = { w: 'Opponent', b: 'You' };
+                U.playerNames = { w: 'Opponent', b: LAN.myName() };
                 U.viewTurn = 'b';
             }
             updatePieceSize();
@@ -2159,6 +2183,21 @@
                 handleGameOver({ type: 'resign', winner: opp(msg.c) });
             } else if (msg.t === 'c') {
                 addChatMsg('opp', msg.msg);
+            } else if (msg.t === 'nam') {
+                // Update opponent name
+                if (LAN.color() === 'w') U.playerNames.b = msg.n;
+                else U.playerNames.w = msg.n;
+                renderBars();
+                addChatMsg('sys', msg.n + ' connected.');
+            } else if (msg.t === 'tim') {
+                U.timeCtl = msg.v;
+                if (U.timeCtl > 0) startClock();
+                else stopClock();
+                renderBars();
+            } else if (msg.t === 'p') {
+                U.paused = msg.v;
+                if (U.paused) openModal('pauseModal');
+                else closeModal('pauseModal');
             }
         }
 
@@ -2194,6 +2233,16 @@
             <!-- STEP 1: Choose Role -->
             <div id="lanStep1">
                 <p>Connect using a simple Room ID.<br>Both players must have internet.</p>
+                <div class="fg"><label>Your Name</label><input id="lanPlayerName" class="fi"
+                        placeholder="Enter thy name..." maxlength="16" style="text-align:center;"></div>
+                <div class="fg" id="lanTimeG"><label>Time Control</label>
+                    <div class="bg">
+                        <button class="btn act" data-t="0" onclick="pickLanTime(this)">∞ None</button>
+                        <button class="btn" data-t="300" onclick="pickLanTime(this)">⚡ 5m</button>
+                        <button class="btn" data-t="600" onclick="pickLanTime(this)">🕐 10m</button>
+                        <button class="btn" data-t="900" onclick="pickLanTime(this)">🕑 15m</button>
+                    </div>
+                </div>
                 <div class="mbtn" style="width:100%">
                     <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game</button>
                     <button class="btn btn-p" onclick="lanShowStep('lanStepJoin')">🔗 Join Game</button>
