@@ -1194,7 +1194,7 @@
                 </p>
                 <p>Featuring a complete FIDE-legal engine with Minimax AI, alpha-beta pruning, and piece-square
                     evaluation tables.</p>
-                <p style="font-size:.75rem;margin-top:1rem;opacity:.6">Version 6.9 — The Obsidian Spans the Realm | Made
+                <p style="font-size:.75rem;margin-top:1rem;opacity:.6">Version 7.0 — The Obsidian Spans the Realm | Made
                     By
                     Abdullah Karim</p>
                 <div class="close-row"><button class="btn" onclick="closeModal('aboutModal')">Close</button></div>
@@ -2047,17 +2047,16 @@
         // Initialize PeerJS connection
         function initPeer(peerId = null) {
             return new Promise((resolve, reject) => {
+                // Simplified config using PeerJS Cloud's built-in STUN
                 const config = {
-                    host: '0.peerjs.com',
-                    port: 443,
-                    secure: true,
                     debug: 1,
                     config: {
                         iceServers: [
                             { urls: 'stun:stun.l.google.com:19302' },
                             { urls: 'stun:stun1.l.google.com:19302' },
                             { urls: 'stun:stun2.l.google.com:19302' },
-                            { urls: 'stun:stun.stunprotocol.org:3478' },
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun.services.mozilla.com' },
                             {
                                 urls: 'turn:openrelay.metered.ca:80',
                                 username: 'openrelayproject',
@@ -2072,8 +2071,11 @@
                     }
                 };
 
-                if (peerId) {
-                    peer = new Peer('OBSIDIAN-' + peerId, config);
+                // Use a shorter prefix to avoid ID length issues on some signaling servers
+                const finalId = peerId ? 'OG-' + peerId : null;
+
+                if (finalId) {
+                    peer = new Peer(finalId, config);
                 } else {
                     peer = new Peer(config);
                 }
@@ -2085,13 +2087,11 @@
 
                 peer.on('error', (err) => {
                     console.error('PeerJS error:', err);
-                    if (err.type === 'unavailable-id') {
-                        reject(new Error('Room ID already in use. Try a different one.'));
-                    } else if (err.type === 'peer-unavailable') {
-                        reject(new Error('Room not found. Check the Room ID.'));
-                    } else {
-                        reject(err);
-                    }
+                    let msg = err.message || 'Connection error';
+                    if (err.type === 'unavailable-id') msg = 'Room ID already in use.';
+                    else if (err.type === 'peer-unavailable') msg = 'Room not found. Check ID.';
+                    else if (err.type === 'network') msg = 'Network error. Check connection.';
+                    reject(new Error(msg));
                 });
 
                 peer.on('connection', handleIncomingConnection);
@@ -2237,7 +2237,7 @@
         async function hostOnlineGame() {
             const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
             myOnlineName = name;
-            document.getElementById('lanStatus').textContent = 'Generating Room ID...';
+            document.getElementById('lanStatus').textContent = 'Generating...';
             const roomId = generateRoomId();
             try {
                 await initPeer(roomId);
@@ -2258,14 +2258,14 @@
             document.getElementById('lanJoinStatus').textContent = 'Connecting...';
             try {
                 await initPeer();
-                connection = peer.connect('OBSIDIAN-' + roomId, { reliable: true });
+                connection = peer.connect('OG-' + roomId, { reliable: true });
                 setupConnectionHandlers();
                 setTimeout(() => {
                     if (!connection?.open) {
                         document.getElementById('lanJoinStatus').textContent = 'Timeout. Check ID.';
                         cleanupOnline();
                     }
-                }, 10000);
+                }, 20000);
             } catch (err) {
                 document.getElementById('lanJoinStatus').textContent = 'Error: ' + err.message;
             }
