@@ -8,7 +8,16 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="shortcut icon" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js",
+        "firebase/analytics": "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js"
+      }
+    }
+    </script>
     <style>
         * {
             margin: 0;
@@ -2018,283 +2027,249 @@
         })();
 
         // ================================================================
-        //  LAN MULTIPLAYER MODULE (PeerJS) — START
+        //  ONLINE MULTIPLAYER MODULE (Firebase v12 Modular) — START
         // ================================================================
 
-        // ============================================
-        //  EXTREME ONLINE MULTIPLAYER (PEERJS 1.4.7)
-        // ============================================
+        // The following block is a module to support the modern Firebase SDK
+        (async () => {
+            const { initializeApp } = await import('firebase/app');
+            const {
+                getFirestore, collection, doc, setDoc, getDoc, updateDoc,
+                onSnapshot, serverTimestamp, arrayUnion
+            } = await import('firebase/firestore');
+            const { getAnalytics } = await import('firebase/analytics');
 
-        let peer = null;
-        let connection = null;
-        let isHost = false;
-        let onlineGameActive = false;
-        let myOnlineName = '';
-        let opponentOnlineName = '';
-        let myColor = null;
-        let _lanRemote = false;
-        let heartbeatTimer = null;
-        let connTimeoutTimer = null;
+            const firebaseConfig = {
+                apiKey: "AIzaSyDVWsKncX7ogMB6dAdkFXBuW5AjwHjy0Q8",
+                authDomain: "chess-25213.firebaseapp.com",
+                databaseURL: "https://chess-25213-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "chess-25213",
+                storageBucket: "chess-25213.firebasestorage.app",
+                messagingSenderId: "933391487760",
+                appId: "1:933391487760:web:c2d84092d467e1d7b60b95",
+                measurementId: "G-1V6T1CYE96"
+            };
 
-        const ICE_CONFIG = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:stun.services.mozilla.com' },
-                {
-                    urls: 'turn:openrelay.metered.ca:80',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
-                },
-                {
-                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                    username: 'openrelayproject',
-                    credential: 'openrelayproject'
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            try { getAnalytics(app); } catch (e) { }
+
+            let roomId = null;
+            let onlineGameActive = false;
+            let myOnlineName = '';
+            let opponentOnlineName = '';
+            let myColor = null;
+            let roomUnsubscribe = null;
+            let isHost = false;
+
+            function dbg(msg) {
+                console.log('[NetDbg] ' + msg);
+                const el = document.getElementById('lanDebugStatus');
+                if (el) {
+                    el.style.display = 'block';
+                    el.textContent = 'Status: ' + msg;
                 }
-            ],
-            iceCandidatePoolSize: 10
-        };
-
-        function dbg(msg) {
-            console.log('[NetDbg] ' + msg);
-            const el = document.getElementById('lanDebugStatus');
-            if (el) {
-                el.style.display = 'block';
-                el.textContent = 'Status: ' + msg;
             }
-        }
 
-        function generateRoomId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789';
-            let id = '';
-            for (let i = 0; i < 6; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
-            return id;
-        }
+            function generateRoomId() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789';
+                let id = '';
+                for (let i = 0; i < 6; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
+                return id;
+            }
 
-        async function initPeer(peerId = null, forceRelay = false) {
-            return new Promise((resolve, reject) => {
-                cleanupOnline();
-                dbg('Initializing stable stack...');
+            async function hostOnlineGame() {
+                const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
+                myOnlineName = name;
+                const rid = generateRoomId();
+                roomId = rid;
 
-                const config = JSON.parse(JSON.stringify(ICE_CONFIG));
-                const options = {
-                    debug: 1,
-                    config: config,
-                    secure: true,
-                    serialization: 'json'
-                };
-
-                if (forceRelay) {
-                    dbg('⚠️ FORCE RELAY ACTIVE (STABLE)');
-                    options.config.iceTransportPolicy = 'relay';
-                } else {
-                    options.config.iceTransportPolicy = 'all';
-                }
-
-                const finalId = peerId ? 'OG-' + peerId : null;
-                peer = finalId ? new Peer(finalId, options) : new Peer(options);
-
-                peer.on('open', (id) => {
-                    dbg('Signaling secure.');
-                    resolve(id);
-                });
-
-                peer.on('error', (err) => {
-                    console.error('PeerJS error:', err);
-                    let msg = 'Network connection failed.';
-                    if (err.type === 'unavailable-id') msg = 'Room ID is already in use.';
-                    else if (err.type === 'peer-unavailable') msg = 'Room not found. Check ID.';
-                    else if (err.type === 'network') msg = 'Signaling server unreachable.';
-                    dbg('Error: ' + msg);
-                    reject(new Error(msg));
-                });
-
-                peer.on('connection', (conn) => {
-                    dbg('Inbound handshake...');
-                    if (connection) { conn.close(); return; }
-                    connection = conn;
-                    setupConnectionHandlers();
-                });
-
-                peer.on('disconnected', () => {
-                    dbg('Signaling lost. Reconnecting...');
-                    peer.reconnect();
-                });
-
-                setTimeout(() => { if (!peer.open && !peer.destroyed) reject(new Error('Signaling timeout.')); }, 15000);
-            });
-        }
-
-        function setupConnectionHandlers() {
-            dbg('Finding path...');
-
-            const hshakeTimer = setTimeout(() => {
-                if (connection && !connection.open) {
-                    dbg('NAT failure? Try Rescue Mode.');
-                }
-            }, 8000);
-
-            connection.on('open', () => {
-                clearTimeout(hshakeTimer);
-                dbg('Securing data link...');
-                startHeartbeat();
-                if (isHost) {
-                    connection.send({
-                        type: 'setup',
-                        hostName: myOnlineName,
-                        timeControl: U.timeCtl
+                dbg('Creating room: ' + rid);
+                try {
+                    await setDoc(doc(db, 'rooms', rid), {
+                        hostName: name,
+                        timeControl: U.timeCtl,
+                        status: 'waiting',
+                        createdAt: serverTimestamp(),
+                        moves: [],
+                        chats: [],
+                        gameState: 'initial'
                     });
+
+                    isHost = true;
+                    document.getElementById('lanHostIdDisplay').textContent = rid;
+                    lanShowStep('lanStepHost');
+                    listenToRoom(rid);
+                } catch (err) {
+                    dbg('Error: ' + err.message);
+                    document.getElementById('lanStatus').textContent = "Firestore Error: " + err.message;
                 }
-            });
+            }
 
-            connection.on('data', (data) => {
-                if (data.type === 'ping') { if (connection.open) connection.send({ type: 'pong' }); return; }
-                if (data.type === 'pong') return;
-                handleOnlineData(data);
-            });
+            async function joinOnlineGame() {
+                const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
+                const rid = document.getElementById('lanJoinId').value.trim().toUpperCase();
+                myOnlineName = name;
 
-            connection.on('close', () => handleDisconnect('Connection lost.'));
-            connection.on('error', (err) => {
-                console.error('Data error:', err);
-                dbg('Sync error.');
-                handleDisconnect('Network error.');
-            });
-        }
+                if (!rid) { document.getElementById('lanJoinStatus').textContent = 'Enter ID'; return; }
 
-        function startHeartbeat() {
-            if (heartbeatTimer) clearInterval(heartbeatTimer);
-            heartbeatTimer = setInterval(() => {
-                if (connection && connection.open) connection.send({ type: 'ping' });
-                else stopHeartbeat();
-            }, 8000);
-        }
+                dbg('Joining room: ' + rid);
+                try {
+                    const docRef = doc(db, 'rooms', rid);
+                    const dSnap = await getDoc(docRef);
 
-        function stopHeartbeat() { if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; } }
+                    if (!dSnap.exists()) {
+                        document.getElementById('lanJoinStatus').textContent = 'Room not found.';
+                        return;
+                    }
+                    const data = dSnap.data();
+                    if (data.status !== 'waiting') {
+                        document.getElementById('lanJoinStatus').textContent = 'Room is full or active.';
+                        return;
+                    }
 
-        function handleOnlineData(data) {
-            switch (data.type) {
-                case 'setup':
+                    await updateDoc(docRef, {
+                        guestName: name,
+                        status: 'active'
+                    });
+
+                    isHost = false;
+                    roomId = rid;
                     opponentOnlineName = data.hostName;
                     U.timeCtl = data.timeControl;
-                    connection.send({ type: 'ready', guestName: myOnlineName });
+
+                    listenToRoom(rid);
                     startOnlineGame('b');
-                    break;
-                case 'ready':
-                    opponentOnlineName = data.guestName;
-                    startOnlineGame('w');
-                    break;
-                case 'move':
-                    executeOnlineMove(data.fr, data.fc, data.tr, data.tc, data.promo);
-                    break;
-                case 'chat':
-                    addChatMsg('opp', data.message);
-                    break;
-                case 'resign':
-                    handleOnlineResign(data.color);
-                    break;
-                case 'p':
-                    U.paused = data.v;
-                    if (U.paused) openModal('pauseModal'); else closeModal('pauseModal');
-                    break;
+                } catch (err) {
+                    dbg('Error: ' + err.message);
+                    document.getElementById('lanJoinStatus').textContent = "Firestore Error: " + err.message;
+                }
             }
-        }
 
-        function startOnlineGame(color) {
-            myColor = color;
-            onlineGameActive = true;
-            U.mode = 'lan';
-            closeModal('lanModal');
-            startGame();
-            if (myColor === 'w') {
-                U.playerNames = { w: myOnlineName, b: opponentOnlineName };
-                U.viewTurn = 'w';
-            } else {
-                U.playerNames = { w: opponentOnlineName, b: myOnlineName };
-                U.viewTurn = 'b';
-            }
-            renderAll();
-            document.getElementById('chatPanel').style.display = 'flex';
-            document.getElementById('chatList').innerHTML = '';
-            addChatMsg('sys', 'Online Match Started.');
-            dbg('Secure Match: ' + opponentOnlineName);
-        }
-
-        function executeOnlineMove(fr, fc, tr, tc, promo) {
-            const mvs = legalMoves(G.board, G.castle, G.ep, G.turn);
-            const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
-            if (mv) { _lanRemote = true; execMove(mv); _lanRemote = false; }
-        }
-
-        function handleOnlineResign(color) { handleGameOver({ type: 'resign', winner: opp(color) }); }
-
-        function handleDisconnect(reason) {
-            if (onlineGameActive && !G.over) {
-                alert(reason || 'Opponent disconnected.');
-                handleGameOver({ type: 'resign', winner: myColor, reason: 'Opponent disconnected.' });
-            }
-            cleanupOnline();
-        }
-
-        function cleanupOnline() {
-            stopHeartbeat();
-            if (connTimeoutTimer) { clearTimeout(connTimeoutTimer); connTimeoutTimer = null; }
-            if (connection) { try { connection.close(); } catch (e) { } connection = null; }
-            if (peer) { try { peer.destroy(); } catch (e) { } peer = null; }
-            onlineGameActive = false;
-            isHost = false;
-            const deb = document.getElementById('lanDebugStatus');
-            if (deb) deb.style.display = 'none';
-        }
-
-        // --- UI ACTIONS ---
-
-        async function hostOnlineGame() {
-            const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
-            const forceRelay = document.getElementById('rescueMode').checked;
-            myOnlineName = name;
-            dbg('Contacting signaling...');
-            const roomId = generateRoomId();
-            try {
-                await initPeer(roomId, forceRelay);
-                isHost = true;
-                document.getElementById('lanHostIdDisplay').textContent = roomId;
-                dbg('Waiting in Room: ' + roomId);
-                lanShowStep('lanStepHost');
-            } catch (err) {
-                document.getElementById('lanStatus').textContent = err.message;
-            }
-        }
-
-        async function joinOnlineGame() {
-            const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
-            const roomId = document.getElementById('lanJoinId').value.trim().toUpperCase();
-            const forceRelay = document.getElementById('rescueMode').checked;
-            myOnlineName = name;
-            if (!roomId) { document.getElementById('lanJoinStatus').textContent = 'Enter ID'; return; }
-            dbg('Connecting to: ' + roomId);
-            try {
-                await initPeer(null, forceRelay);
-                connection = peer.connect('OG-' + roomId, { reliable: true });
-                setupConnectionHandlers();
-                connTimeoutTimer = setTimeout(() => {
-                    if (connection && !connection.open) {
-                        dbg('Handshake FAILED. Try Rescue Mode.');
-                        document.getElementById('lanJoinStatus').textContent = 'Timeout. Try Rescue Mode.';
-                        cleanupOnline();
+            function listenToRoom(rid) {
+                if (roomUnsubscribe) roomUnsubscribe();
+                roomUnsubscribe = onSnapshot(doc(db, 'rooms', rid), (docSnap) => {
+                    if (!docSnap.exists()) {
+                        handleDisconnect("Room vanished.");
+                        return;
                     }
-                }, 30000);
-            } catch (err) {
-                document.getElementById('lanJoinStatus').textContent = err.message;
+                    const data = docSnap.data();
+
+                    if (isHost && data.status === 'active' && !onlineGameActive) {
+                        opponentOnlineName = data.guestName;
+                        startOnlineGame('w');
+                    }
+
+                    if (onlineGameActive && data.moves && data.moves.length > G.moves.length) {
+                        const lastMove = data.moves[data.moves.length - 1];
+                        if (lastMove.player !== myColor) {
+                            executeOnlineMove(lastMove.fr, lastMove.fc, lastMove.tr, lastMove.tc, lastMove.promo);
+                        }
+                    }
+
+                    if (onlineGameActive && data.chats && data.chats.length > document.querySelectorAll('.chat-msg').length) {
+                        const lastChat = data.chats[data.chats.length - 1];
+                        if (lastChat.player !== myColor) {
+                            addChatMsg('opp', lastChat.msg);
+                        }
+                    }
+
+                    if (onlineGameActive) {
+                        if (data.paused !== undefined && data.paused !== U.paused) {
+                            U.paused = data.paused;
+                            if (U.paused) openModal('pauseModal'); else closeModal('pauseModal');
+                        }
+                        if (data.resigned && data.resigned !== myColor) {
+                            handleGameOver({ type: 'resign', winner: opp(data.resigned) });
+                        }
+                    }
+                }, (err) => dbg('Snapshot error: ' + err.message));
             }
-        }
+
+            function startOnlineGame(color) {
+                myColor = color;
+                onlineGameActive = true;
+                U.mode = 'lan';
+                closeModal('lanModal');
+                startGame();
+                if (myColor === 'w') {
+                    U.playerNames = { w: myOnlineName, b: opponentOnlineName };
+                    U.viewTurn = 'w';
+                } else {
+                    U.playerNames = { w: opponentOnlineName, b: myOnlineName };
+                    U.viewTurn = 'b';
+                }
+                renderAll();
+                document.getElementById('chatPanel').style.display = 'flex';
+                document.getElementById('chatList').innerHTML = '';
+                addChatMsg('sys', 'Online Match Started.');
+                dbg('Connected: ' + opponentOnlineName);
+            }
+
+            function executeOnlineMove(fr, fc, tr, tc, promo) {
+                const mvs = legalMoves(G.board, G.castle, G.ep, G.turn);
+                const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
+                if (mv) {
+                    U.isRemoteMove = true;
+                    execMove(mv);
+                    U.isRemoteMove = false;
+                }
+            }
+
+            function handleDisconnect(reason) {
+                if (onlineGameActive && !G.over) alert(reason || 'Disconnected.');
+                cleanupOnline();
+            }
+
+            function cleanupOnline() {
+                if (roomUnsubscribe) { roomUnsubscribe(); roomUnsubscribe = null; }
+                onlineGameActive = false;
+                isHost = false;
+                roomId = null;
+                const deb = document.getElementById('lanDebugStatus');
+                if (deb) deb.style.display = 'none';
+            }
+
+            function onLocalMoveMade(mv) {
+                if (onlineGameActive && roomId && !U.isRemoteMove) {
+                    updateDoc(doc(db, 'rooms', roomId), {
+                        moves: arrayUnion({
+                            player: myColor,
+                            fr: mv.fr, fc: mv.fc, tr: mv.tr, tc: mv.tc, promo: mv.promo,
+                            ts: Date.now()
+                        })
+                    });
+                }
+            }
+
+            function sendChat() {
+                const i = document.getElementById('chatInput');
+                const txt = i.value.trim();
+                if (!txt) return;
+                if (onlineGameActive && roomId) {
+                    updateDoc(doc(db, 'rooms', roomId), {
+                        chats: arrayUnion({ player: myColor, msg: txt, ts: Date.now() })
+                    });
+                    addChatMsg('me', txt);
+                }
+                i.value = '';
+            }
+
+            function closeLanModal() { closeModal('lanModal'); if (!onlineGameActive) cleanupOnline(); }
+
+            // Export to window for HTML event handlers
+            window.lanDoHost = hostOnlineGame;
+            window.lanDoJoin = joinOnlineGame;
+            window.onLocalMoveMade = onLocalMoveMade;
+            window.sendChat = sendChat;
+            window.closeLanModal = closeLanModal;
+            window.LAN = {
+                active: () => onlineGameActive,
+                color: () => myColor,
+                sendResign: () => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { resigned: myColor }); },
+                sendPause: (p) => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { paused: p }); }
+            };
+        })();
 
         function showLanModal() {
             openModal('lanModal');
@@ -2305,10 +2280,13 @@
             if (deb) { deb.textContent = ''; deb.style.display = 'none'; }
         }
 
-        function closeLanModal() { closeModal('lanModal'); if (!onlineGameActive) cleanupOnline(); }
-
         function lanShowStep(id) {
-            ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s => document.getElementById(s).style.display = (s === id) ? 'block' : 'none');
+            const el = document.getElementById(id);
+            if (!el) return;
+            ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s => {
+                const step = document.getElementById(s);
+                if (step) step.style.display = (s === id) ? 'block' : 'none';
+            });
             const tg = document.getElementById('lanTimeG');
             if (tg) tg.style.display = (id === 'lanStep1') ? 'block' : 'none';
         }
@@ -2329,22 +2307,9 @@
             });
         }
 
-        function onLocalMoveMade(mv) { if (onlineGameActive && connection && connection.open) connection.send({ type: 'move', fr: mv.fr, fc: mv.fc, tr: mv.tr, tc: mv.tc, promo: mv.promo }); }
-
         function isMyTurn() {
-            if (!onlineGameActive) return true;
-            return G.turn === myColor;
-        }
-
-        function sendChat() {
-            const i = document.getElementById('chatInput');
-            const txt = i.value.trim();
-            if (!txt) return;
-            if (onlineGameActive && connection && connection.open) {
-                connection.send({ type: 'chat', message: txt });
-                addChatMsg('me', txt);
-            }
-            i.value = '';
+            if (!window.LAN || !window.LAN.active()) return true;
+            return G.turn === window.LAN.color();
         }
 
         function addChatMsg(type, txt) {
@@ -2356,21 +2321,12 @@
             list.scrollTop = list.scrollHeight;
         }
 
-        const LAN = {
-            active: () => onlineGameActive,
-            color: () => myColor,
-            sendResign: () => { if (connection && connection.open) connection.send({ type: 'resign', color: myColor }); },
-            sendPause: (p) => { if (connection && connection.open) connection.send({ type: 'p', v: p }); }
-        };
-
-        window.lanDoHost = hostOnlineGame;
-        window.lanDoJoin = joinOnlineGame;
         window.lanCopyId = lanCopyId;
         window.pickLanTime = pickLanTime;
         window.showLanModal = showLanModal;
-        window.closeLanModal = closeLanModal;
         window.lanShowStep = lanShowStep;
-        window.sendChat = sendChat;
+        window.addChatMsg = addChatMsg;
+        window.isMyTurn = isMyTurn;
 
     </script>
     <!-- ====== ONLINE MULTIPLAYER MODAL — START ====== -->
@@ -2394,13 +2350,12 @@
                         <button class="btn" data-t="900" onclick="pickLanTime(this)">🕑 15m</button>
                     </div>
                 </div>
-                <!-- RESCUE MODE -->
+                <!-- FIREBASE NOTE (Removed PeerJS Rescue Mode) -->
                 <div
-                    style="margin: 0.8rem 0; padding: 0.6rem; background: rgba(231, 76, 60, 0.08); border-radius: 0.4rem; border: 1px solid rgba(231, 76, 60, 0.2); display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
-                    <input type="checkbox" id="rescueMode" style="width:1.2rem; height:1.2rem; cursor:pointer;">
-                    <label for="rescueMode"
-                        style="cursor:pointer; font-size:0.75rem; color: #ff9f9f; text-transform:uppercase; letter-spacing:0.05em; font-weight:700;">🆘
-                        Rescue Mode (Force Relay)</label>
+                    style="margin: 0.8rem 0; padding: 0.6rem; background: rgba(201, 168, 76, 0.08); border-radius: 0.4rem; border: 1px solid rgba(201, 168, 76, 0.2); display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+                    <span
+                        style="font-size:0.75rem; color: var(--gold2); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;">📡
+                        Firebase Spark Plan Multiplied</span>
                 </div>
                 <div class="mbtn" style="width:100%">
                     <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game</button>
@@ -2441,8 +2396,8 @@
                 <ul style="text-align:left; padding-left:1.2rem; line-height:1.4;">
                     <li>Ensure both players have a <b>stable internet connection</b>.</li>
                     <li>Both players must use the <b>same version</b> of the game.</li>
-                    <li><b>VPN/Adblock:</b> These can block WebRTC. Try disabling them if it hangs.</li>
-                    <li><b>Signaling:</b> If it times out, one player may be behind a strict firewall.</li>
+                    <li><b>Matched ID:</b> Check that the Room ID matches exactly.</li>
+                    <li><b>Firewall:</b> Firebase usually bypasses firewalls better than PeerJS.</li>
                 </ul>
             </div>
 
