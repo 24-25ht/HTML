@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="shortcut icon" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -2022,7 +2022,7 @@
         // ================================================================
 
         // ============================================
-        //  UNIVERSAL ONLINE MULTIPLAYER (PEERJS)
+        //  EXTREME ONLINE MULTIPLAYER (PEERJS 1.4.7)
         // ============================================
 
         let peer = null;
@@ -2044,7 +2044,6 @@
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' },
                 { urls: 'stun:stun.services.mozilla.com' },
-                { urls: 'stun:iphone-stun.strato-iphone.de:3478' },
                 {
                     urls: 'turn:openrelay.metered.ca:80',
                     username: 'openrelayproject',
@@ -2061,7 +2060,6 @@
                     credential: 'openrelayproject'
                 }
             ],
-            iceTransportPolicy: 'all',
             iceCandidatePoolSize: 10
         };
 
@@ -2081,23 +2079,31 @@
             return id;
         }
 
-        async function initPeer(peerId = null) {
+        async function initPeer(peerId = null, forceRelay = false) {
             return new Promise((resolve, reject) => {
                 cleanupOnline();
-                dbg('Initializing network stack...');
+                dbg('Initializing stable stack...');
 
+                const config = JSON.parse(JSON.stringify(ICE_CONFIG));
                 const options = {
-                    debug: 1, // Keep console clean but use dbg() for UI
-                    config: ICE_CONFIG,
+                    debug: 1,
+                    config: config,
                     secure: true,
                     serialization: 'json'
                 };
+
+                if (forceRelay) {
+                    dbg('⚠️ FORCE RELAY ACTIVE (STABLE)');
+                    options.config.iceTransportPolicy = 'relay';
+                } else {
+                    options.config.iceTransportPolicy = 'all';
+                }
 
                 const finalId = peerId ? 'OG-' + peerId : null;
                 peer = finalId ? new Peer(finalId, options) : new Peer(options);
 
                 peer.on('open', (id) => {
-                    dbg('Signaling server connected.');
+                    dbg('Signaling secure.');
                     resolve(id);
                 });
 
@@ -2107,40 +2113,38 @@
                     if (err.type === 'unavailable-id') msg = 'Room ID is already in use.';
                     else if (err.type === 'peer-unavailable') msg = 'Room not found. Check ID.';
                     else if (err.type === 'network') msg = 'Signaling server unreachable.';
-                    else if (err.type === 'browser-incompatible') msg = 'Browser does not support WebRTC.';
                     dbg('Error: ' + msg);
                     reject(new Error(msg));
                 });
 
                 peer.on('connection', (conn) => {
-                    dbg('Incoming connection handshake...');
+                    dbg('Inbound handshake...');
                     if (connection) { conn.close(); return; }
                     connection = conn;
                     setupConnectionHandlers();
                 });
 
                 peer.on('disconnected', () => {
-                    dbg('Disconnected from signaling server. Attempting reconnect...');
+                    dbg('Signaling lost. Reconnecting...');
                     peer.reconnect();
                 });
 
-                setTimeout(() => { if (!peer.open && !peer.destroyed) reject(new Error('Signaling timeout. Check internet.')); }, 15000);
+                setTimeout(() => { if (!peer.open && !peer.destroyed) reject(new Error('Signaling timeout.')); }, 15000);
             });
         }
 
         function setupConnectionHandlers() {
-            dbg('Gathering network candidates...');
+            dbg('Finding path...');
 
-            // Safety timeout for data channel
             const hshakeTimer = setTimeout(() => {
                 if (connection && !connection.open) {
-                    dbg('Handshake slow... Retrying path...');
+                    dbg('NAT failure? Try Rescue Mode.');
                 }
-            }, 5000);
+            }, 8000);
 
             connection.on('open', () => {
                 clearTimeout(hshakeTimer);
-                dbg('Data channel secure. Syncing game...');
+                dbg('Securing data link...');
                 startHeartbeat();
                 if (isHost) {
                     connection.send({
@@ -2160,7 +2164,7 @@
             connection.on('close', () => handleDisconnect('Connection lost.'));
             connection.on('error', (err) => {
                 console.error('Data error:', err);
-                dbg('Transmission error.');
+                dbg('Sync error.');
                 handleDisconnect('Network error.');
             });
         }
@@ -2170,7 +2174,7 @@
             heartbeatTimer = setInterval(() => {
                 if (connection && connection.open) connection.send({ type: 'ping' });
                 else stopHeartbeat();
-            }, 10000); // More frequent heartbeats for stablity
+            }, 8000);
         }
 
         function stopHeartbeat() { if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; } }
@@ -2219,8 +2223,8 @@
             renderAll();
             document.getElementById('chatPanel').style.display = 'flex';
             document.getElementById('chatList').innerHTML = '';
-            addChatMsg('sys', 'Match established!');
-            dbg('Connected to ' + opponentOnlineName);
+            addChatMsg('sys', 'Online Match Started.');
+            dbg('Secure Match: ' + opponentOnlineName);
         }
 
         function executeOnlineMove(fr, fc, tr, tc, promo) {
@@ -2242,8 +2246,8 @@
         function cleanupOnline() {
             stopHeartbeat();
             if (connTimeoutTimer) { clearTimeout(connTimeoutTimer); connTimeoutTimer = null; }
-            if (connection) { connection.close(); connection = null; }
-            if (peer) { peer.destroy(); peer = null; }
+            if (connection) { try { connection.close(); } catch (e) { } connection = null; }
+            if (peer) { try { peer.destroy(); } catch (e) { } peer = null; }
             onlineGameActive = false;
             isHost = false;
             const deb = document.getElementById('lanDebugStatus');
@@ -2254,14 +2258,15 @@
 
         async function hostOnlineGame() {
             const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
+            const forceRelay = document.getElementById('rescueMode').checked;
             myOnlineName = name;
-            dbg('Contacting signaling server...');
+            dbg('Contacting signaling...');
             const roomId = generateRoomId();
             try {
-                await initPeer(roomId);
+                await initPeer(roomId, forceRelay);
                 isHost = true;
                 document.getElementById('lanHostIdDisplay').textContent = roomId;
-                dbg('Waiting for opponent in Room: ' + roomId);
+                dbg('Waiting in Room: ' + roomId);
                 lanShowStep('lanStepHost');
             } catch (err) {
                 document.getElementById('lanStatus').textContent = err.message;
@@ -2271,17 +2276,18 @@
         async function joinOnlineGame() {
             const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
             const roomId = document.getElementById('lanJoinId').value.trim().toUpperCase();
+            const forceRelay = document.getElementById('rescueMode').checked;
             myOnlineName = name;
             if (!roomId) { document.getElementById('lanJoinStatus').textContent = 'Enter ID'; return; }
-            dbg('Connecting to Room: ' + roomId);
+            dbg('Connecting to: ' + roomId);
             try {
-                await initPeer();
+                await initPeer(null, forceRelay);
                 connection = peer.connect('OG-' + roomId, { reliable: true });
                 setupConnectionHandlers();
                 connTimeoutTimer = setTimeout(() => {
                     if (connection && !connection.open) {
-                        dbg('Handshake timed out. Ensure Host is still online.');
-                        document.getElementById('lanJoinStatus').textContent = 'Find failed / Timeout.';
+                        dbg('Handshake FAILED. Try Rescue Mode.');
+                        document.getElementById('lanJoinStatus').textContent = 'Timeout. Try Rescue Mode.';
                         cleanupOnline();
                     }
                 }, 30000);
@@ -2387,6 +2393,14 @@
                         <button class="btn" data-t="600" onclick="pickLanTime(this)">🕐 10m</button>
                         <button class="btn" data-t="900" onclick="pickLanTime(this)">🕑 15m</button>
                     </div>
+                </div>
+                <!-- RESCUE MODE -->
+                <div
+                    style="margin: 0.8rem 0; padding: 0.6rem; background: rgba(231, 76, 60, 0.08); border-radius: 0.4rem; border: 1px solid rgba(231, 76, 60, 0.2); display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
+                    <input type="checkbox" id="rescueMode" style="width:1.2rem; height:1.2rem; cursor:pointer;">
+                    <label for="rescueMode"
+                        style="cursor:pointer; font-size:0.75rem; color: #ff9f9f; text-transform:uppercase; letter-spacing:0.05em; font-weight:700;">🆘
+                        Rescue Mode (Force Relay)</label>
                 </div>
                 <div class="mbtn" style="width:100%">
                     <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game</button>
