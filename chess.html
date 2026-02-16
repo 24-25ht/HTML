@@ -2022,7 +2022,7 @@
         // ================================================================
 
         // ============================================
-        //  RELIABLE ONLINE MULTIPLAYER (PEERJS)
+        //  UNIVERSAL ONLINE MULTIPLAYER (PEERJS)
         // ============================================
 
         let peer = null;
@@ -2031,9 +2031,10 @@
         let onlineGameActive = false;
         let myOnlineName = '';
         let opponentOnlineName = '';
-        let myColor = null; // 'w' or 'b'
+        let myColor = null;
         let _lanRemote = false;
         let heartbeatTimer = null;
+        let connTimeoutTimer = null;
 
         const ICE_CONFIG = {
             iceServers: [
@@ -2043,6 +2044,7 @@
                 { urls: 'stun:stun3.l.google.com:19302' },
                 { urls: 'stun:stun4.l.google.com:19302' },
                 { urls: 'stun:stun.services.mozilla.com' },
+                { urls: 'stun:iphone-stun.strato-iphone.de:3478' },
                 {
                     urls: 'turn:openrelay.metered.ca:80',
                     username: 'openrelayproject',
@@ -2059,8 +2061,18 @@
                     credential: 'openrelayproject'
                 }
             ],
+            iceTransportPolicy: 'all',
             iceCandidatePoolSize: 10
         };
+
+        function dbg(msg) {
+            console.log('[NetDbg] ' + msg);
+            const el = document.getElementById('lanDebugStatus');
+            if (el) {
+                el.style.display = 'block';
+                el.textContent = 'Status: ' + msg;
+            }
+        }
 
         function generateRoomId() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789';
@@ -2069,20 +2081,23 @@
             return id;
         }
 
-        function initPeer(peerId = null) {
+        async function initPeer(peerId = null) {
             return new Promise((resolve, reject) => {
-                cleanupOnline(); // Reset state
+                cleanupOnline();
+                dbg('Initializing network stack...');
 
                 const options = {
-                    debug: 1,
-                    config: ICE_CONFIG
+                    debug: 1, // Keep console clean but use dbg() for UI
+                    config: ICE_CONFIG,
+                    secure: true,
+                    serialization: 'json'
                 };
 
                 const finalId = peerId ? 'OG-' + peerId : null;
                 peer = finalId ? new Peer(finalId, options) : new Peer(options);
 
                 peer.on('open', (id) => {
-                    console.log('PeerJS signaling open:', id);
+                    dbg('Signaling server connected.');
                     resolve(id);
                 });
 
@@ -2093,23 +2108,39 @@
                     else if (err.type === 'peer-unavailable') msg = 'Room not found. Check ID.';
                     else if (err.type === 'network') msg = 'Signaling server unreachable.';
                     else if (err.type === 'browser-incompatible') msg = 'Browser does not support WebRTC.';
+                    dbg('Error: ' + msg);
                     reject(new Error(msg));
                 });
 
                 peer.on('connection', (conn) => {
+                    dbg('Incoming connection handshake...');
                     if (connection) { conn.close(); return; }
                     connection = conn;
                     setupConnectionHandlers();
                 });
 
-                // Timeout for signaling server
-                setTimeout(() => { if (!peer.open && !peer.destroyed) reject(new Error('Signaling timeout.')); }, 15000);
+                peer.on('disconnected', () => {
+                    dbg('Disconnected from signaling server. Attempting reconnect...');
+                    peer.reconnect();
+                });
+
+                setTimeout(() => { if (!peer.open && !peer.destroyed) reject(new Error('Signaling timeout. Check internet.')); }, 15000);
             });
         }
 
         function setupConnectionHandlers() {
+            dbg('Gathering network candidates...');
+
+            // Safety timeout for data channel
+            const hshakeTimer = setTimeout(() => {
+                if (connection && !connection.open) {
+                    dbg('Handshake slow... Retrying path...');
+                }
+            }, 5000);
+
             connection.on('open', () => {
-                console.log('Data connection established.');
+                clearTimeout(hshakeTimer);
+                dbg('Data channel secure. Syncing game...');
                 startHeartbeat();
                 if (isHost) {
                     connection.send({
@@ -2126,8 +2157,12 @@
                 handleOnlineData(data);
             });
 
-            connection.on('close', () => handleDisconnect('Connection closed by peer.'));
-            connection.on('error', (err) => { console.error('Data error:', err); handleDisconnect('Data transmission error.'); });
+            connection.on('close', () => handleDisconnect('Connection lost.'));
+            connection.on('error', (err) => {
+                console.error('Data error:', err);
+                dbg('Transmission error.');
+                handleDisconnect('Network error.');
+            });
         }
 
         function startHeartbeat() {
@@ -2135,7 +2170,7 @@
             heartbeatTimer = setInterval(() => {
                 if (connection && connection.open) connection.send({ type: 'ping' });
                 else stopHeartbeat();
-            }, 15000);
+            }, 10000); // More frequent heartbeats for stablity
         }
 
         function stopHeartbeat() { if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; } }
@@ -2184,7 +2219,8 @@
             renderAll();
             document.getElementById('chatPanel').style.display = 'flex';
             document.getElementById('chatList').innerHTML = '';
-            addChatMsg('sys', 'Online Match Started.');
+            addChatMsg('sys', 'Match established!');
+            dbg('Connected to ' + opponentOnlineName);
         }
 
         function executeOnlineMove(fr, fc, tr, tc, promo) {
@@ -2205,10 +2241,13 @@
 
         function cleanupOnline() {
             stopHeartbeat();
+            if (connTimeoutTimer) { clearTimeout(connTimeoutTimer); connTimeoutTimer = null; }
             if (connection) { connection.close(); connection = null; }
             if (peer) { peer.destroy(); peer = null; }
             onlineGameActive = false;
             isHost = false;
+            const deb = document.getElementById('lanDebugStatus');
+            if (deb) deb.style.display = 'none';
         }
 
         // --- UI ACTIONS ---
@@ -2216,13 +2255,13 @@
         async function hostOnlineGame() {
             const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
             myOnlineName = name;
-            document.getElementById('lanStatus').textContent = 'Connecting...';
+            dbg('Contacting signaling server...');
             const roomId = generateRoomId();
             try {
                 await initPeer(roomId);
                 isHost = true;
                 document.getElementById('lanHostIdDisplay').textContent = roomId;
-                document.getElementById('lanStatus').textContent = '';
+                dbg('Waiting for opponent in Room: ' + roomId);
                 lanShowStep('lanStepHost');
             } catch (err) {
                 document.getElementById('lanStatus').textContent = err.message;
@@ -2234,12 +2273,18 @@
             const roomId = document.getElementById('lanJoinId').value.trim().toUpperCase();
             myOnlineName = name;
             if (!roomId) { document.getElementById('lanJoinStatus').textContent = 'Enter ID'; return; }
-            document.getElementById('lanJoinStatus').textContent = 'Connecting...';
+            dbg('Connecting to Room: ' + roomId);
             try {
                 await initPeer();
                 connection = peer.connect('OG-' + roomId, { reliable: true });
                 setupConnectionHandlers();
-                setTimeout(() => { if (connection && !connection.open) { document.getElementById('lanJoinStatus').textContent = 'Connection timeout.'; cleanupOnline(); } }, 30000);
+                connTimeoutTimer = setTimeout(() => {
+                    if (connection && !connection.open) {
+                        dbg('Handshake timed out. Ensure Host is still online.');
+                        document.getElementById('lanJoinStatus').textContent = 'Find failed / Timeout.';
+                        cleanupOnline();
+                    }
+                }, 30000);
             } catch (err) {
                 document.getElementById('lanJoinStatus').textContent = err.message;
             }
@@ -2250,6 +2295,8 @@
             lanShowStep('lanStep1');
             document.getElementById('lanStatus').textContent = '';
             document.getElementById('lanJoinId').value = '';
+            const deb = document.getElementById('lanDebugStatus');
+            if (deb) { deb.textContent = ''; deb.style.display = 'none'; }
         }
 
         function closeLanModal() { closeModal('lanModal'); if (!onlineGameActive) cleanupOnline(); }
@@ -2324,6 +2371,9 @@
     <div class="modal-ov" id="lanModal">
         <div class="modal">
             <h2>🌐 Online Play</h2>
+            <div id="lanDebugStatus"
+                style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; display: none; color: var(--gold);">
+            </div>
 
             <!-- STEP 1: Choose Role -->
             <div id="lanStep1">
