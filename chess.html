@@ -2022,7 +2022,7 @@
         // ================================================================
 
         // ============================================
-        //  ONLINE MULTIPLAYER (REPLACES LAN PLAY)
+        //  RELIABLE ONLINE MULTIPLAYER (PEERJS)
         // ============================================
 
         let peer = null;
@@ -2033,83 +2033,84 @@
         let opponentOnlineName = '';
         let myColor = null; // 'w' or 'b'
         let _lanRemote = false;
+        let heartbeatTimer = null;
 
-        // Generate a short, shareable Room ID
+        const ICE_CONFIG = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.services.mozilla.com' },
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
+            ],
+            iceCandidatePoolSize: 10
+        };
+
         function generateRoomId() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789';
             let id = '';
-            for (let i = 0; i < 6; i++) {
-                id += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            for (let i = 0; i < 6; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
             return id;
         }
 
-        // Initialize PeerJS connection
         function initPeer(peerId = null) {
             return new Promise((resolve, reject) => {
-                // Simplified config using PeerJS Cloud's built-in STUN
-                const config = {
+                cleanupOnline(); // Reset state
+
+                const options = {
                     debug: 1,
-                    config: {
-                        iceServers: [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' },
-                            { urls: 'stun:stun2.l.google.com:19302' },
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun.services.mozilla.com' },
-                            {
-                                urls: 'turn:openrelay.metered.ca:80',
-                                username: 'openrelayproject',
-                                credential: 'openrelayproject'
-                            },
-                            {
-                                urls: 'turn:openrelay.metered.ca:443',
-                                username: 'openrelayproject',
-                                credential: 'openrelayproject'
-                            }
-                        ]
-                    }
+                    config: ICE_CONFIG
                 };
 
-                // Use a shorter prefix to avoid ID length issues on some signaling servers
                 const finalId = peerId ? 'OG-' + peerId : null;
-
-                if (finalId) {
-                    peer = new Peer(finalId, config);
-                } else {
-                    peer = new Peer(config);
-                }
+                peer = finalId ? new Peer(finalId, options) : new Peer(options);
 
                 peer.on('open', (id) => {
-                    console.log('Connected to PeerJS server with ID:', id);
+                    console.log('PeerJS signaling open:', id);
                     resolve(id);
                 });
 
                 peer.on('error', (err) => {
                     console.error('PeerJS error:', err);
-                    let msg = err.message || 'Connection error';
-                    if (err.type === 'unavailable-id') msg = 'Room ID already in use.';
+                    let msg = 'Network connection failed.';
+                    if (err.type === 'unavailable-id') msg = 'Room ID is already in use.';
                     else if (err.type === 'peer-unavailable') msg = 'Room not found. Check ID.';
-                    else if (err.type === 'network') msg = 'Network error. Check connection.';
+                    else if (err.type === 'network') msg = 'Signaling server unreachable.';
+                    else if (err.type === 'browser-incompatible') msg = 'Browser does not support WebRTC.';
                     reject(new Error(msg));
                 });
 
-                peer.on('connection', handleIncomingConnection);
-            });
-        }
+                peer.on('connection', (conn) => {
+                    if (connection) { conn.close(); return; }
+                    connection = conn;
+                    setupConnectionHandlers();
+                });
 
-        function handleIncomingConnection(conn) {
-            if (connection) {
-                conn.close();
-                return;
-            }
-            connection = conn;
-            setupConnectionHandlers();
+                // Timeout for signaling server
+                setTimeout(() => { if (!peer.open && !peer.destroyed) reject(new Error('Signaling timeout.')); }, 15000);
+            });
         }
 
         function setupConnectionHandlers() {
             connection.on('open', () => {
-                console.log('Connection established!');
+                console.log('Data connection established.');
+                startHeartbeat();
                 if (isHost) {
                     connection.send({
                         type: 'setup',
@@ -2118,32 +2119,37 @@
                     });
                 }
             });
+
             connection.on('data', (data) => {
+                if (data.type === 'ping') { if (connection.open) connection.send({ type: 'pong' }); return; }
+                if (data.type === 'pong') return;
                 handleOnlineData(data);
             });
-            connection.on('close', () => {
-                handleDisconnect();
-            });
-            connection.on('error', (err) => {
-                console.error('Connection error:', err);
-                handleDisconnect();
-            });
+
+            connection.on('close', () => handleDisconnect('Connection closed by peer.'));
+            connection.on('error', (err) => { console.error('Data error:', err); handleDisconnect('Data transmission error.'); });
         }
+
+        function startHeartbeat() {
+            if (heartbeatTimer) clearInterval(heartbeatTimer);
+            heartbeatTimer = setInterval(() => {
+                if (connection && connection.open) connection.send({ type: 'ping' });
+                else stopHeartbeat();
+            }, 15000);
+        }
+
+        function stopHeartbeat() { if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; } }
 
         function handleOnlineData(data) {
             switch (data.type) {
                 case 'setup':
                     opponentOnlineName = data.hostName;
                     U.timeCtl = data.timeControl;
-                    connection.send({
-                        type: 'ready',
-                        guestName: myOnlineName
-                    });
+                    connection.send({ type: 'ready', guestName: myOnlineName });
                     startOnlineGame('b');
                     break;
                 case 'ready':
                     opponentOnlineName = data.guestName;
-                    hideWaitingScreen();
                     startOnlineGame('w');
                     break;
                 case 'move':
@@ -2166,10 +2172,8 @@
             myColor = color;
             onlineGameActive = true;
             U.mode = 'lan';
-
-            closeLanModal();
-            startGame(); // This resets board, turn, etc.
-
+            closeModal('lanModal');
+            startGame();
             if (myColor === 'w') {
                 U.playerNames = { w: myOnlineName, b: opponentOnlineName };
                 U.viewTurn = 'w';
@@ -2177,67 +2181,42 @@
                 U.playerNames = { w: opponentOnlineName, b: myOnlineName };
                 U.viewTurn = 'b';
             }
-
             renderAll();
             document.getElementById('chatPanel').style.display = 'flex';
             document.getElementById('chatList').innerHTML = '';
-            addChatMsg('sys', 'Connected. Good luck!');
-        }
-
-        function sendOnlineMove(fr, fc, tr, tc, promo = null) {
-            if (connection && connection.open) {
-                connection.send({
-                    type: 'move',
-                    fr: fr,
-                    fc: fc,
-                    tr: tr,
-                    tc: tc,
-                    promo: promo
-                });
-            }
+            addChatMsg('sys', 'Online Match Started.');
         }
 
         function executeOnlineMove(fr, fc, tr, tc, promo) {
             const mvs = legalMoves(G.board, G.castle, G.ep, G.turn);
             const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
-            if (mv) {
-                _lanRemote = true;
-                execMove(mv);
-                _lanRemote = false;
-            }
+            if (mv) { _lanRemote = true; execMove(mv); _lanRemote = false; }
         }
 
-        function sendOnlineChat(message) {
-            if (connection && connection.open && message.trim()) {
-                connection.send({
-                    type: 'chat',
-                    message: message
-                });
-                addChatMsg('me', message);
-            }
-        }
+        function handleOnlineResign(color) { handleGameOver({ type: 'resign', winner: opp(color) }); }
 
-        function handleDisconnect() {
+        function handleDisconnect(reason) {
             if (onlineGameActive && !G.over) {
-                alert('Opponent disconnected.');
+                alert(reason || 'Opponent disconnected.');
                 handleGameOver({ type: 'resign', winner: myColor, reason: 'Opponent disconnected.' });
             }
             cleanupOnline();
         }
 
         function cleanupOnline() {
+            stopHeartbeat();
             if (connection) { connection.close(); connection = null; }
             if (peer) { peer.destroy(); peer = null; }
             onlineGameActive = false;
             isHost = false;
         }
 
-        // --- UI FUNCTIONS ---
+        // --- UI ACTIONS ---
 
         async function hostOnlineGame() {
             const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
             myOnlineName = name;
-            document.getElementById('lanStatus').textContent = 'Generating...';
+            document.getElementById('lanStatus').textContent = 'Connecting...';
             const roomId = generateRoomId();
             try {
                 await initPeer(roomId);
@@ -2246,7 +2225,7 @@
                 document.getElementById('lanStatus').textContent = '';
                 lanShowStep('lanStepHost');
             } catch (err) {
-                document.getElementById('lanStatus').textContent = 'Error: ' + err.message;
+                document.getElementById('lanStatus').textContent = err.message;
             }
         }
 
@@ -2254,25 +2233,16 @@
             const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
             const roomId = document.getElementById('lanJoinId').value.trim().toUpperCase();
             myOnlineName = name;
-            if (!roomId) { document.getElementById('lanJoinStatus').textContent = 'Enter Room ID'; return; }
+            if (!roomId) { document.getElementById('lanJoinStatus').textContent = 'Enter ID'; return; }
             document.getElementById('lanJoinStatus').textContent = 'Connecting...';
             try {
                 await initPeer();
                 connection = peer.connect('OG-' + roomId, { reliable: true });
                 setupConnectionHandlers();
-                setTimeout(() => {
-                    if (!connection?.open) {
-                        document.getElementById('lanJoinStatus').textContent = 'Timeout. Check ID.';
-                        cleanupOnline();
-                    }
-                }, 20000);
+                setTimeout(() => { if (connection && !connection.open) { document.getElementById('lanJoinStatus').textContent = 'Connection timeout.'; cleanupOnline(); } }, 30000);
             } catch (err) {
-                document.getElementById('lanJoinStatus').textContent = 'Error: ' + err.message;
+                document.getElementById('lanJoinStatus').textContent = err.message;
             }
-        }
-
-        function hideWaitingScreen() {
-            // No specific waiting screen other than the modal step
         }
 
         function showLanModal() {
@@ -2282,20 +2252,12 @@
             document.getElementById('lanJoinId').value = '';
         }
 
-        function closeLanModal() {
-            closeModal('lanModal');
-            if (!onlineGameActive) cleanupOnline();
-        }
+        function closeLanModal() { closeModal('lanModal'); if (!onlineGameActive) cleanupOnline(); }
 
         function lanShowStep(id) {
-            ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s =>
-                document.getElementById(s).style.display = (s === id) ? 'block' : 'none'
-            );
-            if (id === 'lanStepJoin') {
-                document.getElementById('lanTimeG').style.display = 'none';
-            } else if (id === 'lanStep1') {
-                document.getElementById('lanTimeG').style.display = 'block';
-            }
+            ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s => document.getElementById(s).style.display = (s === id) ? 'block' : 'none');
+            const tg = document.getElementById('lanTimeG');
+            if (tg) tg.style.display = (id === 'lanStep1') ? 'block' : 'none';
         }
 
         function pickLanTime(el) {
@@ -2314,12 +2276,7 @@
             });
         }
 
-        // Integration Helpers
-        function onLocalMoveMade(mv) {
-            if (onlineGameActive && connection?.open) {
-                sendOnlineMove(mv.fr, mv.fc, mv.tr, mv.tc, mv.promo);
-            }
-        }
+        function onLocalMoveMade(mv) { if (onlineGameActive && connection && connection.open) connection.send({ type: 'move', fr: mv.fr, fc: mv.fc, tr: mv.tr, tc: mv.tc, promo: mv.promo }); }
 
         function isMyTurn() {
             if (!onlineGameActive) return true;
@@ -2330,7 +2287,10 @@
             const i = document.getElementById('chatInput');
             const txt = i.value.trim();
             if (!txt) return;
-            if (onlineGameActive) sendOnlineChat(txt);
+            if (onlineGameActive && connection && connection.open) {
+                connection.send({ type: 'chat', message: txt });
+                addChatMsg('me', txt);
+            }
             i.value = '';
         }
 
@@ -2350,20 +2310,15 @@
             sendPause: (p) => { if (connection && connection.open) connection.send({ type: 'p', v: p }); }
         };
 
-        // Initialize button hooks
-        document.addEventListener('DOMContentLoaded', () => {
-            // Existing buttons in chess.html are already hooked via onclick attributes, 
-            // but we'll ensure they point to our new functions or their names remain same.
-            // Since I renamed lanDoHost -> hostOnlineGame etc, I should update the HTML or provide aliases.
-            window.lanDoHost = hostOnlineGame;
-            window.lanDoJoin = joinOnlineGame;
-            window.lanCopyId = lanCopyId;
-            window.pickLanTime = pickLanTime;
-            window.showLanModal = showLanModal;
-            window.closeLanModal = closeLanModal;
-            window.lanShowStep = lanShowStep;
-            window.sendChat = sendChat;
-        });
+        window.lanDoHost = hostOnlineGame;
+        window.lanDoJoin = joinOnlineGame;
+        window.lanCopyId = lanCopyId;
+        window.pickLanTime = pickLanTime;
+        window.showLanModal = showLanModal;
+        window.closeLanModal = closeLanModal;
+        window.lanShowStep = lanShowStep;
+        window.sendChat = sendChat;
+
     </script>
     <!-- ====== LAN MULTIPLAYER MODAL — START ====== -->
     <div class="modal-ov" id="lanModal">
