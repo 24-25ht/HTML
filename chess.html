@@ -964,7 +964,7 @@
             <div class="mbtn">
                 <button class="btn btn-p" onclick="openSetup('single')">⚔ Single Player</button>
                 <button class="btn btn-p" onclick="openSetup('dual')">🛡 Dual Player</button>
-                <button class="btn btn-p" onclick="showLanModal()">🌐 LAN Play</button>
+                <button class="btn btn-p" onclick="showLanModal()">🌐 Online Play</button>
                 <button class="btn" id="resumeBtn" style="display:none" onclick="resumeGame()"
                     oncontextmenu="openResumeClearMenu(event)">▶ Resume Game</button>
                 <button class="btn" onclick="openModal('lbModal')" oncontextmenu="openLbClearMenu(event)">🏆
@@ -2320,14 +2320,14 @@
         window.sendChat = sendChat;
 
     </script>
-    <!-- ====== LAN MULTIPLAYER MODAL — START ====== -->
+    <!-- ====== ONLINE MULTIPLAYER MODAL — START ====== -->
     <div class="modal-ov" id="lanModal">
         <div class="modal">
-            <h2>🌐 LAN Play</h2>
+            <h2>🌐 Online Play</h2>
 
             <!-- STEP 1: Choose Role -->
             <div id="lanStep1">
-                <p>Connect using a simple Room ID.<br>Both players must have internet.</p>
+                <p>Connect globally using a Room ID.<br>Both players must have internet.</p>
                 <div class="fg"><label>Your Name</label><input id="lanPlayerName" class="fi"
                         placeholder="Enter thy name..." maxlength="16" style="text-align:center;"></div>
                 <div class="fg" id="lanTimeG"><label>Time Control</label>
@@ -2375,10 +2375,10 @@
                 style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--glassBdr); font-size:.75rem; opacity:.8;">
                 <h4 style="color:var(--gold); margin-bottom:.4rem; font-size:.8rem;">💡 Troubleshooting</h4>
                 <ul style="text-align:left; padding-left:1.2rem; line-height:1.4;">
-                    <li>Ensure both players use the <b>GitHub Pages HTTPS link</b>.</li>
-                    <li>Both players should be on the same network/Wi-Fi for best performance.</li>
-                    <li><b>VPN/Adblock:</b> These can block the connection. Try disabling them if it hangs.</li>
-                    <li><b>Firewall:</b> Ensure browsers aren't blocked from communicating with each other.</li>
+                    <li>Ensure both players have a <b>stable internet connection</b>.</li>
+                    <li>Both players must use the <b>same version</b> of the game.</li>
+                    <li><b>VPN/Adblock:</b> These can block WebRTC. Try disabling them if it hangs.</li>
+                    <li><b>Signaling:</b> If it times out, one player may be behind a strict firewall.</li>
                 </ul>
             </div>
 
@@ -2386,7 +2386,7 @@
 
     </div>
 
-    <!-- ====== LAN MULTIPLAYER MODAL — END ====== -->
+    <!-- ====== ONLINE MULTIPLAYER MODAL — END ====== -->
 </body>
 
 </html>
