@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="shortcut icon" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1194,7 +1194,7 @@
                 </p>
                 <p>Featuring a complete FIDE-legal engine with Minimax AI, alpha-beta pruning, and piece-square
                     evaluation tables.</p>
-                <p style="font-size:.75rem;margin-top:1rem;opacity:.6">Version 6.8 — The Obsidian Is Enchanted | Made By
+                <p style="font-size:.75rem;margin-top:1rem;opacity:.6">Version 6.9 — The Obsidian Is Enchanted | Made By
                     Abdullah Karim</p>
                 <div class="close-row"><button class="btn" onclick="closeModal('aboutModal')">Close</button></div>
             </div>
@@ -1407,8 +1407,8 @@
             renderAll();
             if (gRes) { setTimeout(() => handleGameOver(gRes), 400); return; }
             if (U.mode === 'single' && G.turn === 'b') { U.aiThink = true; renderBars(); setTimeout(doAI, 250); }
-            if (U.mode === 'lan' && !_lanRemote && LAN.active()) {
-                LAN.sendMove(mv.fr, mv.fc, mv.tr, mv.tc, mv.promo);
+            if (onlineGameActive && !_lanRemote) {
+                onLocalMoveMade(mv);
             }
             saveGameState();
         }
@@ -1825,7 +1825,7 @@
         function togglePause() {
             if (G.over) return;
             U.paused = !U.paused;
-            if (U.mode === 'lan' && LAN.active()) LAN.send({ t: 'p', v: U.paused });
+            if (onlineGameActive) LAN.sendPause(U.paused);
             if (U.paused) openModal('pauseModal'); else closeModal('pauseModal');
         }
 
@@ -2020,109 +2020,276 @@
         //  LAN MULTIPLAYER MODULE (PeerJS) — START
         // ================================================================
 
-        const LAN = (() => {
-            let peer = null, conn = null, myId = null, connected = false, localColor = 'w', myName = 'Player';
+        // ============================================
+        //  ONLINE MULTIPLAYER (REPLACES LAN PLAY)
+        // ============================================
 
-            function initPeer(id) {
-                return new Promise((resolve, reject) => {
-                    if (peer) peer.destroy();
-                    peer = new Peer(id, { debug: 1 }); // debug: 1 for errors only
-                    peer.on('open', (id) => { myId = id; resolve(id); });
-                    peer.on('error', (err) => { reject(err); });
-                    peer.on('connection', (c) => {
-                        // Incoming connection (Host logic)
-                        if (conn) { c.close(); return; } // Only 1 player
-                        setupConn(c);
-                    });
-                });
-            }
-
-            function setupConn(c) {
-                conn = c;
-                conn.on('open', () => {
-                    connected = true;
-                    // Send my name immediately
-                    conn.send({ t: 'nam', n: myName });
-                    // Host also sends time control
-                    if (localColor === 'w') {
-                        conn.send({ t: 'tim', v: U.timeCtl });
-                    }
-                    onLanConnected();
-                });
-                conn.on('data', (data) => {
-                    onLanMessage(data);
-                });
-                conn.on('close', () => {
-                    connected = false;
-                    addChatMsg('sys', 'Opponent has left or is out of sync.');
-                    if (!G.over) {
-                        handleGameOver({ type: 'resign', winner: LAN.color(), reason: 'Opponent disconnected.' });
-                    }
-                });
-            }
-
-            return {
-                async host(name) {
-                    localColor = 'w';
-                    myName = name;
-                    // Generate a random 4-char ID using letters/numbers
-                    const id = Math.random().toString(36).substring(2, 6).toUpperCase();
-                    await initPeer(id); // waits for 'open'
-                    return id;
-                },
-
-                async join(hostId, name) {
-                    localColor = 'b';
-                    myName = name;
-                    // We don't need a specific ID, allow random
-                    await initPeer();
-                    const c = peer.connect(hostId, { metadata: { name: myName } });
-                    setupConn(c);
-                },
-
-                send(o) { if (conn && conn.open) conn.send(o); },
-                sendMove(fr, fc, tr, tc, promo) {
-                    this.send({ t: 'm', f: [fr, fc], to: [tr, tc], p: promo || null });
-                },
-                sendChat(msg) { this.send({ t: 'c', msg }); },
-                sendResign() { this.send({ t: 'r', c: localColor }); },
-
-                close() {
-                    if (conn) conn.close();
-                    if (peer) peer.destroy();
-                    conn = peer = null; connected = false;
-                },
-
-                active() { return connected; },
-                color() { return localColor; },
-                myId() { return myId; },
-                myName() { return myName; }
-            };
-        })();
-
+        let peer = null;
+        let connection = null;
+        let isHost = false;
+        let onlineGameActive = false;
+        let myOnlineName = '';
+        let opponentOnlineName = '';
+        let myColor = null; // 'w' or 'b'
         let _lanRemote = false;
 
-        // ---------- LAN Modal UI ----------
+        // Generate a short, shareable Room ID
+        function generateRoomId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let id = '';
+            for (let i = 0; i < 6; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        // Initialize PeerJS connection
+        function initPeer(peerId = null) {
+            return new Promise((resolve, reject) => {
+                const config = {
+                    host: '0.peerjs.com',
+                    port: 443,
+                    secure: true,
+                    debug: 1,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'stun:stun2.l.google.com:19302' },
+                            { urls: 'stun:stun.stunprotocol.org:3478' },
+                            {
+                                urls: 'turn:openrelay.metered.ca:80',
+                                username: 'openrelayproject',
+                                credential: 'openrelayproject'
+                            },
+                            {
+                                urls: 'turn:openrelay.metered.ca:443',
+                                username: 'openrelayproject',
+                                credential: 'openrelayproject'
+                            }
+                        ]
+                    }
+                };
+
+                if (peerId) {
+                    peer = new Peer('OBSIDIAN-' + peerId, config);
+                } else {
+                    peer = new Peer(config);
+                }
+
+                peer.on('open', (id) => {
+                    console.log('Connected to PeerJS server with ID:', id);
+                    resolve(id);
+                });
+
+                peer.on('error', (err) => {
+                    console.error('PeerJS error:', err);
+                    if (err.type === 'unavailable-id') {
+                        reject(new Error('Room ID already in use. Try a different one.'));
+                    } else if (err.type === 'peer-unavailable') {
+                        reject(new Error('Room not found. Check the Room ID.'));
+                    } else {
+                        reject(err);
+                    }
+                });
+
+                peer.on('connection', handleIncomingConnection);
+            });
+        }
+
+        function handleIncomingConnection(conn) {
+            if (connection) {
+                conn.close();
+                return;
+            }
+            connection = conn;
+            setupConnectionHandlers();
+        }
+
+        function setupConnectionHandlers() {
+            connection.on('open', () => {
+                console.log('Connection established!');
+                if (isHost) {
+                    connection.send({
+                        type: 'setup',
+                        hostName: myOnlineName,
+                        timeControl: U.timeCtl
+                    });
+                }
+            });
+            connection.on('data', (data) => {
+                handleOnlineData(data);
+            });
+            connection.on('close', () => {
+                handleDisconnect();
+            });
+            connection.on('error', (err) => {
+                console.error('Connection error:', err);
+                handleDisconnect();
+            });
+        }
+
+        function handleOnlineData(data) {
+            switch (data.type) {
+                case 'setup':
+                    opponentOnlineName = data.hostName;
+                    U.timeCtl = data.timeControl;
+                    connection.send({
+                        type: 'ready',
+                        guestName: myOnlineName
+                    });
+                    startOnlineGame('b');
+                    break;
+                case 'ready':
+                    opponentOnlineName = data.guestName;
+                    hideWaitingScreen();
+                    startOnlineGame('w');
+                    break;
+                case 'move':
+                    executeOnlineMove(data.fr, data.fc, data.tr, data.tc, data.promo);
+                    break;
+                case 'chat':
+                    addChatMsg('opp', data.message);
+                    break;
+                case 'resign':
+                    handleOnlineResign(data.color);
+                    break;
+                case 'p':
+                    U.paused = data.v;
+                    if (U.paused) openModal('pauseModal'); else closeModal('pauseModal');
+                    break;
+            }
+        }
+
+        function startOnlineGame(color) {
+            myColor = color;
+            onlineGameActive = true;
+            U.mode = 'lan';
+
+            closeLanModal();
+            startGame(); // This resets board, turn, etc.
+
+            if (myColor === 'w') {
+                U.playerNames = { w: myOnlineName, b: opponentOnlineName };
+                U.viewTurn = 'w';
+            } else {
+                U.playerNames = { w: opponentOnlineName, b: myOnlineName };
+                U.viewTurn = 'b';
+            }
+
+            renderAll();
+            document.getElementById('chatPanel').style.display = 'flex';
+            document.getElementById('chatList').innerHTML = '';
+            addChatMsg('sys', 'Connected. Good luck!');
+        }
+
+        function sendOnlineMove(fr, fc, tr, tc, promo = null) {
+            if (connection && connection.open) {
+                connection.send({
+                    type: 'move',
+                    fr: fr,
+                    fc: fc,
+                    tr: tr,
+                    tc: tc,
+                    promo: promo
+                });
+            }
+        }
+
+        function executeOnlineMove(fr, fc, tr, tc, promo) {
+            const mvs = legalMoves(G.board, G.castle, G.ep, G.turn);
+            const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
+            if (mv) {
+                _lanRemote = true;
+                execMove(mv);
+                _lanRemote = false;
+            }
+        }
+
+        function sendOnlineChat(message) {
+            if (connection && connection.open && message.trim()) {
+                connection.send({
+                    type: 'chat',
+                    message: message
+                });
+                addChatMsg('me', message);
+            }
+        }
+
+        function handleDisconnect() {
+            if (onlineGameActive && !G.over) {
+                alert('Opponent disconnected.');
+                handleGameOver({ type: 'resign', winner: myColor, reason: 'Opponent disconnected.' });
+            }
+            cleanupOnline();
+        }
+
+        function cleanupOnline() {
+            if (connection) { connection.close(); connection = null; }
+            if (peer) { peer.destroy(); peer = null; }
+            onlineGameActive = false;
+            isHost = false;
+        }
+
+        // --- UI FUNCTIONS ---
+
+        async function hostOnlineGame() {
+            const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
+            myOnlineName = name;
+            document.getElementById('lanStatus').textContent = 'Generating Room ID...';
+            const roomId = generateRoomId();
+            try {
+                await initPeer(roomId);
+                isHost = true;
+                document.getElementById('lanHostIdDisplay').textContent = roomId;
+                document.getElementById('lanStatus').textContent = '';
+                lanShowStep('lanStepHost');
+            } catch (err) {
+                document.getElementById('lanStatus').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        async function joinOnlineGame() {
+            const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
+            const roomId = document.getElementById('lanJoinId').value.trim().toUpperCase();
+            myOnlineName = name;
+            if (!roomId) { document.getElementById('lanJoinStatus').textContent = 'Enter Room ID'; return; }
+            document.getElementById('lanJoinStatus').textContent = 'Connecting...';
+            try {
+                await initPeer();
+                connection = peer.connect('OBSIDIAN-' + roomId, { reliable: true });
+                setupConnectionHandlers();
+                setTimeout(() => {
+                    if (!connection?.open) {
+                        document.getElementById('lanJoinStatus').textContent = 'Timeout. Check ID.';
+                        cleanupOnline();
+                    }
+                }, 10000);
+            } catch (err) {
+                document.getElementById('lanJoinStatus').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function hideWaitingScreen() {
+            // No specific waiting screen other than the modal step
+        }
 
         function showLanModal() {
             openModal('lanModal');
             lanShowStep('lanStep1');
             document.getElementById('lanStatus').textContent = '';
-            // Reset input
             document.getElementById('lanJoinId').value = '';
         }
 
         function closeLanModal() {
             closeModal('lanModal');
-            // Don't close LAN connection here if active, only if cancelling setup
-            if (!LAN.active()) LAN.close();
+            if (!onlineGameActive) cleanupOnline();
         }
 
         function lanShowStep(id) {
             ['lanStep1', 'lanStepHost', 'lanStepJoin'].forEach(s =>
                 document.getElementById(s).style.display = (s === id) ? 'block' : 'none'
             );
-            // Show time control only on step 1
             if (id === 'lanStepJoin') {
                 document.getElementById('lanTimeG').style.display = 'none';
             } else if (id === 'lanStep1') {
@@ -2136,32 +2303,6 @@
             U.timeCtl = parseInt(el.dataset.t);
         }
 
-        async function lanDoHost() {
-            const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
-            document.getElementById('lanStatus').textContent = 'Generating Room ID...';
-            try {
-                const id = await LAN.host(name);
-                document.getElementById('lanHostIdDisplay').textContent = id;
-                document.getElementById('lanStatus').textContent = '';
-                lanShowStep('lanStepHost');
-            } catch (e) {
-                document.getElementById('lanStatus').textContent = 'Error: ' + e.message;
-            }
-        }
-
-        async function lanDoJoin() {
-            const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
-            const id = document.getElementById('lanJoinId').value.trim().toUpperCase();
-            if (!id) { document.getElementById('lanJoinStatus').textContent = 'Enter Room ID'; return; }
-            document.getElementById('lanJoinStatus').textContent = 'Connecting...';
-            try {
-                await LAN.join(id, name);
-                // Wait for connection to open (handled in setupConn -> onLanConnected)
-            } catch (e) {
-                document.getElementById('lanJoinStatus').textContent = 'Error: ' + e.message;
-            }
-        }
-
         function lanCopyId() {
             const txt = document.getElementById('lanHostIdDisplay').textContent;
             navigator.clipboard.writeText(txt).then(() => {
@@ -2172,70 +2313,23 @@
             });
         }
 
-        // ---------- LAN Game Integration ----------
-
-        function onLanConnected() {
-            closeModal('lanModal');
-            startGame();
-            U.mode = 'lan';
-            if (LAN.color() === 'w') {
-                U.playerNames = { w: LAN.myName(), b: 'Opponent' };
-                U.viewTurn = 'w';
-            } else {
-                U.playerNames = { w: 'Opponent', b: LAN.myName() };
-                U.viewTurn = 'b';
-            }
-            updatePieceSize();
-            renderAll();
-
-            // Show chat panel
-            document.getElementById('chatPanel').style.display = 'flex';
-            document.getElementById('chatList').innerHTML = '';
-            addChatMsg('sys', 'Connected via LAN. Good luck!');
-        }
-
-        function onLanMessage(msg) {
-            if (msg.t === 'm') {
-                const [fr, fc] = msg.f;
-                const [tr, tc] = msg.to;
-                const promo = msg.p;
-                const mvs = legalMoves(G.board, G.castle, G.ep, G.turn);
-                const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
-                if (mv) {
-                    _lanRemote = true;
-                    execMove(mv);
-                    _lanRemote = false;
-                }
-            } else if (msg.t === 'r') {
-                handleGameOver({ type: 'resign', winner: opp(msg.c) });
-            } else if (msg.t === 'c') {
-                addChatMsg('opp', msg.msg);
-            } else if (msg.t === 'nam') {
-                // Update opponent name
-                if (LAN.color() === 'w') U.playerNames.b = msg.n;
-                else U.playerNames.w = msg.n;
-                renderBars();
-                addChatMsg('sys', msg.n + ' connected.');
-            } else if (msg.t === 'tim') {
-                U.timeCtl = msg.v;
-                if (U.timeCtl > 0) startClock();
-                else stopClock();
-                renderBars();
-            } else if (msg.t === 'p') {
-                U.paused = msg.v;
-                if (U.paused) openModal('pauseModal');
-                else closeModal('pauseModal');
+        // Integration Helpers
+        function onLocalMoveMade(mv) {
+            if (onlineGameActive && connection?.open) {
+                sendOnlineMove(mv.fr, mv.fc, mv.tr, mv.tc, mv.promo);
             }
         }
 
-        // ---------- Chat Logic ----------
+        function isMyTurn() {
+            if (!onlineGameActive) return true;
+            return G.turn === myColor;
+        }
 
         function sendChat() {
             const i = document.getElementById('chatInput');
             const txt = i.value.trim();
-            if (!txt || !LAN.active()) return;
-            LAN.sendChat(txt);
-            addChatMsg('me', txt);
+            if (!txt) return;
+            if (onlineGameActive) sendOnlineChat(txt);
             i.value = '';
         }
 
@@ -2248,9 +2342,27 @@
             list.scrollTop = list.scrollHeight;
         }
 
-        // ================================================================
-        //  LAN MULTIPLAYER MODULE — END
-        // ================================================================
+        const LAN = {
+            active: () => onlineGameActive,
+            color: () => myColor,
+            sendResign: () => { if (connection && connection.open) connection.send({ type: 'resign', color: myColor }); },
+            sendPause: (p) => { if (connection && connection.open) connection.send({ type: 'p', v: p }); }
+        };
+
+        // Initialize button hooks
+        document.addEventListener('DOMContentLoaded', () => {
+            // Existing buttons in chess.html are already hooked via onclick attributes, 
+            // but we'll ensure they point to our new functions or their names remain same.
+            // Since I renamed lanDoHost -> hostOnlineGame etc, I should update the HTML or provide aliases.
+            window.lanDoHost = hostOnlineGame;
+            window.lanDoJoin = joinOnlineGame;
+            window.lanCopyId = lanCopyId;
+            window.pickLanTime = pickLanTime;
+            window.showLanModal = showLanModal;
+            window.closeLanModal = closeLanModal;
+            window.lanShowStep = lanShowStep;
+            window.sendChat = sendChat;
+        });
     </script>
     <!-- ====== LAN MULTIPLAYER MODAL — START ====== -->
     <div class="modal-ov" id="lanModal">
