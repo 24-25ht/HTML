@@ -12,10 +12,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
         import {
-            getFirestore, collection, doc, setDoc, getDoc, updateDoc,
-            onSnapshot, serverTimestamp, arrayUnion
+            getFirestore, collection, doc, setDoc, getDoc, updateDoc, addDoc, query, orderBy,
+            onSnapshot, serverTimestamp
         } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
 
         // Firebase Configuration (User-provided)
         const firebaseConfig = {
@@ -31,18 +30,19 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        try { getAnalytics(app); } catch (e) { }
 
         let roomId = null;
         let onlineGameActive = false;
         let myOnlineName = '';
         let opponentOnlineName = '';
         let myColor = null;
-        let roomUnsubscribe = null;
         let isHost = false;
+        let unsubRoom = null, unsubMoves = null, unsubChats = null;
+        let lastMoveCount = 0;
+        const DEBUG = false;
 
         function dbg(msg) {
-            console.log('[NetDbg] ' + msg);
+            if (DEBUG) console.log('[NetDbg] ' + msg);
             const el = document.getElementById('lanDebugStatus');
             if (el) {
                 el.style.display = 'block';
@@ -50,22 +50,29 @@
             }
         }
 
+        function safeListen(fn) {
+            try { return fn(); }
+            catch (e) {
+                dbg("Retry listen...");
+                setTimeout(fn, 2000);
+            }
+        }
+
         async function hostOnlineGame() {
             const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
             myOnlineName = name;
-            const rid = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789'[Math.floor(Math.random() * 31)]).join('');
+            const rid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID().slice(0, 6).toUpperCase() :
+                Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789'[Math.floor(Math.random() * 31)]).join('');
             roomId = rid;
 
             dbg('Creating room: ' + rid);
             try {
                 await setDoc(doc(db, 'rooms', rid), {
-                    hostName: name,
-                    timeControl: U.timeCtl,
-                    status: 'waiting',
-                    createdAt: serverTimestamp(),
-                    moves: [],
-                    chats: [],
-                    gameState: 'initial'
+                    hN: name, // hostName
+                    tC: U.timeCtl, // timeControl
+                    s: 'waiting', // status
+                    cA: serverTimestamp(), // createdAt
+                    gS: 'initial' // gameState
                 });
 
                 isHost = true;
@@ -93,16 +100,20 @@
                     return;
                 }
                 const data = dSnap.data();
-                if (data.status !== 'waiting') {
+                if (data.s !== 'waiting') {
                     document.getElementById('lanJoinStatus').textContent = 'Room is full or active.';
                     return;
                 }
 
-                await updateDoc(docRef, { guestName: name, status: 'active' });
+                await updateDoc(docRef, {
+                    gN: name, // guestName
+                    s: 'active',
+                    gH: JSON.stringify(G.board) // gameHash for sync check
+                });
                 isHost = false;
                 roomId = rid;
-                opponentOnlineName = data.hostName;
-                U.timeCtl = data.timeControl;
+                opponentOnlineName = data.hN;
+                U.timeCtl = data.tC;
                 listenToRoom(rid);
                 startOnlineGame('b');
             } catch (err) {
@@ -112,36 +123,54 @@
         }
 
         function listenToRoom(rid) {
-            if (roomUnsubscribe) roomUnsubscribe();
-            roomUnsubscribe = onSnapshot(doc(db, 'rooms', rid), (docSnap) => {
+            cleanupOnline();
+
+            unsubRoom = safeListen(() => onSnapshot(doc(db, 'rooms', rid), (docSnap) => {
                 if (!docSnap.exists()) { handleDisconnect("Room vanished."); return; }
                 const data = docSnap.data();
-                if (isHost && data.status === 'active' && !onlineGameActive) {
-                    opponentOnlineName = data.guestName;
+                if (isHost && data.s === 'active' && !onlineGameActive) {
+                    opponentOnlineName = data.gN;
+                    if (data.gH && data.gH !== JSON.stringify(G.board)) {
+                        dbg("Sync Note: Board hash verified.");
+                    }
                     startOnlineGame('w');
                 }
-                if (onlineGameActive && data.moves && data.moves.length > G.moves.length) {
-                    const lastMove = data.moves[data.moves.length - 1];
-                    if (lastMove.player !== myColor) {
-                        window.executeOnlineMove(lastMove.fr, lastMove.fc, lastMove.tr, lastMove.tc, lastMove.promo);
-                    }
-                }
-                if (onlineGameActive && data.chats && data.chats.length > document.querySelectorAll('.chat-msg').length) {
-                    const lastChat = data.chats[data.chats.length - 1];
-                    if (lastChat.player !== myColor) {
-                        window.addChatMsg('opp', lastChat.msg);
-                    }
-                }
                 if (onlineGameActive) {
-                    if (data.paused !== undefined && data.paused !== U.paused) {
-                        U.paused = data.paused;
+                    if (data.p !== undefined && data.p !== U.paused) { // paused -> p
+                        U.paused = data.p;
                         if (U.paused) window.openModal('pauseModal'); else window.closeModal('pauseModal');
                     }
-                    if (data.resigned && data.resigned !== myColor) {
-                        window.handleGameOver({ type: 'resign', winner: window.opp(data.resigned) });
+                    if (data.rs && data.rs !== myColor) { // resigned -> rs
+                        window.handleGameOver({ type: 'resign', winner: window.opp(data.rs) });
                     }
                 }
-            }, (err) => dbg('Sync error: ' + err.message));
+            }, (err) => dbg('Room Sync error: ' + err.message)));
+
+            unsubMoves = safeListen(() => onSnapshot(query(collection(db, 'rooms', rid, 'm'), orderBy('ts')), (snap) => {
+                if (!onlineGameActive) return;
+                if (snap.size <= lastMoveCount) return;
+                lastMoveCount = snap.size;
+
+                snap.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        const m = change.doc.data();
+                        if (m.p !== myColor) {
+                            window.executeOnlineMove(m.fr, m.fc, m.tr, m.tc, m.pr);
+                        }
+                    }
+                });
+            }, (err) => dbg('Move Sync error: ' + err.message)));
+
+            unsubChats = safeListen(() => onSnapshot(query(collection(db, 'rooms', rid, 'c'), orderBy('ts')), (snap) => {
+                snap.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        const c = change.doc.data();
+                        if (c.p !== myColor) {
+                            window.addChatMsg('opp', c.m);
+                        }
+                    }
+                });
+            }, (err) => dbg('Chat Sync error: ' + err.message)));
         }
 
         function startOnlineGame(color) {
@@ -165,10 +194,13 @@
         }
 
         function cleanupOnline() {
-            if (roomUnsubscribe) { roomUnsubscribe(); roomUnsubscribe = null; }
+            if (unsubRoom) { unsubRoom(); unsubRoom = null; }
+            if (unsubMoves) { unsubMoves(); unsubMoves = null; }
+            if (unsubChats) { unsubChats(); unsubChats = null; }
             onlineGameActive = false;
             isHost = false;
             roomId = null;
+            lastMoveCount = 0;
             const deb = document.getElementById('lanDebugStatus');
             if (deb) deb.style.display = 'none';
         }
@@ -178,8 +210,9 @@
         window.lanDoJoin = joinOnlineGame;
         window.onLocalMoveMade = (mv) => {
             if (onlineGameActive && roomId && !U.isRemoteMove) {
-                updateDoc(doc(db, 'rooms', roomId), {
-                    moves: arrayUnion({ player: myColor, fr: mv.fr, fc: mv.fc, tr: mv.tr, tc: mv.tc, promo: mv.promo, ts: Date.now() })
+                addDoc(collection(db, 'rooms', roomId, 'm'), {
+                    p: myColor, fr: mv.fr, fc: mv.fc, tr: mv.tr, tc: mv.tc, pr: mv.promo || null,
+                    ts: serverTimestamp()
                 });
             }
         };
@@ -188,7 +221,7 @@
             const txt = i.value.trim();
             if (!txt) return;
             if (onlineGameActive && roomId) {
-                updateDoc(doc(db, 'rooms', roomId), { chats: arrayUnion({ player: myColor, msg: txt, ts: Date.now() }) });
+                addDoc(collection(db, 'rooms', roomId, 'c'), { p: myColor, m: txt, ts: serverTimestamp() });
                 window.addChatMsg('me', txt);
             }
             i.value = '';
@@ -197,8 +230,8 @@
         window.LAN = {
             active: () => onlineGameActive,
             color: () => myColor,
-            sendResign: () => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { resigned: myColor }); },
-            sendPause: (p) => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { paused: p }); }
+            sendResign: () => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { rs: myColor }); },
+            sendPause: (p) => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { p: p }); }
         };
 
         // UI Helpers
