@@ -1199,7 +1199,7 @@
     <div class="overlay" id="menu-shop">
         <div class="menu-bg"></div>
         <div class="menu-shell menu-shell-wide">
-            <h2 style="color:var(--gold);margin-bottom:.3em">⚡ Upgrade Shop</h2>
+            <h2 style="color:var(--gold);margin-bottom:.3em" id="shop-title">⚡ Upgrade Shop</h2>
             <div class="shop-topbar">
                 <div class="shop-player-tabs" id="shop-player-tabs"></div>
                 <div class="shop-subtle">Credits: <span id="shop-credits">0</span></div>
@@ -1283,19 +1283,26 @@
         const canvas = document.getElementById('gc');
         const ctx = canvas.getContext('2d');
         let W, H;
-        let gameState = 'menu'; // menu,playing,paused,gameover,shop
+        let gameState = 'menu'; // menu,playing,paused,intermission,gameover,shop
         let numPlayers = 1;
         let gameMode = 'normal'; // normal,coop,versus
         let difficulty = 'normal';
         let currentWave = 0;
         let waveAnnTimer = 0;
         let pendingWave = null;
+        let checkpointWavePending = null;
+        let shopContext = 'gameover'; // gameover | checkpoint
+        let shopReturnWave = null;
+        let shopMode = 'upgrades';
+        let activeShopPlayer = 0;
+        let rewardUpgradePlayer = null;
         let frameCount = 0;
         let lastTime = 0;
         let dt = 0;
         let fps = 0;
         let fpsTimer = 0;
         let fpsCount = 0;
+        const LEADERBOARD_KEY = 'nova_rift_leaderboard_v1';
 
         const DIFF = {
             easy: { enemySpeedMul: .6, enemyFireRate: .4, enemyHpMul: .7, scoreMul: .7 },
@@ -1380,6 +1387,17 @@
             magnet: { name: 'Magnet', emoji: '🧲', maxLv: 3, baseCost: 150, desc: 'Attract pickups', effect: lv => 50 + lv * 40 },
             lives: { name: 'Extra Life', emoji: '❤️', maxLv: 3, baseCost: 300, desc: '+1 life', effect: lv => lv },
         };
+        const SKIN_TIER_COSTS = { 1: 900, 2: 1300, 3: 1800 };
+        const SKIN_CATALOG = [
+            { id: 'skin-fire-rate', name: 'Overclock Chassis', emoji: '🔥', upgradeKey: 'fireRate', tier: 3, description: 'Triple vent frame with rapid pulse coils.' },
+            { id: 'skin-damage', name: 'Dreadnought Hull', emoji: '💥', upgradeKey: 'damage', tier: 3, description: 'Heavy armor plating and focused cannon nose.' },
+            { id: 'skin-speed', name: 'Blink Razor', emoji: '⚡', upgradeKey: 'speed', tier: 1, description: 'Slim dart profile and velocity fins.' },
+            { id: 'skin-spread', name: 'Storm Wing', emoji: '🌟', upgradeKey: 'spread', tier: 2, description: 'Wide wing arrays and multi-shot ports.' },
+            { id: 'skin-shield', name: 'Aegis Prism', emoji: '🛡️', upgradeKey: 'shield', tier: 2, description: 'Reinforced shell with layered shield nodes.' },
+            { id: 'skin-magnet', name: 'Flux Core', emoji: '🧲', upgradeKey: 'magnet', tier: 1, description: 'Attractor coils and orbiting pickup drones.' },
+            { id: 'skin-lives', name: 'Phoenix Crest', emoji: '❤️', upgradeKey: 'lives', tier: 2, description: 'Survival frame tuned for recovery and grit.' },
+        ];
+        const SKIN_BY_ID = Object.fromEntries(SKIN_CATALOG.map(skin => [skin.id, skin]));
 
         function createPlayer(id) {
             return {
@@ -1393,6 +1411,8 @@
                 invincible: 0,
                 upgrades: { fireRate: 0, damage: 0, speed: 0, spread: 0, shield: 0, magnet: 0, lives: 0 },
                 powerup: null, powerupTimer: 0,
+                ownedSkins: ['default'],
+                equippedSkin: 'default',
                 mobileTargetX: null, mobileTargetY: null,
             };
         }
@@ -1407,6 +1427,26 @@
             p.shield = UPGRADES.shield.effect(u.shield);
             p.maxLives = 3 + UPGRADES.lives.effect(u.lives);
             if (p.lives > p.maxLives) p.lives = p.maxLives;
+        }
+
+        function ensurePlayerSkins(p) {
+            if (!Array.isArray(p.ownedSkins)) p.ownedSkins = ['default'];
+            if (!p.ownedSkins.includes('default')) p.ownedSkins.unshift('default');
+            if (!p.equippedSkin || !p.ownedSkins.includes(p.equippedSkin)) p.equippedSkin = 'default';
+        }
+
+        function getSkinByUpgradeKey(upgradeKey) {
+            return SKIN_CATALOG.find(skin => skin.upgradeKey === upgradeKey) || null;
+        }
+
+        function isSkinMaxUnlocked(p, skin) {
+            const up = UPGRADES[skin.upgradeKey];
+            if (!up) return false;
+            return (p.upgrades?.[skin.upgradeKey] ?? 0) >= up.maxLv;
+        }
+
+        function getSkinCost(skin) {
+            return SKIN_TIER_COSTS[skin.tier] ?? 900;
         }
 
         function resetPlayerPos(p) {
@@ -1933,19 +1973,55 @@
             const hideShip = flash && p.invincible > .1;
             ctx.save(); ctx.translate(p.x, p.y);
             if (!hideShip) {
-                // Ship body
-                const c = p.id === 0 ? '#00f0ff' : '#ff0066';
-                ctx.fillStyle = c;
-                ctx.beginPath();
-                ctx.moveTo(0, -p.h / 2); ctx.lineTo(-p.w / 2, p.h / 2); ctx.lineTo(p.w / 2, p.h / 2); ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                ctx.beginPath(); ctx.moveTo(0, -p.h / 2 + 4); ctx.lineTo(-6, p.h / 4); ctx.lineTo(6, p.h / 4); ctx.closePath(); ctx.fill();
-                // Engine glow
-                ctx.fillStyle = p.id === 0 ? 'rgba(0,240,255,0.5)' : 'rgba(255,0,102,0.5)';
+                const base = p.id === 0 ? '#00f0ff' : '#ff0066';
+                const accent = p.id === 0 ? '#b5f7ff' : '#ffd4e8';
+                const skin = p.equippedSkin || 'default';
+                ctx.fillStyle = base;
+                if (skin === 'skin-damage') {
+                    ctx.fillRect(-p.w * .45, -p.h * .1, p.w * .9, p.h * .62);
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .56); ctx.lineTo(-p.w * .38, -p.h * .02); ctx.lineTo(p.w * .38, -p.h * .02); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = accent; ctx.fillRect(-3, -p.h * .5, 6, 10);
+                } else if (skin === 'skin-speed') {
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .58); ctx.lineTo(-p.w * .28, p.h * .46); ctx.lineTo(0, p.h * .28); ctx.lineTo(p.w * .28, p.h * .46); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = accent; ctx.fillRect(-2, -p.h * .34, 4, p.h * .52);
+                } else if (skin === 'skin-spread') {
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .52); ctx.lineTo(-p.w * .5, p.h * .36); ctx.lineTo(-p.w * .16, p.h * .18); ctx.lineTo(0, p.h * .34); ctx.lineTo(p.w * .16, p.h * .18); ctx.lineTo(p.w * .5, p.h * .36); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = accent; ctx.fillRect(-p.w * .42, p.h * .24, 4, 5); ctx.fillRect(p.w * .42 - 4, p.h * .24, 4, 5);
+                } else if (skin === 'skin-shield') {
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .54); ctx.lineTo(-p.w * .42, p.h * .3); ctx.lineTo(0, p.h * .5); ctx.lineTo(p.w * .42, p.h * .3); ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 2;
+                    ctx.strokeRect(-p.w * .3, -p.h * .1, p.w * .6, p.h * .42);
+                } else if (skin === 'skin-magnet') {
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .5); ctx.lineTo(-p.w * .44, p.h * .4); ctx.lineTo(p.w * .44, p.h * .4); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = accent;
+                    const orb = 6 + Math.sin(frameCount * .08) * 2;
+                    ctx.beginPath(); ctx.arc(-p.w * .5, -2, 2.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(p.w * .5, -2, 2.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, -orb, 2.2, 0, Math.PI * 2); ctx.fill();
+                } else if (skin === 'skin-lives') {
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .52); ctx.lineTo(-p.w * .45, p.h * .34); ctx.lineTo(p.w * .45, p.h * .34); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = '#ffd2de';
+                    ctx.beginPath();
+                    ctx.moveTo(0, 2);
+                    ctx.bezierCurveTo(-4, -4, -7, 1, 0, 8);
+                    ctx.bezierCurveTo(7, 1, 4, -4, 0, 2);
+                    ctx.fill();
+                } else if (skin === 'skin-fire-rate') {
+                    ctx.beginPath(); ctx.moveTo(0, -p.h * .54); ctx.lineTo(-p.w * .44, p.h * .36); ctx.lineTo(p.w * .44, p.h * .36); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = accent;
+                    ctx.fillRect(-p.w * .45, -2, 5, 7);
+                    ctx.fillRect(p.w * .45 - 5, -2, 5, 7);
+                    ctx.fillRect(-2, -p.h * .45, 4, 8);
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -p.h / 2); ctx.lineTo(-p.w / 2, p.h / 2); ctx.lineTo(p.w / 2, p.h / 2); ctx.closePath();
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.beginPath(); ctx.moveTo(0, -p.h / 2 + 4); ctx.lineTo(-6, p.h / 4); ctx.lineTo(6, p.h / 4); ctx.closePath(); ctx.fill();
+                }
+                ctx.fillStyle = p.id === 0 ? 'rgba(0,240,255,0.55)' : 'rgba(255,0,102,0.55)';
                 const ew = 8 + Math.sin(frameCount * .3) * 2;
                 ctx.fillRect(-ew / 2, p.h / 2, ew, 4 + Math.random() * 4);
-                // Shield visual
                 if (p.shield > 0) {
                     ctx.strokeStyle = 'rgba(168,85,247,0.5)'; ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.arc(0, 0, p.w * .8, 0, Math.PI * 2); ctx.stroke();
@@ -2117,7 +2193,21 @@
                 if (pendingWave !== null) {
                     waveAnnTimer -= dt;
                     if (waveAnnTimer <= 0) {
-                        spawnWave(pendingWave);
+                        const nextWaveIndex = pendingWave;
+                        const nextWaveDisplay = nextWaveIndex + 1;
+                        if (nextWaveDisplay % 5 === 0) {
+                            checkpointWavePending = nextWaveIndex;
+                            pendingWave = null;
+                            waveAnnTimer = 0;
+                            gameState = 'intermission';
+                            clearMobileInput();
+                            const checkpointTitle = document.getElementById('checkpoint-title');
+                            if (checkpointTitle) checkpointTitle.textContent = `Wave ${nextWaveDisplay} Incoming`;
+                            showScreen('menu-wave-checkpoint');
+                            syncMobileControls();
+                        } else {
+                            spawnWave(nextWaveIndex);
+                        }
                         pendingWave = null;
                         waveAnnTimer = 0;
                     }
@@ -2173,6 +2263,12 @@
             clearMobileInput();
             numPlayers = np; gameMode = mode; currentWave = 0;
             pendingWave = null; waveAnnTimer = 0;
+            checkpointWavePending = null;
+            shopContext = 'gameover';
+            shopReturnWave = null;
+            shopMode = 'upgrades';
+            activeShopPlayer = 0;
+            rewardUpgradePlayer = null;
             particles = []; pickups = []; enemyBullets = [];
             players = [];
             for (let i = 0; i < np; i++) {
@@ -2212,6 +2308,10 @@
             clearMobileInput();
             gameState = 'menu';
             pendingWave = null; waveAnnTimer = 0;
+            checkpointWavePending = null;
+            shopContext = 'gameover';
+            shopReturnWave = null;
+            rewardUpgradePlayer = null;
             document.getElementById('hud').style.display = 'none';
             syncMobileControls();
             showScreen('menu-main');
@@ -2224,6 +2324,10 @@
             const totalKills = players.reduce((s, p) => s + p.kills, 0);
             const bestCombo = Math.max(...players.map(p => p.maxCombo));
             pendingWave = null; waveAnnTimer = 0;
+            checkpointWavePending = null;
+            shopContext = 'gameover';
+            shopReturnWave = null;
+            rewardUpgradePlayer = null;
             document.getElementById('go-score').textContent = totalScore.toLocaleString();
             document.getElementById('go-wave').textContent = `Reached Wave ${currentWave + 1}`;
             document.getElementById('go-kills').textContent = `${totalKills} enemies destroyed`;
@@ -2235,11 +2339,41 @@
 
         // ===== LEADERBOARD =====
         let leaderboard = [];
+        function sanitizeLeaderboard(entries) {
+            if (!Array.isArray(entries)) return [];
+            const clean = entries
+                .filter(e => e && Number.isFinite(Number(e.score)) && Number.isFinite(Number(e.wave)))
+                .map(e => ({
+                    score: Math.max(0, Math.floor(Number(e.score))),
+                    wave: Math.max(1, Math.floor(Number(e.wave))),
+                    diff: typeof e.diff === 'string' ? e.diff : 'normal',
+                    date: typeof e.date === 'string' ? e.date : new Date().toLocaleDateString(),
+                }));
+            clean.sort((a, b) => b.score - a.score);
+            return clean.slice(0, 10);
+        }
+
+        function loadLeaderboard() {
+            try {
+                const raw = localStorage.getItem(LEADERBOARD_KEY);
+                if (!raw) return [];
+                return sanitizeLeaderboard(JSON.parse(raw));
+            } catch (err) {
+                return [];
+            }
+        }
+
+        function saveLeaderboard() {
+            try {
+                localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(sanitizeLeaderboard(leaderboard)));
+            } catch (err) { }
+        }
+
         function addToLeaderboard() {
             const s = players.reduce((a, p) => a + Math.floor(p.score), 0);
             if (s > 0) leaderboard.push({ score: s, wave: currentWave + 1, diff: difficulty, date: new Date().toLocaleDateString() });
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 10);
+            leaderboard = sanitizeLeaderboard(leaderboard);
+            saveLeaderboard();
             renderLeaderboard();
         }
         function renderLeaderboard() {
@@ -2252,12 +2386,222 @@
         function showShopOrRestart() {
             const totalCredits = players.reduce((s, p) => s + p.credits, 0);
             if (totalCredits > 0) {
-                showShop();
+                showShop('gameover', currentWave, 0);
             } else {
                 restartGame();
             }
         }
-        function showShop() {
+        function getActiveShopPlayer() {
+            if (!players.length) return null;
+            activeShopPlayer = Math.max(0, Math.min(players.length - 1, activeShopPlayer));
+            const p = players[activeShopPlayer];
+            ensurePlayerSkins(p);
+            return p;
+        }
+
+        function setShopPlayer(playerIndex) {
+            if (rewardUpgradePlayer !== null && playerIndex !== rewardUpgradePlayer) return;
+            activeShopPlayer = playerIndex;
+            refreshShopView();
+        }
+
+        function setShopMode(mode) {
+            shopMode = mode === 'skins' ? 'skins' : 'upgrades';
+            refreshShopView();
+        }
+
+        function renderShopPlayerTabs() {
+            const tabs = document.getElementById('shop-player-tabs');
+            if (!tabs) return;
+            tabs.innerHTML = '';
+            if (numPlayers < 2) {
+                tabs.style.display = 'none';
+                return;
+            }
+            tabs.style.display = 'flex';
+            players.forEach((p, index) => {
+                ensurePlayerSkins(p);
+                const tab = document.createElement('button');
+                tab.className = 'shop-player-tab' + (index === activeShopPlayer ? ' active' : '');
+                tab.textContent = `P${index + 1}`;
+                tab.onclick = () => setShopPlayer(index);
+                tabs.appendChild(tab);
+            });
+        }
+
+        function buyUpgrade(upgradeKey) {
+            const p = getActiveShopPlayer();
+            const up = UPGRADES[upgradeKey];
+            if (!p || !up) return;
+            const lv = p.upgrades[upgradeKey];
+            if (lv >= up.maxLv) return;
+            const cost = Math.floor(up.baseCost * (1 + lv * .6));
+            if (p.credits < cost) return;
+            p.credits -= cost;
+            p.upgrades[upgradeKey] = Math.min(up.maxLv, p.upgrades[upgradeKey] + 1);
+            applyUpgrades(p);
+            sfxPowerup();
+            refreshShopView();
+        }
+
+        function renderUpgradeShop(p) {
+            const grid = document.getElementById('shop-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (const [key, up] of Object.entries(UPGRADES)) {
+                const lv = p.upgrades[key];
+                const maxed = lv >= up.maxLv;
+                const cost = Math.floor(up.baseCost * (1 + lv * .6));
+                const linkedSkin = getSkinByUpgradeKey(key);
+                const hasFreeSkin = linkedSkin && isSkinMaxUnlocked(p, linkedSkin) && !p.ownedSkins.includes(linkedSkin.id);
+                const item = document.createElement('div');
+                item.className = 'shop-item' + (maxed ? ' maxed' : '');
+                item.innerHTML = `<div class="shop-emoji">${up.emoji}</div><div class="shop-name">${up.name}</div><div class="shop-level">Lv ${lv}/${up.maxLv}</div><div class="shop-cost">${maxed ? 'MAX' : '💰 ' + cost}</div><div class="shop-note">${hasFreeSkin ? 'Skin claim unlocked in Skins tab.' : up.desc}</div>`;
+                if (!maxed) item.onclick = () => buyUpgrade(key);
+                grid.appendChild(item);
+            }
+        }
+
+        function hideUpgradeChooser() {
+            const chooser = document.getElementById('shop-upgrade-chooser');
+            if (!chooser) return;
+            chooser.innerHTML = '';
+            chooser.style.display = 'none';
+        }
+
+        function claimFreeUpgradeChoice(upgradeKey) {
+            if (rewardUpgradePlayer === null) return;
+            const p = players[rewardUpgradePlayer];
+            const up = UPGRADES[upgradeKey];
+            if (!p || !up) return;
+            if (p.upgrades[upgradeKey] < up.maxLv) {
+                p.upgrades[upgradeKey] = Math.min(up.maxLv, p.upgrades[upgradeKey] + 1);
+                applyUpgrades(p);
+                sfxPowerup();
+            }
+            rewardUpgradePlayer = null;
+            hideUpgradeChooser();
+            refreshShopView();
+        }
+
+        function showUpgradeRewardChooser(p) {
+            const chooser = document.getElementById('shop-upgrade-chooser');
+            if (!chooser) return;
+            const eligible = Object.entries(UPGRADES).filter(([key, up]) => p.upgrades[key] < up.maxLv);
+            if (eligible.length === 0) {
+                p.lives = Math.min(p.maxLives, p.lives + 1);
+                rewardUpgradePlayer = null;
+                chooser.innerHTML = `<div class="shop-chooser-title">Bonus Applied</div><div class="shop-note">All upgrades are maxed. +1 life granted instead.</div>`;
+                chooser.style.display = 'block';
+                setTimeout(() => {
+                    if (rewardUpgradePlayer === null) hideUpgradeChooser();
+                }, 1200);
+                return;
+            }
+            chooser.innerHTML = `<div class="shop-chooser-title">Skin Purchase Bonus: Free +1 Upgrade</div><div class="shop-chooser-grid"></div>`;
+            const grid = chooser.querySelector('.shop-chooser-grid');
+            for (const [key, up] of eligible) {
+                const btn = document.createElement('button');
+                btn.className = 'shop-chooser-item';
+                btn.textContent = `${up.emoji} ${up.name} (${p.upgrades[key] + 1}/${up.maxLv})`;
+                btn.onclick = () => claimFreeUpgradeChoice(key);
+                grid.appendChild(btn);
+            }
+            chooser.style.display = 'block';
+        }
+
+        function handleSkinAction(skinId) {
+            const skin = SKIN_BY_ID[skinId];
+            const p = getActiveShopPlayer();
+            if (!skin || !p) return;
+            ensurePlayerSkins(p);
+            const owned = p.ownedSkins.includes(skin.id);
+            const freeUnlock = isSkinMaxUnlocked(p, skin) && !owned;
+            if (owned) {
+                p.equippedSkin = skin.id;
+                sfxSelect();
+                refreshShopView();
+                return;
+            }
+            if (freeUnlock) {
+                p.ownedSkins.push(skin.id);
+                sfxPowerup();
+                refreshShopView();
+                return;
+            }
+            const cost = getSkinCost(skin);
+            if (p.credits < cost) return;
+            p.credits -= cost;
+            p.ownedSkins.push(skin.id);
+            p.equippedSkin = skin.id;
+            rewardUpgradePlayer = activeShopPlayer;
+            sfxPowerup();
+            refreshShopView();
+            showUpgradeRewardChooser(p);
+        }
+
+        function renderSkinShop(p) {
+            const grid = document.getElementById('shop-skin-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            ensurePlayerSkins(p);
+            for (const skin of SKIN_CATALOG) {
+                const up = UPGRADES[skin.upgradeKey];
+                const owned = p.ownedSkins.includes(skin.id);
+                const equipped = p.equippedSkin === skin.id;
+                const freeUnlock = isSkinMaxUnlocked(p, skin) && !owned;
+                const cost = getSkinCost(skin);
+                let priceLabel = `💰 ${cost}`;
+                if (equipped) priceLabel = 'Equipped';
+                else if (owned) priceLabel = 'Owned';
+                else if (freeUnlock) priceLabel = 'Claim Free';
+                const card = document.createElement('div');
+                card.className = 'shop-item' + (equipped ? ' equipped' : '') + (owned ? ' owned' : '') + (!owned && !freeUnlock ? ' locked' : '');
+                card.innerHTML = `<div class="shop-emoji">${skin.emoji}</div><div class="shop-name">${skin.name}</div><div class="shop-level">${up.name}: ${p.upgrades[skin.upgradeKey]}/${up.maxLv}</div><div class="shop-cost">${priceLabel}</div><div class="shop-note">${skin.description}</div>`;
+                card.onclick = () => handleSkinAction(skin.id);
+                grid.appendChild(card);
+            }
+        }
+
+        function refreshShopView() {
+            if (!players.length) return;
+            if (rewardUpgradePlayer !== null) activeShopPlayer = rewardUpgradePlayer;
+            const p = getActiveShopPlayer();
+            if (!p) return;
+            renderShopPlayerTabs();
+            const title = document.getElementById('shop-title');
+            if (title) title.textContent = shopContext === 'checkpoint' ? '⚡ Checkpoint Shop' : '⚡ Upgrade Shop';
+            document.getElementById('shop-credits').textContent = Math.floor(p.credits).toLocaleString();
+            renderUpgradeShop(p);
+            renderSkinShop(p);
+            const upgradeGrid = document.getElementById('shop-grid');
+            const skinGrid = document.getElementById('shop-skin-grid');
+            if (upgradeGrid) upgradeGrid.style.display = shopMode === 'upgrades' ? 'grid' : 'none';
+            if (skinGrid) skinGrid.style.display = shopMode === 'skins' ? 'grid' : 'none';
+            const upgradeBtn = document.getElementById('shop-mode-upgrades');
+            const skinBtn = document.getElementById('shop-mode-skins');
+            if (upgradeBtn) upgradeBtn.classList.toggle('active', shopMode === 'upgrades');
+            if (skinBtn) skinBtn.classList.toggle('active', shopMode === 'skins');
+            if (rewardUpgradePlayer !== null && players[rewardUpgradePlayer]) {
+                showUpgradeRewardChooser(players[rewardUpgradePlayer]);
+            } else {
+                hideUpgradeChooser();
+            }
+        }
+
+        function showShop(context = 'gameover', waveIndex = currentWave, targetPlayerId = 0) {
+            if (!players.length) return;
+            shopContext = context;
+            shopReturnWave = context === 'checkpoint' ? waveIndex : null;
+            activeShopPlayer = Math.max(0, Math.min(players.length - 1, targetPlayerId));
+            shopMode = 'upgrades';
+            rewardUpgradePlayer = null;
+            gameState = 'shop';
+            refreshShopView();
+            showScreen('menu-shop');
+            syncMobileControls();
+            return;
+            /*
             const p = players[0];
             document.getElementById('shop-credits').textContent = p.credits;
             const grid = document.getElementById('shop-grid');
@@ -2280,15 +2624,69 @@
                 grid.appendChild(item);
             }
             showScreen('menu-shop');
+            */
         }
+        function enterCheckpointShop() {
+            if (checkpointWavePending === null) return;
+            const targetWave = checkpointWavePending;
+            checkpointWavePending = null;
+            showShop('checkpoint', targetWave, 0);
+        }
+
+        function skipCheckpointShop() {
+            if (checkpointWavePending === null) return;
+            const targetWave = checkpointWavePending;
+            checkpointWavePending = null;
+            shopContext = 'gameover';
+            shopReturnWave = null;
+            rewardUpgradePlayer = null;
+            pendingWave = null;
+            waveAnnTimer = 0;
+            currentWave = targetWave;
+            spawnWave(targetWave);
+            gameState = 'playing';
+            showScreen('');
+            document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+            syncMobileControls();
+        }
+
         function continueFromShop() {
+            if (rewardUpgradePlayer !== null) {
+                const chooserPlayer = players[rewardUpgradePlayer];
+                if (chooserPlayer) showUpgradeRewardChooser(chooserPlayer);
+                return;
+            }
+            if (shopContext === 'checkpoint') {
+                const resumeWave = shopReturnWave ?? checkpointWavePending;
+                checkpointWavePending = null;
+                shopReturnWave = null;
+                shopContext = 'gameover';
+                hideUpgradeChooser();
+                pendingWave = null;
+                waveAnnTimer = 0;
+                if (resumeWave !== null) {
+                    currentWave = resumeWave;
+                    spawnWave(resumeWave);
+                }
+                gameState = 'playing';
+                showScreen('');
+                document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+                syncMobileControls();
+                return;
+            }
             // Revive and continue
             for (const p of players) {
+                ensurePlayerSkins(p);
                 p.lives = p.maxLives; p.alive = true; p.invincible = 2; p.respawnTimer = 0;
                 p.health = p.maxHealth;
                 resetPlayerPos(p); p.bullets = [];
             }
             pendingWave = null; waveAnnTimer = 0;
+            checkpointWavePending = null;
+            shopContext = 'gameover';
+            shopReturnWave = null;
+            rewardUpgradePlayer = null;
+            hideUpgradeChooser();
             pickups = []; enemyBullets = []; particles = [];
             spawnWave(currentWave);
             gameState = 'playing';
@@ -2300,6 +2698,7 @@
         // ===== INIT =====
         initStars();
         resize();
+        leaderboard = loadLeaderboard();
         renderLeaderboard();
         setupMobile();
         requestAnimationFrame(gameLoop);
