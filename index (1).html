@@ -2074,6 +2074,54 @@
             padding: 20px;
         }
 
+        .about-modal .modal-content {
+            max-width: 640px;
+            border: 1px solid color-mix(in srgb, var(--gold) 42%, var(--border-color));
+            background:
+                radial-gradient(circle at 85% -5%, color-mix(in srgb, var(--gold) 18%, transparent), transparent 42%),
+                linear-gradient(165deg, color-mix(in srgb, var(--card-bg) 95%, transparent), color-mix(in srgb, var(--bg-secondary) 92%, transparent)),
+                var(--card-gradient);
+            box-shadow: 0 20px 50px var(--shadow);
+        }
+
+        .about-intro {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+        }
+
+        .about-meta {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .about-meta-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--bg-tertiary) 62%, transparent);
+        }
+
+        .about-meta-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .about-meta-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: right;
+        }
+
         /* Bookmarks Section (NEW) */
         .bookmarks-section {
             margin-top: 20px;
@@ -2768,13 +2816,11 @@
 
             <div class="nav-section">
                 <div class="nav-section-title">Others</div>
-                <div style="padding: 10px 15px; margin-bottom: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-secondary); font-size: 0.82rem; line-height: 1.5;">
-                    <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 2px;">Info</div>
-                    <div>Developer: Abdullah Karim</div>
-                    <div>Version: 29.0</div>
-                </div>
                 <a class="nav-item" href="Qatar Prayers.html">
                     <i class="fas fa-mosque"></i> Qatar Prayers
+                </a>
+                <a class="nav-item" href="#" id="aboutNavBtn">
+                    <i class="fas fa-circle-info"></i> About
                 </a>
             </div>
         </div>
@@ -3271,6 +3317,34 @@
         </section>
     </main>
 
+    <!-- ABOUT MODAL -->
+    <div class="modal about-modal" id="aboutModal" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">About Quran Explorer</h3>
+                <button class="modal-close" id="aboutModalClose" aria-label="Close about">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="about-intro">
+                    Quran Explorer is a complete Quran reading experience with recitation, tafsir, word-by-word analysis,
+                    search, bookmarks, and responsive mobile-friendly controls.
+                </p>
+                <div class="about-meta">
+                    <div class="about-meta-item">
+                        <div class="about-meta-label">Developer</div>
+                        <div class="about-meta-value">Abdullah Karim</div>
+                    </div>
+                    <div class="about-meta-item">
+                        <div class="about-meta-label">Version</div>
+                        <div class="about-meta-value">30.0 | Mobile Patch</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== FIXED BOTTOM AUDIO BAR (NEW) ========== -->
     <div class="bottom-audio-bar" id="bottomAudioBar">
         <div class="audio-info">
@@ -3627,7 +3701,10 @@
             tafsirContainer: document.getElementById('tafsirContainer'),
             quickReadTafsirSourceSelect: document.getElementById('quickReadTafsirSourceSelect'),
             readTafsirSourceSelect: document.getElementById('readTafsirSourceSelect'),
-            readReciterSelect: document.getElementById('readReciterSelect')
+            readReciterSelect: document.getElementById('readReciterSelect'),
+            aboutNavBtn: document.getElementById('aboutNavBtn'),
+            aboutModal: document.getElementById('aboutModal'),
+            aboutModalClose: document.getElementById('aboutModalClose')
         };
 
         // ========== INITIALIZATION ==========
@@ -4932,6 +5009,27 @@
                     const section = item.dataset.section;
                     if (section) showSection(section);
                 });
+            });
+
+            const openAboutModal = () => {
+                elements.aboutModal?.classList.add('show');
+                if (elements.aboutModal) elements.aboutModal.setAttribute('aria-hidden', 'false');
+                setSidebarOpen(false);
+            };
+            const closeAboutModal = () => {
+                elements.aboutModal?.classList.remove('show');
+                if (elements.aboutModal) elements.aboutModal.setAttribute('aria-hidden', 'true');
+            };
+            elements.aboutNavBtn?.addEventListener('click', (e) => {
+                e.preventDefault();
+                openAboutModal();
+            });
+            elements.aboutModalClose?.addEventListener('click', closeAboutModal);
+            elements.aboutModal?.addEventListener('click', (e) => {
+                if (e.target === elements.aboutModal) closeAboutModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeAboutModal();
             });
 
             elements.quickSettingsBtn?.addEventListener('click', (e) => {
