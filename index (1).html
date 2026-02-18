@@ -87,6 +87,12 @@
             overflow-x: hidden;
         }
 
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: clip;
+        }
+
         /* ========== GLOBAL SCROLLBAR STYLING ========== */
         :root {
             scrollbar-color: color-mix(in srgb, var(--accent) 78%, var(--gold) 22%) color-mix(in srgb, var(--bg-tertiary) 86%, transparent);
@@ -377,6 +383,11 @@
             border-radius: 14px;
             padding: 14px;
             min-width: 340px;
+            max-width: calc(100vw - 16px);
+            max-height: calc(100svh - 86px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
             box-shadow: 0 10px 30px var(--shadow);
             display: none;
             z-index: 1001;
@@ -546,23 +557,83 @@
         }
 
         /* Advanced Slider (NEW) */
-        .advanced-slider {
+        .advanced-slider,
+        .setting-row input[type="range"],
+        #arabicFontSize,
+        #translationFontSize {
             width: 100%;
             margin-top: 8px;
             -webkit-appearance: none;
+            appearance: none;
             height: 6px;
-            background: var(--input-bg);
-            border-radius: 3px;
-            outline: none;
+            border-radius: 999px;
+            background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 85%, transparent), color-mix(in srgb, var(--accent) 85%, transparent));
+            border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+            cursor: pointer;
         }
 
-        .advanced-slider::-webkit-slider-thumb {
+        .advanced-slider:focus,
+        .setting-row input[type="range"]:focus,
+        #arabicFontSize:focus,
+        #translationFontSize:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--ring-gold), inset 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+
+        .advanced-slider::-webkit-slider-runnable-track,
+        .setting-row input[type="range"]::-webkit-slider-runnable-track,
+        #arabicFontSize::-webkit-slider-runnable-track,
+        #translationFontSize::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 999px;
+            background: transparent;
+        }
+
+        .advanced-slider::-webkit-slider-thumb,
+        .setting-row input[type="range"]::-webkit-slider-thumb,
+        #arabicFontSize::-webkit-slider-thumb,
+        #translationFontSize::-webkit-slider-thumb {
             -webkit-appearance: none;
+            appearance: none;
             width: 16px;
             height: 16px;
-            background: var(--accent);
             border-radius: 50%;
+            border: 2px solid color-mix(in srgb, var(--gold) 80%, #fff 20%);
+            background: linear-gradient(140deg, var(--gold-light), var(--gold));
+            box-shadow: 0 2px 8px var(--shadow-soft);
             cursor: pointer;
+            margin-top: -6px;
+            transition: transform 0.15s ease;
+        }
+
+        .advanced-slider::-webkit-slider-thumb:hover,
+        .setting-row input[type="range"]::-webkit-slider-thumb:hover,
+        #arabicFontSize::-webkit-slider-thumb:hover,
+        #translationFontSize::-webkit-slider-thumb:hover {
+            transform: scale(1.07);
+        }
+
+        .advanced-slider::-moz-range-track,
+        .setting-row input[type="range"]::-moz-range-track,
+        #arabicFontSize::-moz-range-track,
+        #translationFontSize::-moz-range-track {
+            height: 6px;
+            border-radius: 999px;
+            background: transparent;
+            border: none;
+        }
+
+        .advanced-slider::-moz-range-thumb,
+        .setting-row input[type="range"]::-moz-range-thumb,
+        #arabicFontSize::-moz-range-thumb,
+        #translationFontSize::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid color-mix(in srgb, var(--gold) 80%, #fff 20%);
+            background: linear-gradient(140deg, var(--gold-light), var(--gold));
+            box-shadow: 0 2px 8px var(--shadow-soft);
         }
 
         /* ========== SIDEBAR (MODIFIED FOR SCROLLABLE) ========== */
@@ -1244,19 +1315,23 @@
             background: var(--bg-primary);
             border-radius: 10px;
             border: 1px solid var(--border-color);
+            overflow-x: hidden;
         }
 
         /* Word-by-Word Display (NEW/MODIFIED) */
         .word-by-word-container {
-            display: flex;
-            flex-wrap: wrap-reverse;
-            justify-content: flex-end;
-            gap: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
             direction: rtl;
             margin-bottom: 20px;
             padding: 20px;
             background: var(--bg-tertiary);
             border-radius: 12px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            align-items: stretch;
         }
 
         .word-item {
@@ -1267,8 +1342,12 @@
             border: 1px solid var(--border-color);
             cursor: pointer;
             transition: all 0.2s;
-            min-width: 80px;
+            min-width: 0;
+            width: 100%;
+            max-width: 100%;
             position: relative;
+            min-height: 88px;
+            z-index: 1;
         }
 
         .word-item:hover {
@@ -1287,29 +1366,55 @@
             font-size: 0.75rem;
             color: var(--accent);
             margin-bottom: 4px;
+            overflow-wrap: anywhere;
         }
 
         .word-translation {
             font-size: 0.7rem;
             color: var(--text-secondary);
+            overflow-wrap: anywhere;
         }
 
         /* Word Dropdown (NEW) */
         .word-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
+            position: static;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 12px;
-            min-width: 200px;
-            box-shadow: 0 10px 30px var(--shadow);
-            z-index: 100;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 8px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border-color) 30%, transparent);
             display: none;
             direction: ltr;
             text-align: left;
+        }
+
+        .word-item.active {
+            z-index: 25;
+        }
+
+        .word-dropdown.align-right {
+            left: auto;
+            right: auto;
+            transform: none;
+        }
+
+        .word-dropdown.align-left {
+            left: auto;
+            right: auto;
+            transform: none;
+        }
+
+        .word-dropdown.drop-up {
+            top: auto;
+            bottom: auto;
         }
 
         .word-item.active .word-dropdown {
@@ -1320,6 +1425,8 @@
             padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: 0.85rem;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .word-dropdown-item:last-child {
@@ -1378,6 +1485,7 @@
         .tafsir-content {
             display: none;
             margin-top: 15px;
+            overflow: visible;
         }
 
         .tafsir-content.show {
@@ -2022,6 +2130,7 @@
             justify-content: center;
             z-index: 2000;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .modal.show {
@@ -2033,6 +2142,7 @@
             border-radius: 20px;
             width: 100%;
             max-width: 600px;
+            max-width: min(600px, calc(100vw - 24px));
             max-height: 80vh;
             overflow-y: auto;
             border: 1px solid var(--border-color);
@@ -2252,6 +2362,8 @@
             .word-by-word-container,
             .tafsir-text {
                 min-width: 0;
+                max-width: 100%;
+                overflow-x: hidden;
             }
 
             .main-content {
@@ -2310,11 +2422,17 @@
             }
 
             .quick-settings-dropdown {
-                right: 0;
+                position: fixed;
+                top: calc(60px + env(safe-area-inset-top) + 8px);
+                left: 8px;
+                right: 8px;
                 min-width: 0;
-                width: min(92vw, 360px);
-                max-height: calc(100svh - 84px);
+                width: auto;
+                max-width: none;
+                max-height: calc(100svh - 78px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
                 overflow-y: auto;
+                overflow-x: hidden;
+                padding-bottom: calc(14px + env(safe-area-inset-bottom));
             }
 
             .quick-setting-item {
@@ -2353,19 +2471,19 @@
             }
 
             #section-read {
-                margin-left: -12px;
-                margin-right: -12px;
+                margin-left: 0;
+                margin-right: 0;
             }
 
             #section-read > .card {
                 border-radius: 12px;
-                margin: 0 12px 14px;
+                margin: 0 0 14px;
                 padding: 16px;
             }
 
             #section-read .bismillah {
-                margin-left: 12px;
-                margin-right: 12px;
+                margin-left: 0;
+                margin-right: 0;
                 padding: 1.6rem 1rem;
             }
 
@@ -2424,19 +2542,27 @@
 
             .word-by-word-container {
                 padding: 12px;
-                gap: 10px;
+                gap: 8px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .word-item {
-                min-width: 72px;
+                min-width: 0;
             }
 
             .word-dropdown {
-                min-width: 0;
-                width: min(260px, calc(100vw - 24px));
+                position: static;
                 left: auto;
-                right: 0;
+                right: auto;
+                top: auto;
+                bottom: auto;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                max-height: 280px;
+                margin-top: 8px;
                 transform: none;
+                z-index: auto;
             }
 
             .setting-row {
@@ -2452,6 +2578,38 @@
             #translationFontSize {
                 width: 100% !important;
                 max-width: none;
+            }
+
+            .modal {
+                padding: 10px;
+                align-items: flex-start;
+            }
+
+            .modal-content {
+                border-radius: 14px;
+                width: 100%;
+                max-width: none;
+                margin-top: calc(8px + env(safe-area-inset-top));
+                max-height: calc(100svh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            }
+
+            .about-modal .modal-content {
+                max-width: none;
+                width: 100%;
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 14px;
+            }
+
+            .about-meta-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .about-meta-value {
+                text-align: left;
             }
 
             .bottom-audio-bar {
@@ -2552,6 +2710,10 @@
                 left: calc(-1 * min(84vw, 250px));
             }
 
+            .word-by-word-container {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .bottom-audio-bar {
                 grid-template-columns: minmax(0, 1fr) auto;
                 grid-template-areas:
@@ -2601,6 +2763,18 @@
                 font-size: 0.68rem;
             }
 
+        }
+
+        @media (max-width: 520px) {
+            .word-by-word-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (hover: none) {
+            .word-item:hover {
+                transform: none;
+            }
         }
 
         /* Hidden sections controlled by JS */
@@ -3575,6 +3749,22 @@
             return state.surahs.find(s => s.number === Number(surahNum)) || null;
         }
 
+        function getWordMapKey(surahNum, verseNum) {
+            return `${Number(surahNum) || 0}:${Number(verseNum) || 0}`;
+        }
+
+        function cacheWordList(surahNum, verseNum, words) {
+            state.wordMapByVerse[getWordMapKey(surahNum, verseNum)] = Array.isArray(words) ? words : [];
+        }
+
+        function getCachedWordList(surahNum, verseNum) {
+            return state.wordMapByVerse[getWordMapKey(surahNum, verseNum)] || [];
+        }
+
+        function getSelectedWbwSurah() {
+            return Number(document.getElementById('wbwSurahSelect')?.value || state.currentSurah?.number || 0);
+        }
+
         function getWordText(word, script = state.settings.currentScript) {
             if (!word) return '';
             if (script === 'indopak') return word.text_indopak || word.text_uthmani || word.text || '';
@@ -4131,9 +4321,10 @@
         }
 
         // ========== WORD BY WORD (NEW/MODIFIED) ==========
-        function renderWordByWord(words, verseNum) {
+        function renderWordByWord(words, verseNum, surahNum = state.currentSurah?.number || getSelectedWbwSurah()) {
             const filtered = (Array.isArray(words) ? words : []).filter(w => w.char_type_name !== 'end');
-            state.wordMapByVerse[verseNum] = filtered;
+            const mapKey = getWordMapKey(surahNum, verseNum);
+            cacheWordList(surahNum, verseNum, filtered);
             if (!filtered.length) {
                 return `
                     <div class="translation-text">
@@ -4148,8 +4339,10 @@
 
             return `
                 <div class="word-by-word-container">
-                    ${filtered.map((word, idx) => `
-                        <div class="word-item" onclick="toggleWordDropdown(this)">
+                    ${filtered.map((word, idx) => {
+                        const directAudioUrl = encodeURIComponent(normalizeAudioUrl(word?.audio_url || ''));
+                        return `
+                        <div class="word-item" data-word-key="${escapeHtml(mapKey)}" data-word-index="${idx}" onclick="toggleWordDropdown(this, event)">
                             <div class="word-arabic ${state.settings.currentScript}">${escapeHtml(getWordText(word))}</div>
                             ${showTransliteration ? `<div class="word-transliteration">${escapeHtml(word.transliteration?.text || '')}</div>` : ''}
                             ${showTranslation ? `<div class="word-translation">${escapeHtml(word.translation?.text || '')}</div>` : ''}
@@ -4166,21 +4359,30 @@
                                     <div class="word-dropdown-label">Translation</div>
                                     <div>${escapeHtml(word.translation?.text || '-')}</div>
                                 </div>
-                                <button class="word-audio-btn" onclick="event.stopPropagation(); playWordAudio(${verseNum}, ${idx})">
+                                <button
+                                    class="word-audio-btn"
+                                    data-audio-url="${escapeHtml(directAudioUrl)}"
+                                    data-word-key="${escapeHtml(mapKey)}"
+                                    data-word-index="${idx}"
+                                    onclick="event.stopPropagation(); playWordAudioFromButton(this)"
+                                >
                                     <i class="fas fa-volume-up"></i> Play Audio
                                 </button>
                             </div>
                         </div>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </div>
             `;
         }
 
-        function toggleWordDropdown(element) {
+        function toggleWordDropdown(element, event) {
+            if (event?.target?.closest('.word-dropdown')) return;
+            const isOpening = !element.classList.contains('active');
             document.querySelectorAll('.word-item.active').forEach(el => {
                 if (el !== element) el.classList.remove('active');
             });
-            element.classList.toggle('active');
+            element.classList.toggle('active', isOpening);
         }
 
         function setWordPlaying(element) {
@@ -4191,8 +4393,38 @@
             if (currentWordEl) currentWordEl.classList.add('playing');
         }
 
-        async function playWordAudio(verseNum, wordIdx) {
-            const words = state.wordMapByVerse[verseNum] || [];
+        async function playWordAudioFromButton(buttonEl) {
+            const encodedAudioUrl = String(buttonEl?.dataset?.audioUrl || '').trim();
+            let audioUrl = '';
+            if (encodedAudioUrl) {
+                try {
+                    audioUrl = normalizeAudioUrl(decodeURIComponent(encodedAudioUrl));
+                } catch (_) {
+                    audioUrl = normalizeAudioUrl(encodedAudioUrl);
+                }
+            }
+
+            if (!audioUrl) {
+                showNotification('Audio not available for this word.', true);
+                return;
+            }
+
+            try {
+                const target = buttonEl?.closest('.word-item') || null;
+                setWordPlaying(target);
+                wordAudioPlayer.src = audioUrl;
+                await wordAudioPlayer.play();
+            } catch (error) {
+                console.error('Word audio error:', error);
+                showNotification('Could not play word audio.', true);
+            }
+        }
+
+        async function playWordAudio(surahNum, verseNum, wordIdx, triggerEl) {
+            if (triggerEl?.dataset?.audioUrl) {
+                return playWordAudioFromButton(triggerEl);
+            }
+            const words = getCachedWordList(surahNum, verseNum);
             const word = words[wordIdx];
             const audioUrl = normalizeAudioUrl(word?.audio_url);
             if (!audioUrl) {
@@ -4201,8 +4433,9 @@
             }
 
             try {
-                const target = document.querySelector(`#verse-${verseNum} .word-item:nth-child(${wordIdx + 1})`) ||
-                    document.querySelector(`#wbwContainer .word-item:nth-child(${wordIdx + 1})`);
+                const mapKey = getWordMapKey(surahNum, verseNum);
+                const target = triggerEl?.closest('.word-item') ||
+                    document.querySelector(`.word-item[data-word-key="${mapKey}"][data-word-index="${wordIdx}"]`);
                 setWordPlaying(target);
                 wordAudioPlayer.src = audioUrl;
                 await wordAudioPlayer.play();
@@ -4250,8 +4483,8 @@
                 return;
             }
 
-            state.wordMapByVerse[verseNum] = words;
-            target.innerHTML = renderWordByWord(words, verseNum);
+            cacheWordList(state.currentSurah.number, verseNum, words);
+            target.innerHTML = renderWordByWord(words, verseNum, state.currentSurah.number);
         }
 
         // ========== TAFSIR PER AYAH ==========
@@ -4965,7 +5198,7 @@
                 );
                 const words = data.verse?.words?.filter(w => w.char_type_name !== 'end') || [];
                 state.wbwWords = words;
-                state.wordMapByVerse[verseNum] = words;
+                cacheWordList(surahNum, verseNum, words);
                 if (!words.length) {
                     elements.wbwContainer.innerHTML = `
                         <div class="empty-state">
@@ -4975,7 +5208,7 @@
                     `;
                     return;
                 }
-                elements.wbwContainer.innerHTML = renderWordByWord(words, verseNum);
+                elements.wbwContainer.innerHTML = renderWordByWord(words, verseNum, surahNum);
             } catch (error) {
                 console.error('Error loading WBW section:', error);
                 elements.wbwContainer.innerHTML = `
@@ -5081,7 +5314,7 @@
                 renderVerses();
                 const wbwVerse = Number(document.getElementById('wbwVerseSelect')?.value || 0);
                 if (wbwVerse && state.wbwWords.length) {
-                    elements.wbwContainer.innerHTML = renderWordByWord(state.wbwWords, wbwVerse);
+                    elements.wbwContainer.innerHTML = renderWordByWord(state.wbwWords, wbwVerse, getSelectedWbwSurah());
                 }
             };
             elements.quickScriptSelect?.addEventListener('change', (e) => applyScript(e.target.value));
