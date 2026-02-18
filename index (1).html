@@ -51,6 +51,7 @@
             --tajweed-adv-madd-6: #1e40af;
             --tajweed-adv-hamzat-wasl: #94a3b8;
             --tajweed-adv-silent: #64748b;
+            --mobile-audio-offset: 190px;
         }
         
         [data-theme="light"] {
@@ -80,6 +81,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
         }
 
         /* ========== GLOBAL SCROLLBAR STYLING ========== */
@@ -402,7 +407,7 @@
         }
 
         .quick-setting-item:hover {
-            transform: translateX(2px);
+            transform: none;
         }
 
         .quick-setting-item:last-child {
@@ -872,8 +877,8 @@
         .form-select:focus, .form-input:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px var(--ring-gold);
-            transform: translateY(-1px);
+            box-shadow: none;
+            transform: none;
         }
 
         /* Styled Select Controls + Dropdown Lists */
@@ -908,7 +913,7 @@
         .quick-setting-item select:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px var(--ring-gold), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .form-select::-ms-expand,
@@ -938,6 +943,37 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 14px;
             margin-bottom: 18px;
+        }
+
+        .read-options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .goto-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .wbw-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tafsir-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .btn {
@@ -2129,13 +2165,49 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .top-bar-center {
-                display: none;
+        @media (max-width: 1024px) {
+            .main-content {
+                padding: 16px;
             }
 
-            .top-bar-btn span {
-                display: none;
+            .quick-settings-dropdown {
+                width: min(88vw, 380px);
+                min-width: 0;
+            }
+
+            .bottom-audio-bar {
+                --audio-progress-width: min(40vw, 420px);
+                --audio-reciter-width: clamp(180px, 24vw, 240px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            html,
+            body {
+                overflow-x: hidden;
+            }
+
+            body {
+                padding-top: calc(60px + env(safe-area-inset-top));
+                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            }
+
+            body.in-read-section {
+                padding-bottom: calc(var(--mobile-audio-offset, 190px) + env(safe-area-inset-bottom) + 10px);
+            }
+
+            .main-content,
+            .section,
+            .card,
+            .verse-content,
+            .search-result-item,
+            .word-by-word-container,
+            .tafsir-text {
+                min-width: 0;
+            }
+
+            .main-content {
+                padding: 12px;
             }
 
             .sidebar {
@@ -2143,58 +2215,344 @@
                 left: -100%;
             }
 
-            .bottom-audio-bar {
-                display: flex;
+            .sidebar.open ~ .main-content {
+                margin-left: 0;
+            }
+
+            .top-bar {
+                padding: 0 10px;
+                gap: 8px;
+            }
+
+            .top-bar-left {
+                gap: 8px;
+                min-width: 0;
+            }
+
+            .top-bar-center {
+                display: none;
+            }
+
+            .top-bar-logo {
+                max-width: 118px;
+                font-size: 1rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .top-bar-right {
+                gap: 6px;
+            }
+
+            .top-bar-btn {
+                min-width: 40px;
+                min-height: 40px;
+                padding: 8px 10px;
+            }
+
+            .top-bar-btn span {
+                display: none;
+            }
+
+            .menu-toggle,
+            .section-back-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .quick-settings-dropdown {
+                right: 0;
+                min-width: 0;
+                width: min(92vw, 360px);
+                max-height: calc(100svh - 84px);
+                overflow-y: auto;
+            }
+
+            .quick-setting-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .quick-setting-item select {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .quick-adv-buttons {
+                width: 100%;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .read-options-grid,
+            .search-row,
+            .wbw-grid,
+            .tafsir-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .goto-row {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 10px;
+            }
+
+            .goto-row .btn {
+                min-width: 72px;
+            }
+
+            #section-read {
+                margin-left: -12px;
+                margin-right: -12px;
+            }
+
+            #section-read > .card {
+                border-radius: 12px;
+                margin: 0 12px 14px;
+                padding: 16px;
+            }
+
+            #section-read .bismillah {
+                margin-left: 12px;
+                margin-right: 12px;
+                padding: 1.6rem 1rem;
+            }
+
+            #section-read .verse-container {
+                margin-bottom: 12px;
+                border-left: none;
+                border-right: none;
+                border-radius: 0;
+            }
+
+            #section-read .verse-header {
+                padding: 12px 14px;
+                align-items: flex-start;
                 flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            #section-read .verse-content {
+                padding: 16px 14px;
+            }
+
+            .arabic-text {
+                line-height: 2;
+                margin-bottom: 14px;
+            }
+
+            .translation-text,
+            .search-result-ref,
+            .audio-title,
+            .audio-subtitle {
+                overflow-wrap: anywhere;
+            }
+
+            .card-header,
+            .search-result-header {
+                flex-wrap: wrap;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .search-result-btns {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .search-result-btn {
+                flex: 1 1 calc(50% - 6px);
+                min-height: 40px;
+            }
+
+            .surah-list,
+            #juzHizbPageList {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .word-by-word-container {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .word-item {
+                min-width: 72px;
+            }
+
+            .word-dropdown {
+                min-width: 0;
+                width: min(260px, calc(100vw - 24px));
+                left: auto;
+                right: 0;
+                transform: none;
+            }
+
+            .setting-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .setting-row .form-select,
+            .setting-row input[type="range"],
+            #defaultSecondaryLang,
+            #arabicFontSize,
+            #translationFontSize {
+                width: 100% !important;
+                max-width: none;
+            }
+
+            .bottom-audio-bar {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "info controls"
+                    "progress progress";
                 height: auto;
-                padding: 10px;
+                row-gap: 8px;
+                column-gap: 10px;
+                padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
             }
 
             .audio-info {
+                grid-area: info;
                 width: 100%;
-                min-width: auto;
+                min-width: 0;
                 max-width: none;
-                flex: 1 1 100%;
-                margin-bottom: 10px;
+                margin: 0;
             }
 
             .audio-controls {
-                width: 100%;
-                flex: 1 1 100%;
-                justify-content: center;
+                grid-area: controls;
+                width: auto;
+                justify-content: flex-end;
+                flex-wrap: nowrap;
+                gap: 8px;
                 margin: 0;
             }
 
             .audio-volume {
-                width: 100%;
-                max-width: none;
-                min-width: 0;
-                flex: 1 1 auto;
-                gap: 10px;
-                margin: 6px 0 0;
-            }
-
-            .audio-extra {
-                width: 100%;
-                min-width: 0;
-                max-width: none;
-                flex: 1 1 100%;
-                justify-content: center;
-                margin-top: 10px;
+                display: none;
             }
 
             .audio-progress-container {
-                flex: 1 1 auto;
+                grid-area: progress;
                 width: 100%;
                 max-width: none;
                 min-width: 0;
-                margin: 10px 0;
+                margin: 0;
             }
 
-            .audio-reciter-select {
-                width: 100%;
-                max-width: 220px;
+            .audio-extra {
+                display: none;
             }
+
+            .audio-controls,
+            .audio-volume,
+            .audio-progress-container {
+                transform: none;
+            }
+
+            .audio-btn {
+                width: 42px;
+                height: 42px;
+            }
+
+            .audio-btn.play-btn {
+                width: 46px;
+                height: 46px;
+            }
+
+            .verse-action-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .btn,
+            .nav-item,
+            .tafsir-toggle-btn {
+                min-height: 44px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-bar-logo {
+                display: none;
+            }
+
+            .top-bar {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .search-result-btn {
+                flex: 1 1 100%;
+            }
+
+            .goto-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                width: min(84vw, 250px);
+                left: calc(-1 * min(84vw, 250px));
+            }
+
+            .bottom-audio-bar {
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "info controls"
+                    "progress progress";
+                row-gap: 6px;
+                column-gap: 8px;
+                padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+            }
+
+            .audio-title {
+                font-size: 0.84rem;
+            }
+
+            .audio-subtitle {
+                font-size: 0.7rem;
+            }
+
+            .audio-controls {
+                gap: 6px;
+                flex-wrap: nowrap;
+                overflow-x: hidden;
+                padding-bottom: 0;
+            }
+
+            .audio-controls::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .audio-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .audio-btn.play-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .audio-progress {
+                height: 5px;
+            }
+
+            .audio-time {
+                margin-top: 4px;
+                font-size: 0.68rem;
+            }
+
         }
 
         /* Hidden sections controlled by JS */
@@ -2340,8 +2698,16 @@
                         </select>
                     </div>
                     <div class="quick-setting-item">
+                        <label>Always Show English</label>
+                        <button class="quick-switch-btn" id="quickAlwaysEnglishToggle" type="button" aria-label="Toggle always show english"></button>
+                    </div>
+                    <div class="quick-setting-item">
                         <label>Tajweed Colors</label>
                         <button class="quick-switch-btn" id="quickTajweedToggle" type="button" aria-label="Toggle tajweed"></button>
+                    </div>
+                    <div class="quick-setting-item">
+                        <label>Expand All Tafsir</label>
+                        <button class="quick-switch-btn" id="quickExpandAllTafsirToggle" type="button" aria-label="Expand all tafsir"></button>
                     </div>
                     <div class="quick-adv-buttons">
                         <button class="quick-chip-btn" type="button" id="quickTajweedBasicBtn">Basic</button>
@@ -2483,11 +2849,15 @@
                         </select>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label">Arabic Script</label>
-                        <select class="form-select" id="arabicScriptSelect">
-                            <option value="uthmani">Uthmani</option>
-                            <option value="indopak">IndoPak</option>
-                            <option value="imlaei">Imla'i (Simple)</option>
+                        <label class="form-label">Tafsir Language</label>
+                        <select class="form-select" id="quickReadTafsirSourceSelect">
+                            <option value="169">Ibn Kathir (Abridged - English)</option>
+                            <option value="168">Al-Jalalayn (English)</option>
+                            <option value="171">Al-Sa'di (English)</option>
+                            <option value="14">Ibn Kathir (Arabic)</option>
+                            <option value="17">Al-Tabari (Arabic)</option>
+                            <option value="16">Al-Qurtubi (Arabic)</option>
+                            <option value="93">Al-Baghawi (Arabic)</option>
                         </select>
                     </div>
                 </div>
@@ -2508,7 +2878,7 @@
                     </button>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="read-options-grid">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label">Surah</label>
                         <select class="form-select" id="readSurahSelect">
@@ -2517,10 +2887,37 @@
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label">Go to Verse</label>
-                        <div style="display: flex; gap: 10px;">
+                        <div class="goto-row">
                             <input type="number" class="form-input" id="gotoVerseInput" placeholder="Verse #" min="1" style="flex: 1;">
                             <button class="btn btn-primary" id="gotoVerseBtn">Go</button>
                         </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Tafsir Language</label>
+                        <select class="form-select" id="readTafsirSourceSelect">
+                            <option value="169">Ibn Kathir (Abridged - English)</option>
+                            <option value="168">Al-Jalalayn (English)</option>
+                            <option value="171">Al-Sa'di (English)</option>
+                            <option value="14">Ibn Kathir (Arabic)</option>
+                            <option value="17">Al-Tabari (Arabic)</option>
+                            <option value="16">Al-Qurtubi (Arabic)</option>
+                            <option value="93">Al-Baghawi (Arabic)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Reciter</label>
+                        <select class="form-select" id="readReciterSelect">
+                            <option value="7" selected>Mishary Rashid Alafasy</option>
+                            <option value="1">AbdulBaset AbdulSamad (Mujawwad)</option>
+                            <option value="2">AbdulBaset AbdulSamad (Murattal)</option>
+                            <option value="3">Abdur-Rahman as-Sudais</option>
+                            <option value="4">Abu Bakr al-Shatri</option>
+                            <option value="5">Hani ar-Rifai</option>
+                            <option value="6">Mahmoud Khalil Al-Husary</option>
+                            <option value="10">Saud ash-Shuraim</option>
+                            <option value="9">Muhammad al-Minshawi</option>
+                            <option value="12">Yasser Ad-Dossari</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -2579,7 +2976,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <div style="display: flex; gap: 10px;">
+                    <div class="search-row">
                         <input type="text" class="form-input" id="searchInput" placeholder="Enter a query to search across the Quran" style="flex: 1;">
                         <button class="btn btn-primary" id="searchBtn">
                             <i class="fas fa-search"></i> Search
@@ -2603,7 +3000,7 @@
                     <h2 class="card-title">Word by Word Analysis</h2>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="wbw-grid">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label">Surah</label>
                         <select class="form-select" id="wbwSurahSelect">
@@ -2634,7 +3031,7 @@
                     <h2 class="card-title">Tafsir (Commentary)</h2>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div class="tafsir-grid">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label class="form-label">Surah</label>
                         <select class="form-select" id="tafsirSurahSelect">
@@ -2986,12 +3383,15 @@
             theme: 'dark',
             tajweedEnabled: true,
             tajweedAdvanced: false,
+            alwaysEnglish: true,
+            expandAllTafsir: false,
             wbwEnabled: false,
             autoPlayNext: true,
             audioVolume: 1,
             arabicFontSize: 32,
             translationFontSize: 17,
             currentScript: 'uthmani',
+            tafsirSource: '169',
             secondaryTranslation: '161',
             currentReciter: 7,
             wbwDisplayMode: 'both',
@@ -3023,13 +3423,16 @@
         state.settings.currentScript = state.settings.currentScript || state.settings.arabicScript || 'uthmani';
         state.settings.autoPlayNext = state.settings.autoPlayNext ?? state.settings.autoplayNext ?? true;
         state.settings.tajweedAdvanced = state.settings.tajweedAdvanced ?? state.settings.advancedTajweed ?? false;
+        state.settings.expandAllTafsir = !!state.settings.expandAllTafsir;
         state.settings.secondaryTranslation = String(state.settings.secondaryTranslation ?? mapLegacySecondary(state.settings.defaultSecondaryLang) ?? '161');
+        state.settings.tafsirSource = String(state.settings.tafsirSource || '169');
         state.settings.currentReciter = 7;
         state.settings.audioVolume = Math.max(0, Math.min(1, Number(state.settings.audioVolume ?? 1)));
         state.settings.wbwDisplayMode = ['both', 'translation', 'transliteration', 'arabic'].includes(state.settings.wbwDisplayMode)
             ? state.settings.wbwDisplayMode
             : 'both';
         state.settings.repeatVerse = !!state.settings.repeatVerse;
+        state.settings.alwaysEnglish = state.settings.alwaysEnglish !== false;
 
         const wordAudioPlayer = new Audio();
         let currentWordEl = null;
@@ -3193,10 +3596,13 @@
             quickSettingsDropdown: document.getElementById('quickSettingsDropdown'),
             quickScriptSelect: document.getElementById('quickScriptSelect'),
             quickTranslationSelect: document.getElementById('quickTranslationSelect'),
+            quickAlwaysEnglishToggle: document.getElementById('quickAlwaysEnglishToggle'),
             quickTajweedToggle: document.getElementById('quickTajweedToggle'),
+            quickExpandAllTafsirToggle: document.getElementById('quickExpandAllTafsirToggle'),
             quickTajweedBasicBtn: document.getElementById('quickTajweedBasicBtn'),
             quickTajweedAdvancedBtn: document.getElementById('quickTajweedAdvancedBtn'),
             quickTajweedGuideBtn: document.getElementById('quickTajweedGuideBtn'),
+            bottomAudioBar: document.getElementById('bottomAudioBar'),
             audioPlayer: document.getElementById('audioPlayer'),
             playPauseBtn: document.getElementById('playPauseBtn'),
             prevVerseBtn: document.getElementById('prevVerseBtn'),
@@ -3218,7 +3624,10 @@
             searchResults: document.getElementById('searchResults'),
             bookmarksList: document.getElementById('bookmarksList'),
             wbwContainer: document.getElementById('wbwContainer'),
-            tafsirContainer: document.getElementById('tafsirContainer')
+            tafsirContainer: document.getElementById('tafsirContainer'),
+            quickReadTafsirSourceSelect: document.getElementById('quickReadTafsirSourceSelect'),
+            readTafsirSourceSelect: document.getElementById('readTafsirSourceSelect'),
+            readReciterSelect: document.getElementById('readReciterSelect')
         };
 
         // ========== INITIALIZATION ==========
@@ -3239,6 +3648,7 @@
             renderJuzList('juz');
             renderBookmarks();
             updateAudioInfo();
+            requestAnimationFrame(syncMobileAudioOffset);
         }
 
         // ========== THEME MANAGEMENT ==========
@@ -3256,7 +3666,9 @@
 
         function syncTopButtons() {
             elements.tajweedToggleBtn?.classList.toggle('active', !!state.settings.tajweedEnabled);
+            elements.quickAlwaysEnglishToggle?.classList.toggle('active', !!state.settings.alwaysEnglish);
             elements.quickTajweedToggle?.classList.toggle('active', !!state.settings.tajweedEnabled);
+            elements.quickExpandAllTafsirToggle?.classList.toggle('active', !!state.settings.expandAllTafsir);
             elements.quickTajweedBasicBtn?.classList.toggle('active', !state.settings.tajweedAdvanced);
             elements.quickTajweedAdvancedBtn?.classList.toggle('active', !!state.settings.tajweedAdvanced);
             elements.repeatBtn?.classList.toggle('repeat-active', !!(state.settings.repeatVerse || state.repeatVerseNumber !== null));
@@ -3281,25 +3693,27 @@
             const autoplayNextSetting = document.getElementById('autoplayNextSetting');
             const arabicFontSize = document.getElementById('arabicFontSize');
             const translationFontSize = document.getElementById('translationFontSize');
-            const arabicScriptSelect = document.getElementById('arabicScriptSelect');
             const arabicFontSizeValue = document.getElementById('arabicFontSizeValue');
             const translationFontSizeValue = document.getElementById('translationFontSizeValue');
 
             if (tajweedEnabledSetting) tajweedEnabledSetting.checked = !!state.settings.tajweedEnabled;
             if (advancedTajweedSetting) advancedTajweedSetting.checked = !!state.settings.tajweedAdvanced;
             if (alwaysEnglishSetting) {
-                alwaysEnglishSetting.checked = true;
-                alwaysEnglishSetting.disabled = true;
+                alwaysEnglishSetting.checked = !!state.settings.alwaysEnglish;
+                alwaysEnglishSetting.disabled = false;
             }
             if (autoplayNextSetting) autoplayNextSetting.checked = !!state.settings.autoPlayNext;
             if (arabicFontSize) arabicFontSize.value = String(state.settings.arabicFontSize);
             if (translationFontSize) translationFontSize.value = String(state.settings.translationFontSize);
-            if (arabicScriptSelect) arabicScriptSelect.value = state.settings.currentScript;
             setSelectValue(elements.quickScriptSelect, state.settings.currentScript, 'uthmani');
             setSelectValue(document.getElementById('secondaryLangSelect'), state.settings.secondaryTranslation, '161');
             setSelectValue(document.getElementById('defaultSecondaryLang'), state.settings.secondaryTranslation, '161');
             setSelectValue(elements.quickTranslationSelect, state.settings.secondaryTranslation, '161');
+            setSelectValue(document.getElementById('tafsirSourceSelect'), state.settings.tafsirSource, '169');
+            setSelectValue(elements.quickReadTafsirSourceSelect, state.settings.tafsirSource, '169');
+            setSelectValue(elements.readTafsirSourceSelect, state.settings.tafsirSource, '169');
             setSelectValue(document.getElementById('reciterSelect'), String(state.settings.currentReciter), '7');
+            setSelectValue(elements.readReciterSelect, String(state.settings.currentReciter), '7');
             setSelectValue(elements.audioReciterSelect, String(state.settings.currentReciter), '7');
             if (elements.audioVolumeSlider) elements.audioVolumeSlider.value = String(state.settings.audioVolume);
             if (elements.audioPlayer) elements.audioPlayer.volume = state.settings.audioVolume;
@@ -3317,12 +3731,15 @@
                 theme: state.settings.theme,
                 tajweedEnabled: !!state.settings.tajweedEnabled,
                 tajweedAdvanced: !!state.settings.tajweedAdvanced,
+                alwaysEnglish: !!state.settings.alwaysEnglish,
                 wbwEnabled: !!state.settings.wbwEnabled,
                 autoPlayNext: !!state.settings.autoPlayNext,
+                expandAllTafsir: !!state.settings.expandAllTafsir,
                 audioVolume: Number(state.settings.audioVolume),
                 arabicFontSize: Number(state.settings.arabicFontSize),
                 translationFontSize: Number(state.settings.translationFontSize),
                 currentScript: String(state.settings.currentScript),
+                tafsirSource: String(state.settings.tafsirSource),
                 secondaryTranslation: String(state.settings.secondaryTranslation),
                 currentReciter: Number(state.settings.currentReciter),
                 wbwDisplayMode: String(state.settings.wbwDisplayMode),
@@ -3526,7 +3943,7 @@
             }
 
             const secondaryLabel = getSecondaryTranslationName();
-            const selectedTafsir = document.getElementById('tafsirSourceSelect')?.value;
+            const selectedTafsir = state.settings.tafsirSource || document.getElementById('tafsirSourceSelect')?.value || '169';
             const bismillah = state.currentSurah.number === 9 ? '' : `
                 <div class="bismillah">
                     <div class="bismillah-arabic ${state.settings.currentScript} ${state.settings.tajweedEnabled ? 'tajweed-enabled' : ''}">
@@ -3574,10 +3991,12 @@
                                 ${getVerseDisplayArabic(verse)}
                             </div>
 
-                            <div class="translation-text primary" style="font-size:${state.settings.translationFontSize}px;">
-                                <div class="translation-label">English - M.A.S. Abdel Haleem</div>
-                                ${escapeHtml(english)}
-                            </div>
+                            ${state.settings.alwaysEnglish ? `
+                                <div class="translation-text primary" style="font-size:${state.settings.translationFontSize}px;">
+                                    <div class="translation-label">English - M.A.S. Abdel Haleem</div>
+                                    ${escapeHtml(english)}
+                                </div>
+                            ` : ''}
 
                             ${secondary ? `
                                 <div class="translation-text secondary" style="font-size:${state.settings.translationFontSize}px;">
@@ -3624,6 +4043,14 @@
             container.innerHTML = bismillah + versesHtml;
             setPlayingVerseUI(state.currentVerse);
             updateVerseRepeatButtons();
+            if (state.settings.expandAllTafsir) {
+                state.verses.forEach(v => {
+                    const verseNum = Number(v.verse_number);
+                    const el = document.getElementById(`tafsir-content-${verseNum}`);
+                    if (el) el.classList.add('show');
+                    loadVerseTafsir(verseNum);
+                });
+            }
         }
 
         // ========== WORD BY WORD (NEW/MODIFIED) ==========
@@ -3757,6 +4184,23 @@
             content.classList.toggle('show');
             if (content.classList.contains('show')) {
                 loadVerseTafsir(verseNum);
+            }
+        }
+
+        function setExpandAllTafsir(enabled) {
+            state.settings.expandAllTafsir = !!enabled;
+            saveSettings();
+            syncTopButtons();
+            if (!state.currentSurah || !state.verses.length) return;
+            if (state.settings.expandAllTafsir) {
+                state.verses.forEach(v => {
+                    const verseNum = Number(v.verse_number);
+                    const content = document.getElementById(`tafsir-content-${verseNum}`);
+                    if (content) content.classList.add('show');
+                    loadVerseTafsir(verseNum);
+                });
+            } else {
+                document.querySelectorAll('[id^="tafsir-content-"]').forEach(el => el.classList.remove('show'));
             }
         }
 
@@ -4178,15 +4622,31 @@
         }
 
         // ========== NAVIGATION ==========
+        function syncMobileAudioOffset() {
+            if (!elements.bottomAudioBar || !window.matchMedia('(max-width: 768px)').matches) {
+                document.body.style.removeProperty('--mobile-audio-offset');
+                return;
+            }
+            if (state.currentSection !== 'read') {
+                document.body.style.setProperty('--mobile-audio-offset', '0px');
+                return;
+            }
+            const measured = Math.ceil(elements.bottomAudioBar.getBoundingClientRect().height);
+            const offset = measured > 0 ? measured : 190;
+            document.body.style.setProperty('--mobile-audio-offset', `${offset}px`);
+        }
+
         function setSidebarOpen(open) {
             const isOpen = !!open;
             elements.sidebar?.classList.toggle('open', isOpen);
             elements.overlay?.classList.toggle('show', isOpen);
             document.body.classList.toggle('menu-open', isOpen);
+            requestAnimationFrame(syncMobileAudioOffset);
         }
 
         function syncReadSectionUI() {
             document.body.classList.toggle('in-read-section', state.currentSection === 'read');
+            requestAnimationFrame(syncMobileAudioOffset);
         }
 
         function updateBackButtonState() {
@@ -4251,17 +4711,124 @@
 
         async function loadTafsirSources() {
             const sourceSelect = document.getElementById('tafsirSourceSelect');
-            const current = String(sourceSelect?.value || '169');
+            const targetSelects = [
+                sourceSelect,
+                elements.quickReadTafsirSourceSelect,
+                elements.readTafsirSourceSelect
+            ].filter(Boolean);
+            const current = String(state.settings.tafsirSource || sourceSelect?.value || '169');
             try {
-                let data = await fetchJSON(`${API_BASE}/resources/tafsirs?language=en`);
-                let tafsirs = Array.isArray(data.tafsirs) ? data.tafsirs : [];
-                if (!tafsirs.length) {
-                    data = await fetchJSON(`${API_BASE}/resources/tafsirs`);
-                    tafsirs = Array.isArray(data.tafsirs) ? data.tafsirs : [];
-                }
-                state.tafsirs = tafsirs
+                const [englishData, allData] = await Promise.all([
+                    fetchJSON(`${API_BASE}/resources/tafsirs?language=en`).catch(() => ({ tafsirs: [] })),
+                    fetchJSON(`${API_BASE}/resources/tafsirs`).catch(() => ({ tafsirs: [] }))
+                ]);
+                const englishTafsirs = Array.isArray(englishData.tafsirs) ? englishData.tafsirs : [];
+                const allTafsirs = Array.isArray(allData.tafsirs) ? allData.tafsirs : [];
+
+                const getLanguageLabel = (tafsir) => {
+                    return String(
+                        tafsir?.language_name ||
+                        tafsir?.language ||
+                        tafsir?.language_code ||
+                        ''
+                    ).trim();
+                };
+
+                const normalizeLang = (value) => String(value || '').toLowerCase().trim();
+                const isEnglishLang = (value) => {
+                    const v = normalizeLang(value);
+                    return v === 'en' || v.includes('english');
+                };
+                const isBanglaLang = (value) => {
+                    const v = normalizeLang(value);
+                    return v === 'bn' || v.includes('bengali') || v.includes('bangla');
+                };
+
+                const formatTafsirName = (tafsir) => {
+                    const base = String(tafsir?.name || '').trim();
+                    const langRaw = getLanguageLabel(tafsir);
+                    const lang = (() => {
+                        const v = normalizeLang(langRaw);
+                        if (!v) return '';
+                        if (v === 'en' || v === 'english') return 'English';
+                        if (v === 'bn' || v === 'bangla' || v === 'bengali') return 'Bangla';
+                        if (v === 'ar' || v === 'arabic') return 'Arabic';
+                        return String(langRaw)
+                            .trim()
+                            .split(/\s+/)
+                            .map(part => part ? part[0].toUpperCase() + part.slice(1).toLowerCase() : '')
+                            .join(' ');
+                    })();
+                    const shortBase = base
+                        .replace(/\bwah[iy]d?i?udd?i?n\s+khan\b/ig, 'Maulana WK')
+                        .replace(/\bmaulana\s+maulana\s+wk\b/ig, 'Maulana WK');
+                    if (!base) return '';
+                    if (!lang) return shortBase;
+                    if (shortBase.toLowerCase().includes(lang.toLowerCase())) return shortBase;
+                    return `${shortBase} - ${lang}`;
+                };
+
+                const isMaarifulQuran = (name) => {
+                    const normalized = String(name || '')
+                        .toLowerCase()
+                        .replace(/['`’]/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                    return normalized.includes('maarif') || normalized.includes('maariful quran');
+                };
+
+                const byId = new Map();
+                [...englishTafsirs, ...allTafsirs].forEach((t) => {
+                    if (!t || !t.id || !t.name) return;
+                    const langLabel = getLanguageLabel(t);
+                    byId.set(String(t.id), {
+                        id: String(t.id),
+                        name: formatTafsirName(t),
+                        language: langLabel
+                    });
+                });
+
+                // Show English first, then Bengali (Bangla), while keeping Ma'ariful Quran if present.
+                const preferredIds = new Set(
+                    allTafsirs
+                        .filter(t => t && t.id && t.name)
+                        .filter(t => {
+                            const lang = getLanguageLabel(t);
+                            return isEnglishLang(lang) || isBanglaLang(lang);
+                        })
+                        .map(t => String(t.id))
+                );
+                // Keep previously fetched english entries as preferred too.
+                englishTafsirs
                     .filter(t => t && t.id && t.name)
-                    .map(t => ({ id: String(t.id), name: t.name }));
+                    .forEach(t => preferredIds.add(String(t.id)));
+
+                const maariful = allTafsirs.find(t => t && t.id && isMaarifulQuran(t.name));
+                if (maariful?.id) preferredIds.add(String(maariful.id));
+
+                const merged = Array.from(byId.values());
+                state.tafsirs = merged
+                    .filter(t => preferredIds.has(t.id))
+                    .sort((a, b) => {
+                        const aLang = a.language || '';
+                        const bLang = b.language || '';
+                        const aEnglish = isEnglishLang(aLang);
+                        const bEnglish = isEnglishLang(bLang);
+                        if (aEnglish !== bEnglish) return aEnglish ? -1 : 1;
+
+                        const aBangla = isBanglaLang(aLang);
+                        const bBangla = isBanglaLang(bLang);
+                        if (aBangla !== bBangla) return aBangla ? -1 : 1;
+
+                        if (aBangla && bBangla) {
+                            const aKathir = /ibn\s*kathir/i.test(a.name);
+                            const bKathir = /ibn\s*kathir/i.test(b.name);
+                            if (aKathir !== bKathir) return aKathir ? -1 : 1;
+                        }
+
+                        return a.name.localeCompare(b.name);
+                    })
+                    .map(({ id, name }) => ({ id, name }));
             } catch (error) {
                 console.error('Error loading tafsir sources:', error);
                 state.tafsirs = [];
@@ -4270,12 +4837,16 @@
             if (!state.tafsirs.length) {
                 state.tafsirs = [...FALLBACK_TAFSIR_OPTIONS];
             }
-            if (sourceSelect) {
-                sourceSelect.innerHTML = state.tafsirs
+            if (targetSelects.length) {
+                const optionsHtml = state.tafsirs
                     .map(t => `<option value="${escapeHtml(String(t.id))}">${escapeHtml(t.name)}</option>`)
                     .join('');
-                setSelectValue(sourceSelect, current, String(state.tafsirs[0].id));
+                targetSelects.forEach(select => {
+                    select.innerHTML = optionsHtml;
+                    setSelectValue(select, current, String(state.tafsirs[0].id));
+                });
             }
+            state.settings.tafsirSource = String(current || state.tafsirs[0]?.id || '169');
         }
 
         async function loadMainTafsir() {
@@ -4353,6 +4924,9 @@
 
             elements.themeToggle?.addEventListener('click', toggleTheme);
 
+            window.addEventListener('resize', syncMobileAudioOffset, { passive: true });
+            window.addEventListener('orientationchange', syncMobileAudioOffset);
+
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const section = item.dataset.section;
@@ -4405,7 +4979,6 @@
             const applyScript = (script) => {
                 state.settings.currentScript = script || 'uthmani';
                 setSelectValue(elements.quickScriptSelect, state.settings.currentScript, 'uthmani');
-                setSelectValue(document.getElementById('arabicScriptSelect'), state.settings.currentScript, 'uthmani');
                 saveSettings();
                 renderVerses();
                 const wbwVerse = Number(document.getElementById('wbwVerseSelect')?.value || 0);
@@ -4414,7 +4987,6 @@
                 }
             };
             elements.quickScriptSelect?.addEventListener('change', (e) => applyScript(e.target.value));
-            document.getElementById('arabicScriptSelect')?.addEventListener('change', (e) => applyScript(e.target.value));
 
             const applyTranslation = (value) => {
                 state.settings.secondaryTranslation = String(value || '161');
@@ -4429,15 +5001,43 @@
             elements.quickTranslationSelect?.addEventListener('change', (e) => applyTranslation(e.target.value));
             document.getElementById('secondaryLangSelect')?.addEventListener('change', (e) => applyTranslation(e.target.value));
             document.getElementById('defaultSecondaryLang')?.addEventListener('change', (e) => applyTranslation(e.target.value));
+            elements.quickAlwaysEnglishToggle?.addEventListener('click', () => {
+                state.settings.alwaysEnglish = !state.settings.alwaysEnglish;
+                saveSettings();
+                syncTopButtons();
+                renderVerses();
+            });
+
+            const applyTafsirSource = (value) => {
+                state.settings.tafsirSource = String(value || '169');
+                setSelectValue(document.getElementById('tafsirSourceSelect'), state.settings.tafsirSource, '169');
+                setSelectValue(elements.quickReadTafsirSourceSelect, state.settings.tafsirSource, '169');
+                setSelectValue(elements.readTafsirSourceSelect, state.settings.tafsirSource, '169');
+                saveSettings();
+                if (document.getElementById('tafsirVerseSelect')?.value) {
+                    loadMainTafsir();
+                }
+                if (state.currentSurah) {
+                    renderVerses();
+                }
+            };
+            document.getElementById('tafsirSourceSelect')?.addEventListener('change', (e) => applyTafsirSource(e.target.value));
+            elements.quickReadTafsirSourceSelect?.addEventListener('change', (e) => applyTafsirSource(e.target.value));
+            elements.readTafsirSourceSelect?.addEventListener('change', (e) => applyTafsirSource(e.target.value));
+            elements.quickExpandAllTafsirToggle?.addEventListener('click', () => {
+                setExpandAllTafsir(!state.settings.expandAllTafsir);
+            });
 
             const applyReciter = (value) => {
                 state.settings.currentReciter = Number(value || 7);
                 setSelectValue(document.getElementById('reciterSelect'), String(state.settings.currentReciter), '7');
+                setSelectValue(elements.readReciterSelect, String(state.settings.currentReciter), '7');
                 setSelectValue(elements.audioReciterSelect, String(state.settings.currentReciter), '7');
                 saveSettings();
                 if (state.isPlaying) playVerse(state.currentVerse);
             };
             document.getElementById('reciterSelect')?.addEventListener('change', (e) => applyReciter(e.target.value));
+            elements.readReciterSelect?.addEventListener('change', (e) => applyReciter(e.target.value));
             elements.audioReciterSelect?.addEventListener('change', (e) => applyReciter(e.target.value));
 
             document.getElementById('tajweedEnabledSetting')?.addEventListener('change', (e) => {
@@ -4460,6 +5060,12 @@
             document.getElementById('autoplayNextSetting')?.addEventListener('change', (e) => {
                 state.settings.autoPlayNext = !!e.target.checked;
                 saveSettings();
+            });
+            document.getElementById('alwaysEnglishSetting')?.addEventListener('change', (e) => {
+                state.settings.alwaysEnglish = !!e.target.checked;
+                saveSettings();
+                syncTopButtons();
+                renderVerses();
             });
 
             elements.topSearchBtn?.addEventListener('click', () => {
@@ -4607,9 +5213,6 @@
                 }
             });
             tafsirVerseSelect?.addEventListener('change', loadMainTafsir);
-            document.getElementById('tafsirSourceSelect')?.addEventListener('change', () => {
-                if (document.getElementById('tafsirVerseSelect')?.value) loadMainTafsir();
-            });
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.word-item')) {
@@ -4623,3 +5226,4 @@
     </script>
 </body>
 </html>
+
