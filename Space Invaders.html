@@ -220,6 +220,14 @@
             text-shadow: 0 0 10px rgba(255, 215, 0, .5)
         }
 
+        .hud-meta {
+            margin-top: 2px;
+            font-size: .72em;
+            letter-spacing: .08em;
+            opacity: .8;
+            text-transform: uppercase;
+        }
+
         .settings-panel {
             background: var(--panel);
             border: 1px solid rgba(0, 240, 255, .2);
@@ -1081,6 +1089,8 @@
         <div class="hud-block hud-center">
             <div class="hud-label">Wave</div>
             <div class="hud-value" id="hud-wave">1</div>
+            <div class="hud-meta" id="hud-level">Lvl 1/200</div>
+            <div class="hud-meta" id="hud-rank">Cadet</div>
             <div class="hud-combo" id="hud-combo"></div>
         </div>
         <div class="hud-block" style="text-align:right" id="hud-p2-block">
@@ -1206,8 +1216,11 @@
             </div>
             <div class="shop-mode-tabs">
                 <button class="shop-mode-tab active" id="shop-mode-upgrades" onclick="setShopMode('upgrades')">Upgrades</button>
-                <button class="shop-mode-tab" id="shop-mode-skins" onclick="setShopMode('skins')">Skins</button>
+                <button class="shop-mode-tab" id="shop-mode-skins" onclick="setShopMode('skins')">Starships</button>
             </div>
+            <div class="shop-subtle" id="shop-starship-progress"></div>
+            <div class="shop-note" id="shop-starship-rules"></div>
+            <div class="shop-note" id="shop-final-req"></div>
             <div class="shop-grid" id="shop-grid"></div>
             <div class="shop-grid" id="shop-skin-grid" style="display:none"></div>
             <div class="shop-upgrade-chooser" id="shop-upgrade-chooser" style="display:none"></div>
@@ -1239,14 +1252,29 @@
     <div class="overlay" id="menu-gameover">
         <div class="menu-bg"></div>
         <div class="menu-shell">
-            <h2 style="color:var(--accent2);font-size:1.8em;margin-bottom:.3em">GAME OVER</h2>
+            <h2 style="color:var(--accent2);font-size:1.8em;margin-bottom:.3em" id="go-title">GAME OVER</h2>
             <div class="game-over-stats">
                 <div class="final-score" id="go-score">0</div>
                 <div class="stat-line" id="go-wave">Wave 1</div>
                 <div class="stat-line" id="go-kills">0 enemies destroyed</div>
                 <div class="stat-line" id="go-combo">Best combo: x0</div>
             </div>
-            <div class="btn-row"><button class="btn" onclick="showShopOrRestart()">Continue</button></div>
+            <div class="btn-row"><button class="btn" id="go-continue" onclick="showShopOrRestart()">Continue</button></div>
+            <div class="btn-row"><button class="btn" onclick="quitToMenu()">Main Menu</button></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="menu-victory">
+        <div class="menu-bg"></div>
+        <div class="menu-shell">
+            <h2 style="color:var(--gold);font-size:1.8em;margin-bottom:.3em">VICTORY</h2>
+            <div class="game-over-stats">
+                <div class="final-score" id="victory-score">0</div>
+                <div class="stat-line" id="victory-wave">Wave 120 Cleared</div>
+                <div class="stat-line" id="victory-kills">0 enemies destroyed</div>
+                <div class="stat-line" id="victory-rank">Rank: Cadet</div>
+            </div>
+            <div class="btn-row"><button class="btn" onclick="restartGame()">New Run</button></div>
             <div class="btn-row"><button class="btn" onclick="quitToMenu()">Main Menu</button></div>
         </div>
     </div>
@@ -1303,6 +1331,38 @@
         let fpsTimer = 0;
         let fpsCount = 0;
         const LEADERBOARD_KEY = 'nova_rift_leaderboard_v1';
+        const PROFILE_STORAGE_KEY = 'nova_rift_profile_v1';
+        const MAX_PLAYER_LEVEL = 200;
+        const MAX_WAVE = 120;
+        const BASE_PLAYER_WIDTH = 28;
+        const BASE_PLAYER_HEIGHT = 28;
+        const RANK_BANDS = [
+            { min: 1, max: 20, name: 'Cadet' },
+            { min: 21, max: 40, name: 'Ranger' },
+            { min: 41, max: 60, name: 'Ace' },
+            { min: 61, max: 80, name: 'Elite' },
+            { min: 81, max: 100, name: 'Veteran' },
+            { min: 101, max: 120, name: 'Master' },
+            { min: 121, max: 140, name: 'Grandmaster' },
+            { min: 141, max: 160, name: 'Mythic' },
+            { min: 161, max: 180, name: 'Legend' },
+            { min: 181, max: 200, name: 'Apex' },
+        ];
+        const BOSS_TIER_CONFIG = {
+            1: { hpMul: 1.00, damageMul: 1.00, fireRateMul: 1.00, colorPrimary: '#ff3f7f', colorSecondary: '#ff8a5a' },
+            2: { hpMul: 1.22, damageMul: 1.12, fireRateMul: 1.08, colorPrimary: '#ff6a3d', colorSecondary: '#ffd35c' },
+            3: { hpMul: 1.45, damageMul: 1.25, fireRateMul: 1.16, colorPrimary: '#8b63ff', colorSecondary: '#58f4ff' },
+            4: { hpMul: 1.75, damageMul: 1.40, fireRateMul: 1.26, colorPrimary: '#58f4ff', colorSecondary: '#ff5cae' },
+        };
+        let highestBossTierAnnounced = 0;
+        let profile = {
+            xp: 0,
+            level: 1,
+            starships: {
+                p1: { owned: ['default'], equipped: 'default' },
+                p2: { owned: ['default'], equipped: 'default' },
+            }
+        };
 
         const DIFF = {
             easy: { enemySpeedMul: .6, enemyFireRate: .4, enemyHpMul: .7, scoreMul: .7 },
@@ -1329,6 +1389,99 @@
         };
         function getEnemyShotDamage(type) { return ENEMY_DAMAGE[`${type}_shot`] ?? ENEMY_DAMAGE.basic_shot; }
         function getEnemyBodyDamage(type) { return ENEMY_DAMAGE[`enemy_body_${type}`] ?? ENEMY_DAMAGE.enemy_body_basic; }
+
+        function xpNeededForLevel(level) {
+            return 120 + Math.floor((level - 1) * 35);
+        }
+
+        function getLevelFromXp(xp) {
+            let remaining = Math.max(0, Math.floor(xp));
+            let level = 1;
+            while (level < MAX_PLAYER_LEVEL) {
+                const need = xpNeededForLevel(level);
+                if (remaining < need) break;
+                remaining -= need;
+                level++;
+            }
+            return level;
+        }
+
+        function getRankForLevel(level) {
+            const lv = Math.max(1, Math.min(MAX_PLAYER_LEVEL, Math.floor(level || 1)));
+            const band = RANK_BANDS.find(r => lv >= r.min && lv <= r.max);
+            return band ? band.name : 'Cadet';
+        }
+
+        function sanitizeProfile(raw) {
+            const safe = raw && typeof raw === 'object' ? raw : {};
+            const xp = Math.max(0, Math.floor(Number(safe.xp) || 0));
+            const level = getLevelFromXp(xp);
+            const starshipsSafe = safe.starships && typeof safe.starships === 'object' ? safe.starships : {};
+            const sanitizeStarshipSlot = slotRaw => {
+                const slot = slotRaw && typeof slotRaw === 'object' ? slotRaw : {};
+                const ownedCandidates = Array.isArray(slot.owned) ? slot.owned
+                    : Array.isArray(slot.ownedStarships) ? slot.ownedStarships
+                        : Array.isArray(slot.ownedSkins) ? slot.ownedSkins : [];
+                const owned = Array.from(new Set(
+                    ['default', ...ownedCandidates
+                        .map(id => mapLegacyStarshipId(typeof id === 'string' ? id : 'default'))
+                        .filter(id => id === 'default' || !!STARSHIP_BY_ID[id])]
+                ));
+                let equipped = mapLegacyStarshipId(typeof (slot.equipped || slot.equippedStarship || slot.equippedSkin) === 'string'
+                    ? (slot.equipped || slot.equippedStarship || slot.equippedSkin)
+                    : 'default');
+                if (!owned.includes(equipped)) equipped = 'default';
+                return { owned, equipped };
+            };
+            const p1 = sanitizeStarshipSlot(starshipsSafe.p1 || safe.p1Starships);
+            const p2 = sanitizeStarshipSlot(starshipsSafe.p2 || safe.p2Starships);
+            return { xp, level, starships: { p1, p2 } };
+        }
+
+        function loadProfile() {
+            try {
+                const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+                if (!raw) return sanitizeProfile({});
+                return sanitizeProfile(JSON.parse(raw));
+            } catch (err) {
+                return sanitizeProfile({});
+            }
+        }
+
+        function saveProfile() {
+            profile = sanitizeProfile(profile);
+            try {
+                localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+            } catch (err) { }
+        }
+
+        function awardXp(amount) {
+            if (!Number.isFinite(amount) || amount <= 0) return;
+            if (profile.level >= MAX_PLAYER_LEVEL) return;
+            profile.xp += Math.floor(amount);
+            profile = sanitizeProfile(profile);
+            saveProfile();
+        }
+
+        function getBossTier(waveDisplay) {
+            if (waveDisplay >= 61) return 4;
+            if (waveDisplay >= 41) return 3;
+            if (waveDisplay >= 21) return 2;
+            return 1;
+        }
+
+        function showWaveAnnouncement(text, color = 'var(--accent)', holdMs = 1500) {
+            const el = document.getElementById('wave-announce');
+            if (!el) return;
+            el.textContent = text;
+            el.style.opacity = '1';
+            el.style.color = color;
+            setTimeout(() => {
+                el.style.transition = 'opacity 1s';
+                el.style.opacity = '0';
+                setTimeout(() => { el.style.transition = ''; }, 1100);
+            }, holdMs);
+        }
 
         // ===== PARTICLES =====
         let particles = [];
@@ -1387,30 +1540,40 @@
             magnet: { name: 'Magnet', emoji: '🧲', maxLv: 3, baseCost: 150, desc: 'Attract pickups', effect: lv => 50 + lv * 40 },
             lives: { name: 'Extra Life', emoji: '❤️', maxLv: 3, baseCost: 300, desc: '+1 life', effect: lv => lv },
         };
-        const SKIN_TIER_COSTS = { 1: 900, 2: 1300, 3: 1800 };
-        const SKIN_CATALOG = [
-            { id: 'skin-fire-rate', name: 'Overclock Chassis', emoji: '🔥', upgradeKey: 'fireRate', tier: 3, description: 'Triple vent frame with rapid pulse coils.' },
-            { id: 'skin-damage', name: 'Dreadnought Hull', emoji: '💥', upgradeKey: 'damage', tier: 3, description: 'Heavy armor plating and focused cannon nose.' },
-            { id: 'skin-speed', name: 'Blink Razor', emoji: '⚡', upgradeKey: 'speed', tier: 1, description: 'Slim dart profile and velocity fins.' },
-            { id: 'skin-spread', name: 'Storm Wing', emoji: '🌟', upgradeKey: 'spread', tier: 2, description: 'Wide wing arrays and multi-shot ports.' },
-            { id: 'skin-shield', name: 'Aegis Prism', emoji: '🛡️', upgradeKey: 'shield', tier: 2, description: 'Reinforced shell with layered shield nodes.' },
-            { id: 'skin-magnet', name: 'Flux Core', emoji: '🧲', upgradeKey: 'magnet', tier: 1, description: 'Attractor coils and orbiting pickup drones.' },
-            { id: 'skin-lives', name: 'Phoenix Crest', emoji: '❤️', upgradeKey: 'lives', tier: 2, description: 'Survival frame tuned for recovery and grit.' },
+        const STARSHIP_TIER_COSTS = { 1: 900, 2: 1300, 3: 1800 };
+        const STARSHIP_CATALOG = [
+            { id: 'starship-fire-rate', name: 'Overclock Bastion', emoji: 'FR', category: 'base', upgradeKey: 'fireRate', tier: 3, buyable: true, description: 'Huge vent arrays with rapid pulse cannons.' },
+            { id: 'starship-damage', name: 'Dreadnought Titan', emoji: 'DMG', category: 'base', upgradeKey: 'damage', tier: 3, buyable: true, description: 'Heavy assault hull with reinforced prow.' },
+            { id: 'starship-speed', name: 'Velocity Sovereign', emoji: 'SPD', category: 'base', upgradeKey: 'speed', tier: 1, buyable: true, description: 'Long-wing striker tuned for hard bursts.' },
+            { id: 'starship-spread', name: 'Storm Carrier', emoji: 'SPR', category: 'base', upgradeKey: 'spread', tier: 2, buyable: true, description: 'Broadside frame with multi-vector emitters.' },
+            { id: 'starship-shield', name: 'Aegis Citadel', emoji: 'SHD', category: 'base', upgradeKey: 'shield', tier: 2, buyable: true, description: 'Fortress shell wrapped in layered barriers.' },
+            { id: 'starship-magnet', name: 'Flux Harvester', emoji: 'MAG', category: 'side', upgradeKey: 'magnet', tier: 1, buyable: true, description: 'Pickup-drawing coils and orbiting drones.' },
+            { id: 'starship-lives', name: 'Phoenix Ark', emoji: 'LIF', category: 'side', upgradeKey: 'lives', tier: 2, buyable: true, description: 'Recovery-class battleship with rebirth core.' },
+            { id: 'starship-milestone-2', name: 'Nebula Colossus', emoji: 'M2', category: 'milestone', unlockBaseCount: 2, buyable: false, description: 'Unlocked by owning any 2 base core starships.' },
+            { id: 'starship-milestone-3', name: 'Solar Leviathan', emoji: 'M3', category: 'milestone', unlockBaseCount: 3, buyable: false, description: 'Unlocked by owning any 3 base core starships.' },
+            { id: 'starship-milestone-4', name: 'Ion Juggernaut', emoji: 'M4', category: 'milestone', unlockBaseCount: 4, buyable: false, description: 'Unlocked by owning any 4 base core starships.' },
+            { id: 'starship-milestone-5', name: 'Celestial Dominion', emoji: 'M5', category: 'milestone', unlockBaseCount: 5, buyable: false, description: 'Unlocked by owning all 5 base core starships.' },
+            { id: 'starship-apex-flagship', name: 'Prism Overlord', emoji: 'APX', category: 'final', buyable: false, description: 'Final flagship: own all starships and max all upgrades.' },
         ];
-        const SKIN_BY_ID = Object.fromEntries(SKIN_CATALOG.map(skin => [skin.id, skin]));
+        const STARSHIP_BY_ID = Object.fromEntries(STARSHIP_CATALOG.map(ship => [ship.id, ship]));
+        const BASE_CORE_UPGRADES = ['fireRate', 'damage', 'speed', 'spread', 'shield'];
 
         function createPlayer(id) {
             return {
-                id, x: 0, y: 0, w: 28, h: 28, vx: 0, vy: 0,
+                id, x: 0, y: 0, w: BASE_PLAYER_WIDTH, h: BASE_PLAYER_HEIGHT, vx: 0, vy: 0,
                 speed: 220, lives: 3, maxLives: 3, score: 0,
                 maxHealth: PLAYER_MAX_HEALTH, health: PLAYER_MAX_HEALTH,
                 fireTimer: 0, fireRate: .28, damage: 1,
+                fireAccumulator: 0, timeSinceLastShot: 0,
                 bullets: [], shield: 0, shieldTimer: 0,
                 combo: 0, comboTimer: 0, maxCombo: 0,
                 kills: 0, credits: 0, alive: true, respawnTimer: 0,
                 invincible: 0,
                 upgrades: { fireRate: 0, damage: 0, speed: 0, spread: 0, shield: 0, magnet: 0, lives: 0 },
                 powerup: null, powerupTimer: 0,
+                ownedStarships: ['default'],
+                equippedStarship: 'default',
+                // Legacy aliases kept for compatibility with older runtime/state assumptions.
                 ownedSkins: ['default'],
                 equippedSkin: 'default',
                 mobileTargetX: null, mobileTargetY: null,
@@ -1427,26 +1590,98 @@
             p.shield = UPGRADES.shield.effect(u.shield);
             p.maxLives = 3 + UPGRADES.lives.effect(u.lives);
             if (p.lives > p.maxLives) p.lives = p.maxLives;
+            unlockStarshipsForPlayer(p);
+        }
+
+        function mapLegacyStarshipId(id) {
+            const map = {
+                'skin-fire-rate': 'starship-fire-rate',
+                'skin-damage': 'starship-damage',
+                'skin-speed': 'starship-speed',
+                'skin-spread': 'starship-spread',
+                'skin-shield': 'starship-shield',
+                'skin-magnet': 'starship-magnet',
+                'skin-lives': 'starship-lives',
+            };
+            return map[id] || id;
+        }
+
+        function ensurePlayerStarships(p) {
+            const legacyOwned = Array.isArray(p.ownedSkins) ? p.ownedSkins.map(mapLegacyStarshipId) : [];
+            const currentOwned = Array.isArray(p.ownedStarships) ? p.ownedStarships.map(mapLegacyStarshipId) : [];
+            const merged = Array.from(new Set(['default', ...legacyOwned, ...currentOwned]))
+                .filter(id => id === 'default' || !!STARSHIP_BY_ID[id]);
+            p.ownedStarships = merged;
+            p.equippedStarship = mapLegacyStarshipId(p.equippedStarship || p.equippedSkin || 'default');
+            if (!p.ownedStarships.includes(p.equippedStarship)) p.equippedStarship = 'default';
+            p.ownedSkins = p.ownedStarships;
+            p.equippedSkin = p.equippedStarship;
         }
 
         function ensurePlayerSkins(p) {
-            if (!Array.isArray(p.ownedSkins)) p.ownedSkins = ['default'];
-            if (!p.ownedSkins.includes('default')) p.ownedSkins.unshift('default');
-            if (!p.equippedSkin || !p.ownedSkins.includes(p.equippedSkin)) p.equippedSkin = 'default';
+            ensurePlayerStarships(p);
         }
 
-        function getSkinByUpgradeKey(upgradeKey) {
-            return SKIN_CATALOG.find(skin => skin.upgradeKey === upgradeKey) || null;
+        function getProfileStarshipSlot(playerIndex) {
+            profile = sanitizeProfile(profile);
+            const key = playerIndex === 1 ? 'p2' : 'p1';
+            return profile.starships[key];
         }
 
-        function isSkinMaxUnlocked(p, skin) {
-            const up = UPGRADES[skin.upgradeKey];
+        function applyProfileStarshipsToPlayer(playerIndex, p) {
+            const slot = getProfileStarshipSlot(playerIndex);
+            p.ownedStarships = Array.isArray(slot.owned) ? [...slot.owned] : ['default'];
+            p.equippedStarship = typeof slot.equipped === 'string' ? slot.equipped : 'default';
+            p.ownedSkins = p.ownedStarships;
+            p.equippedSkin = p.equippedStarship;
+            ensurePlayerStarships(p);
+        }
+
+        function savePlayerStarshipsToProfile(playerIndex, p) {
+            ensurePlayerStarships(p);
+            profile = sanitizeProfile(profile);
+            const key = playerIndex === 1 ? 'p2' : 'p1';
+            profile.starships[key] = {
+                owned: Array.from(new Set(p.ownedStarships)),
+                equipped: p.equippedStarship || 'default',
+            };
+            saveProfile();
+        }
+
+        function getStarshipByUpgradeKey(upgradeKey) {
+            return STARSHIP_CATALOG.find(ship => ship.upgradeKey === upgradeKey) || null;
+        }
+
+        function getStarshipCost(starship) {
+            return STARSHIP_TIER_COSTS[starship.tier] ?? 900;
+        }
+
+        function isUpgradeMaxUnlocked(p, starship) {
+            if (!starship.upgradeKey) return false;
+            const up = UPGRADES[starship.upgradeKey];
             if (!up) return false;
-            return (p.upgrades?.[skin.upgradeKey] ?? 0) >= up.maxLv;
+            return (p.upgrades?.[starship.upgradeKey] ?? 0) >= up.maxLv;
         }
 
-        function getSkinCost(skin) {
-            return SKIN_TIER_COSTS[skin.tier] ?? 900;
+        function countOwnedBaseCoreStarships(p) {
+            ensurePlayerStarships(p);
+            return STARSHIP_CATALOG.filter(s => s.category === 'base' && p.ownedStarships.includes(s.id)).length;
+        }
+
+        function areAllUpgradesMaxed(p) {
+            for (const [key, up] of Object.entries(UPGRADES)) {
+                if ((p.upgrades?.[key] ?? 0) < up.maxLv) return false;
+            }
+            return true;
+        }
+
+        function unlockStarshipsForPlayer(p) {
+            ensurePlayerStarships(p);
+            p.ownedStarships = Array.from(new Set(p.ownedStarships));
+            if (!p.ownedStarships.includes('default')) p.ownedStarships.unshift('default');
+            p.ownedSkins = p.ownedStarships;
+            if (!p.ownedStarships.includes(p.equippedStarship)) p.equippedStarship = 'default';
+            p.equippedSkin = p.equippedStarship;
         }
 
         function resetPlayerPos(p) {
@@ -1471,22 +1706,31 @@
         };
 
         function spawnWave(waveNum) {
+            waveNum = Math.max(0, Math.min(MAX_WAVE - 1, Math.floor(waveNum)));
             enemies = []; enemyBullets = []; bossActive = false;
             const d = DIFF[difficulty];
+            const waveDisplay = waveNum + 1;
+            const tier = getBossTier(waveDisplay);
+            const tierCfg = BOSS_TIER_CONFIG[tier] || BOSS_TIER_CONFIG[1];
+            if (tier > 1 && tier > highestBossTierAnnounced) {
+                highestBossTierAnnounced = tier;
+                showWaveAnnouncement(`THREAT TIER ${tier}`, tierCfg.colorSecondary, 1600);
+            }
             const cols = Math.min(8 + Math.floor(waveNum / 3), 12);
             const rows = Math.min(3 + Math.floor(waveNum / 2), 6);
-            const isBossWave = waveNum % 5 === 0 && waveNum > 0;
+            const isBossWave = waveDisplay % 5 === 0;
             if (isBossWave) {
-                const bhp = Math.floor(50 + waveNum * 10);
+                const bhp = Math.floor((50 + waveNum * 10) * tierCfg.hpMul);
                 const bw = Math.min(80, 60 + waveNum);
                 enemies.push({
                     type: 'boss', x: W / 2, y: 80, w: bw, h: 50, hp: bhp * d.enemyHpMul, maxHp: bhp * d.enemyHpMul,
-                    score: 200 + waveNum * 20, vx: 1, fireTimer: 0, fireRate: .8 / d.enemyFireRate,
-                    color: '#ff0066', phase: 0, isBoss: true, flashTimer: 0
+                    score: 200 + waveNum * 20, vx: 1, fireTimer: 0, fireRate: .8 / (d.enemyFireRate * tierCfg.fireRateMul),
+                    color: tierCfg.colorPrimary, tierColorPrimary: tierCfg.colorPrimary, tierColorSecondary: tierCfg.colorSecondary,
+                    phase: 0, isBoss: true, flashTimer: 0, bossTier: tier, damageMul: tierCfg.damageMul
                 });
                 bossActive = true;
                 // boss escorts
-                for (let i = 0; i < Math.min(4 + waveNum, 10); i++) {
+                for (let i = 0; i < Math.min(4 + waveNum + (tier - 1), 10); i++) {
                     const t = Math.random() > .5 ? 'tough' : 'fast';
                     const et = ENEMY_TYPES[t];
                     enemies.push({
@@ -1750,6 +1994,9 @@
                     if (p.respawnTimer <= 0 && p.lives > 0) {
                         p.alive = true; p.invincible = 2;
                         p.health = p.maxHealth;
+                        p.fireTimer = 0;
+                        p.fireAccumulator = 0;
+                        p.timeSinceLastShot = 0;
                         resetPlayerPos(p);
                     }
                     continue;
@@ -1759,10 +2006,24 @@
                 p.y += p.vy * dt;
                 p.x = Math.max(p.w / 2, Math.min(W - p.w / 2, p.x));
                 p.y = Math.max(p.h / 2, Math.min(H - p.h / 2, p.y));
-                p.fireTimer -= dt;
-                if (p.fireTimer <= 0 && p.alive) {
+                if (!Number.isFinite(p.fireAccumulator) || p.fireAccumulator < 0) p.fireAccumulator = 0;
+                if (!Number.isFinite(p.timeSinceLastShot) || p.timeSinceLastShot < 0) p.timeSinceLastShot = 0;
+                const cadence = Math.max(0.05, Number(p.fireRate) || 0.28);
+                p.fireAccumulator += dt;
+                p.timeSinceLastShot += dt;
+                let firedThisFrame = false;
+                let safety = 0;
+                while (p.fireAccumulator >= cadence && safety < 6) {
                     fireBullet(p);
-                    p.fireTimer = p.fireRate;
+                    p.fireAccumulator -= cadence;
+                    p.timeSinceLastShot = 0;
+                    firedThisFrame = true;
+                    safety++;
+                }
+                if (!firedThisFrame && p.timeSinceLastShot > cadence * 1.5) {
+                    fireBullet(p);
+                    p.fireAccumulator = 0;
+                    p.timeSinceLastShot = 0;
                 }
                 if (p.invincible > 0) p.invincible -= dt;
                 if (p.shieldTimer > 0) p.shieldTimer -= dt;
@@ -1809,11 +2070,71 @@
                     e.fireTimer -= dt;
                     if (e.fireTimer <= 0) {
                         e.fireTimer = e.fireRate;
+                        const tier = e.bossTier || 1;
+                        const dmgMul = e.damageMul || 1;
+                        const primary = e.tierColorPrimary || '#ff0066';
+                        const secondary = e.tierColorSecondary || '#ff5cae';
                         const patterns = [
-                            () => { for (let a = -2; a <= 2; a++)enemyBullets.push({ x: e.x + a * 15, y: e.y + e.h / 2, vx: a * 30, vy: 200, w: 5, h: 5, color: '#ff0066', damage: ENEMY_DAMAGE.boss_spread_line, source: 'boss_spread_line' }) },
-                            () => { for (let a = 0; a < 8; a++) { const ang = Math.PI * 2 / 8 * a + e.phase; enemyBullets.push({ x: e.x, y: e.y + e.h / 2, vx: Math.cos(ang) * 120, vy: Math.sin(ang) * 120 + 80, w: 4, h: 4, color: '#ff4488', damage: ENEMY_DAMAGE.boss_radial, source: 'boss_radial' }) } },
-                            () => { for (const p of players) { if (!p.alive) continue; const dx = p.x - e.x, dy = p.y - e.y, d = Math.sqrt(dx * dx + dy * dy) || 1; enemyBullets.push({ x: e.x, y: e.y + e.h / 2, vx: dx / d * 180, vy: dy / d * 180, w: 6, h: 6, color: '#ff0000', damage: ENEMY_DAMAGE.boss_aimed, source: 'boss_aimed' }); } }
+                            () => {
+                                for (let a = -2; a <= 2; a++) {
+                                    enemyBullets.push({
+                                        x: e.x + a * 15, y: e.y + e.h / 2, vx: a * 30, vy: 200, w: 5, h: 5, color: primary,
+                                        damage: Math.ceil(ENEMY_DAMAGE.boss_spread_line * dmgMul), source: 'boss_spread_line'
+                                    });
+                                }
+                            },
+                            () => {
+                                for (let a = 0; a < 8; a++) {
+                                    const ang = Math.PI * 2 / 8 * a + e.phase;
+                                    enemyBullets.push({
+                                        x: e.x, y: e.y + e.h / 2, vx: Math.cos(ang) * 120, vy: Math.sin(ang) * 120 + 80, w: 4, h: 4, color: secondary,
+                                        damage: Math.ceil(ENEMY_DAMAGE.boss_radial * dmgMul), source: 'boss_radial'
+                                    });
+                                }
+                            },
+                            () => {
+                                for (const p of players) {
+                                    if (!p.alive) continue;
+                                    const dx = p.x - e.x, dy = p.y - e.y, dlen = Math.sqrt(dx * dx + dy * dy) || 1;
+                                    enemyBullets.push({
+                                        x: e.x, y: e.y + e.h / 2, vx: dx / dlen * 180, vy: dy / dlen * 180, w: 6, h: 6, color: '#ff0000',
+                                        damage: Math.ceil(ENEMY_DAMAGE.boss_aimed * dmgMul), source: 'boss_aimed'
+                                    });
+                                }
+                            }
                         ];
+                        if (tier >= 2) {
+                            patterns.push(() => {
+                                for (let i = 0; i < 10; i++) {
+                                    const ang = e.phase * 2 + i * 0.35;
+                                    enemyBullets.push({
+                                        x: e.x, y: e.y + e.h / 2, vx: Math.cos(ang) * 150, vy: Math.sin(ang) * 90 + 120, w: 4.5, h: 4.5, color: '#ffd35c',
+                                        damage: Math.ceil(ENEMY_DAMAGE.boss_radial * dmgMul), source: 'boss_spiral'
+                                    });
+                                }
+                            });
+                        }
+                        if (tier >= 3) {
+                            patterns.push(() => {
+                                for (let lane = -3; lane <= 3; lane++) {
+                                    enemyBullets.push({
+                                        x: e.x + lane * 24, y: e.y + e.h / 2, vx: lane * 8, vy: 250, w: 5, h: 6, color: '#a16bff',
+                                        damage: Math.ceil(ENEMY_DAMAGE.boss_spread_line * dmgMul), source: 'boss_rain'
+                                    });
+                                }
+                            });
+                        }
+                        if (tier >= 4) {
+                            patterns.push(() => {
+                                for (let i = 0; i < 16; i++) {
+                                    const ang = Math.PI * 2 / 16 * i + e.phase * 1.1;
+                                    enemyBullets.push({
+                                        x: e.x, y: e.y + e.h / 2, vx: Math.cos(ang) * 190, vy: Math.sin(ang) * 190 + 95, w: 4.5, h: 4.5,
+                                        color: i % 2 === 0 ? '#58f4ff' : '#ff5cae', damage: Math.ceil(ENEMY_DAMAGE.boss_aimed * dmgMul), source: 'boss_nova'
+                                    });
+                                }
+                            });
+                        }
                         patterns[Math.floor(Math.random() * patterns.length)]();
                     }
                 } else {
@@ -1857,11 +2178,16 @@
                                 p.combo++; p.comboTimer = 2;
                                 if (p.combo > p.maxCombo) p.maxCombo = p.combo;
                                 p.kills++; p.credits += Math.ceil(e.score / 5);
+                                awardXp(Math.max(4, Math.floor(e.score / 6)));
                                 spawnParticles(e.x, e.y, e.color, 15, 4, .5);
                                 sfxExplosion(); triggerShake(e.isBoss ? 10 : 3);
                                 screenFlash(e.isBoss ? 'rgba(255,0,102,0.2)' : 'rgba(255,255,255,0.08)');
                                 maybeDropPickup(e.x, e.y);
-                                if (e.isBoss) { bossActive = false; unlockAchievement('boss_kill'); }
+                                if (e.isBoss) {
+                                    bossActive = false;
+                                    awardXp(220 + Math.floor((currentWave + 1) * 3));
+                                    unlockAchievement('boss_kill');
+                                }
                                 if (p.kills === 1) unlockAchievement('first_kill');
                                 if (p.combo >= 10) unlockAchievement('combo_10');
                                 enemies.splice(ei, 1);
@@ -1883,7 +2209,8 @@
                     // enemy body vs player
                     for (const e of enemies) {
                         if (aabb({ x: p.x, y: p.y, w: p.w * .7, h: p.h * .7 }, e) && p.invincible <= 0) {
-                            damagePlayer(p, getEnemyBodyDamage(e.type), `enemy_body_${e.type}`); break;
+                            const bodyDmg = getEnemyBodyDamage(e.type) * (e.isBoss ? (e.damageMul || 1) : 1);
+                            damagePlayer(p, Math.ceil(bodyDmg), `enemy_body_${e.type}`); break;
                         }
                     }
                 }
@@ -1933,8 +2260,15 @@
                     for (const e of [...enemies]) {
                         if (!e.isBoss) {
                             p.score += e.score; p.kills++; p.credits += 5;
+                            awardXp(Math.max(4, Math.floor(e.score / 6)));
                             spawnParticles(e.x, e.y, e.color, 6, 3, .4);
-                        } else { e.hp -= e.maxHp * .2; }
+                        } else {
+                            e.hp -= e.maxHp * .2;
+                            if (e.hp <= 0) {
+                                awardXp(220 + Math.floor((currentWave + 1) * 3));
+                                bossActive = false;
+                            }
+                        }
                     }
                     enemies = enemies.filter(e => e.isBoss && e.hp > 0);
                     screenFlash('rgba(255,255,255,0.4)'); triggerShake(12); sfxExplosion();
@@ -1946,19 +2280,24 @@
 
         function checkWaveComplete() {
             if (gameState !== 'playing' || enemies.length !== 0 || pendingWave !== null) return;
+            const clearedWaveDisplay = Math.min(MAX_WAVE, currentWave + 1);
+            awardXp(40 + Math.floor(clearedWaveDisplay * 4));
+            if (clearedWaveDisplay >= 5) unlockAchievement('wave_5');
+            if (clearedWaveDisplay >= 10) unlockAchievement('wave_10');
+            if (clearedWaveDisplay >= MAX_WAVE) {
+                showVictory();
+                return;
+            }
             pendingWave = currentWave + 1;
             currentWave = pendingWave;
-            if (currentWave >= 5) unlockAchievement('wave_5');
-            if (currentWave >= 10) unlockAchievement('wave_10');
             waveAnnTimer = 2;
-            const el = document.getElementById('wave-announce');
-            const isBoss = currentWave % 5 === 0 && currentWave > 0;
-            el.textContent = isBoss ? `⚠ BOSS WAVE ${currentWave} ⚠` : `WAVE ${currentWave + 1}`;
-            el.style.opacity = '1'; el.style.color = isBoss ? '#ff0066' : 'var(--accent)';
-            setTimeout(() => { el.style.transition = 'opacity 1s'; el.style.opacity = '0'; setTimeout(() => el.style.transition = '', 1100); }, 1500);
+            const incomingDisplay = currentWave + 1;
+            const isBoss = incomingDisplay % 5 === 0;
+            showWaveAnnouncement(isBoss ? `BOSS WAVE ${incomingDisplay}` : `WAVE ${incomingDisplay}`, isBoss ? '#ff0066' : 'var(--accent)');
         }
 
         function checkGameOver() {
+            if (gameState !== 'playing') return;
             const alive = players.some(p => p.lives > 0);
             if (!alive) {
                 gameState = 'gameover';
@@ -1969,36 +2308,84 @@
         // ===== DRAWING =====
         function drawPlayer(p) {
             if (!p.alive) return;
+            ensurePlayerStarships(p);
+            const starship = p.equippedStarship || p.equippedSkin || 'default';
             const flash = p.invincible > 0 && Math.floor(p.invincible * 10) % 2 === 0;
             const hideShip = flash && p.invincible > .1;
+            const scaleMap = {
+                'default': [1, 1],
+                'starship-fire-rate': [1.35, 1.28],
+                'starship-damage': [1.45, 1.34],
+                'starship-speed': [1.32, 1.24],
+                'starship-spread': [1.38, 1.30],
+                'starship-shield': [1.40, 1.34],
+                'starship-magnet': [1.30, 1.24],
+                'starship-lives': [1.34, 1.28],
+                'starship-milestone-2': [1.50, 1.40],
+                'starship-milestone-3': [1.56, 1.44],
+                'starship-milestone-4': [1.62, 1.48],
+                'starship-milestone-5': [1.68, 1.52],
+                'starship-apex-flagship': [1.86, 1.57]
+            };
+            const shipScale = scaleMap[starship] || scaleMap.default;
             ctx.save(); ctx.translate(p.x, p.y);
             if (!hideShip) {
+                ctx.save();
+                ctx.scale(shipScale[0], shipScale[1]);
                 const base = p.id === 0 ? '#00f0ff' : '#ff0066';
                 const accent = p.id === 0 ? '#b5f7ff' : '#ffd4e8';
-                const skin = p.equippedSkin || 'default';
                 ctx.fillStyle = base;
-                if (skin === 'skin-damage') {
+                if (starship === 'starship-apex-flagship') {
+                    const hull = ctx.createLinearGradient(-p.w / 2, -p.h / 2, p.w / 2, p.h / 2);
+                    hull.addColorStop(0, '#58f4ff');
+                    hull.addColorStop(.45, '#ffd86d');
+                    hull.addColorStop(1, '#ff5cae');
+                    ctx.fillStyle = hull;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -p.h * .58);
+                    ctx.lineTo(-p.w * .52, -p.h * .04);
+                    ctx.lineTo(-p.w * .4, p.h * .36);
+                    ctx.lineTo(0, p.h * .5);
+                    ctx.lineTo(p.w * .4, p.h * .36);
+                    ctx.lineTo(p.w * .52, -p.h * .04);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.fillStyle = 'rgba(255,255,255,.8)';
+                    ctx.fillRect(-p.w * .34, -2, p.w * .68, 5);
+                } else if (starship.startsWith('starship-milestone-')) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, -p.h * .58);
+                    ctx.lineTo(-p.w * .48, -p.h * .05);
+                    ctx.lineTo(-p.w * .26, p.h * .48);
+                    ctx.lineTo(p.w * .26, p.h * .48);
+                    ctx.lineTo(p.w * .48, -p.h * .05);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.fillStyle = accent;
+                    ctx.fillRect(-p.w * .42, p.h * .08, p.w * .16, 5);
+                    ctx.fillRect(p.w * .26, p.h * .08, p.w * .16, 5);
+                } else if (starship === 'starship-damage') {
                     ctx.fillRect(-p.w * .45, -p.h * .1, p.w * .9, p.h * .62);
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .56); ctx.lineTo(-p.w * .38, -p.h * .02); ctx.lineTo(p.w * .38, -p.h * .02); ctx.closePath(); ctx.fill();
                     ctx.fillStyle = accent; ctx.fillRect(-3, -p.h * .5, 6, 10);
-                } else if (skin === 'skin-speed') {
+                } else if (starship === 'starship-speed') {
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .58); ctx.lineTo(-p.w * .28, p.h * .46); ctx.lineTo(0, p.h * .28); ctx.lineTo(p.w * .28, p.h * .46); ctx.closePath(); ctx.fill();
                     ctx.fillStyle = accent; ctx.fillRect(-2, -p.h * .34, 4, p.h * .52);
-                } else if (skin === 'skin-spread') {
+                } else if (starship === 'starship-spread') {
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .52); ctx.lineTo(-p.w * .5, p.h * .36); ctx.lineTo(-p.w * .16, p.h * .18); ctx.lineTo(0, p.h * .34); ctx.lineTo(p.w * .16, p.h * .18); ctx.lineTo(p.w * .5, p.h * .36); ctx.closePath(); ctx.fill();
                     ctx.fillStyle = accent; ctx.fillRect(-p.w * .42, p.h * .24, 4, 5); ctx.fillRect(p.w * .42 - 4, p.h * .24, 4, 5);
-                } else if (skin === 'skin-shield') {
+                } else if (starship === 'starship-shield') {
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .54); ctx.lineTo(-p.w * .42, p.h * .3); ctx.lineTo(0, p.h * .5); ctx.lineTo(p.w * .42, p.h * .3); ctx.closePath(); ctx.fill();
                     ctx.strokeStyle = 'rgba(168,85,247,.5)'; ctx.lineWidth = 2;
                     ctx.strokeRect(-p.w * .3, -p.h * .1, p.w * .6, p.h * .42);
-                } else if (skin === 'skin-magnet') {
+                } else if (starship === 'starship-magnet') {
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .5); ctx.lineTo(-p.w * .44, p.h * .4); ctx.lineTo(p.w * .44, p.h * .4); ctx.closePath(); ctx.fill();
                     ctx.fillStyle = accent;
                     const orb = 6 + Math.sin(frameCount * .08) * 2;
                     ctx.beginPath(); ctx.arc(-p.w * .5, -2, 2.5, 0, Math.PI * 2); ctx.fill();
                     ctx.beginPath(); ctx.arc(p.w * .5, -2, 2.5, 0, Math.PI * 2); ctx.fill();
                     ctx.beginPath(); ctx.arc(0, -orb, 2.2, 0, Math.PI * 2); ctx.fill();
-                } else if (skin === 'skin-lives') {
+                } else if (starship === 'starship-lives') {
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .52); ctx.lineTo(-p.w * .45, p.h * .34); ctx.lineTo(p.w * .45, p.h * .34); ctx.closePath(); ctx.fill();
                     ctx.fillStyle = '#ffd2de';
                     ctx.beginPath();
@@ -2006,7 +2393,7 @@
                     ctx.bezierCurveTo(-4, -4, -7, 1, 0, 8);
                     ctx.bezierCurveTo(7, 1, 4, -4, 0, 2);
                     ctx.fill();
-                } else if (skin === 'skin-fire-rate') {
+                } else if (starship === 'starship-fire-rate') {
                     ctx.beginPath(); ctx.moveTo(0, -p.h * .54); ctx.lineTo(-p.w * .44, p.h * .36); ctx.lineTo(p.w * .44, p.h * .36); ctx.closePath(); ctx.fill();
                     ctx.fillStyle = accent;
                     ctx.fillRect(-p.w * .45, -2, 5, 7);
@@ -2026,10 +2413,13 @@
                     ctx.strokeStyle = 'rgba(168,85,247,0.5)'; ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.arc(0, 0, p.w * .8, 0, Math.PI * 2); ctx.stroke();
                 }
+                ctx.restore();
             }
             // In-world health bar
             const hpRatio = Math.max(0, Math.min(1, p.health / p.maxHealth));
-            const hbW = p.w + 14, hbH = 4, hbY = -p.h / 2 - 12;
+            const drawW = p.w * shipScale[0];
+            const drawH = p.h * shipScale[1];
+            const hbW = Math.max(p.w + 14, drawW * .88), hbH = 4, hbY = -drawH / 2 - 12;
             ctx.fillStyle = 'rgba(255,255,255,0.18)';
             ctx.fillRect(-hbW / 2, hbY, hbW, hbH);
             const grad = ctx.createLinearGradient(-hbW / 2, hbY, hbW / 2, hbY);
@@ -2059,18 +2449,37 @@
             if (flash) { ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 15; }
             else { ctx.fillStyle = e.color; ctx.shadowColor = e.color; ctx.shadowBlur = 8; }
             if (e.isBoss) {
-                // Boss shape
+                const tier = e.bossTier || 1;
+                const primary = e.tierColorPrimary || e.color;
+                const secondary = e.tierColorSecondary || '#ff9d66';
+                if (!flash) ctx.fillStyle = primary;
+                if (tier >= 4 && !flash) {
+                    const g = ctx.createLinearGradient(-e.w / 2, -e.h / 2, e.w / 2, e.h / 2);
+                    g.addColorStop(0, primary);
+                    g.addColorStop(.5, '#ffd86d');
+                    g.addColorStop(1, secondary);
+                    ctx.fillStyle = g;
+                }
                 ctx.beginPath();
                 ctx.moveTo(0, -e.h / 2); ctx.lineTo(-e.w / 2, 0); ctx.lineTo(-e.w / 3, e.h / 2);
                 ctx.lineTo(e.w / 3, e.h / 2); ctx.lineTo(e.w / 2, 0); ctx.closePath(); ctx.fill();
-                ctx.fillStyle = flash ? '#fff' : 'rgba(255,255,255,0.3)';
+                if (tier >= 2) {
+                    ctx.fillStyle = flash ? '#fff' : secondary;
+                    ctx.fillRect(-e.w * .44, -e.h * .1, e.w * .16, e.h * .26);
+                    ctx.fillRect(e.w * .28, -e.h * .1, e.w * .16, e.h * .26);
+                }
+                if (tier >= 3) {
+                    ctx.fillStyle = flash ? '#fff' : 'rgba(255,255,255,0.28)';
+                    ctx.fillRect(-e.w * .18, -e.h * .35, e.w * .36, e.h * .16);
+                }
+                ctx.fillStyle = flash ? '#fff' : 'rgba(255,255,255,0.35)';
                 ctx.beginPath(); ctx.arc(-10, -5, 5, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(10, -5, 5, 0, Math.PI * 2); ctx.fill();
                 // HP bar
                 ctx.shadowBlur = 0;
                 const bw = e.w + 10, bh = 4;
                 ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(-bw / 2, -e.h / 2 - 10, bw, bh);
-                ctx.fillStyle = '#ff0066'; ctx.fillRect(-bw / 2, -e.h / 2 - 10, bw * (e.hp / e.maxHp), bh);
+                ctx.fillStyle = primary; ctx.fillRect(-bw / 2, -e.h / 2 - 10, bw * (e.hp / e.maxHp), bh);
             } else {
                 // Regular enemy shapes
                 const t = e.type;
@@ -2148,7 +2557,9 @@
             document.getElementById('p1-lives').textContent = hearts;
             const p1HpPct = Math.max(0, Math.min(100, (p1.health / p1.maxHealth) * 100));
             document.getElementById('p1-health-fill').style.width = `${p1HpPct}%`;
-            document.getElementById('hud-wave').textContent = currentWave + 1;
+            document.getElementById('hud-wave').textContent = `${Math.min(currentWave + 1, MAX_WAVE)}/${MAX_WAVE}`;
+            document.getElementById('hud-level').textContent = profile.level >= MAX_PLAYER_LEVEL ? `Lvl MAX/${MAX_PLAYER_LEVEL}` : `Lvl ${profile.level}/${MAX_PLAYER_LEVEL}`;
+            document.getElementById('hud-rank').textContent = getRankForLevel(profile.level);
             const comboEl = document.getElementById('hud-combo');
             if (p1.combo > 1) comboEl.textContent = `x${p1.combo}`; else comboEl.textContent = '';
 
@@ -2195,7 +2606,12 @@
                     if (waveAnnTimer <= 0) {
                         const nextWaveIndex = pendingWave;
                         const nextWaveDisplay = nextWaveIndex + 1;
-                        if (nextWaveDisplay % 5 === 0) {
+                        if (nextWaveDisplay > MAX_WAVE) {
+                            pendingWave = null;
+                            waveAnnTimer = 0;
+                            showVictory();
+                        }
+                        else if (nextWaveDisplay % 5 === 0) {
                             checkpointWavePending = nextWaveIndex;
                             pendingWave = null;
                             waveAnnTimer = 0;
@@ -2263,6 +2679,7 @@
             clearMobileInput();
             numPlayers = np; gameMode = mode; currentWave = 0;
             pendingWave = null; waveAnnTimer = 0;
+            highestBossTierAnnounced = 0;
             checkpointWavePending = null;
             shopContext = 'gameover';
             shopReturnWave = null;
@@ -2273,6 +2690,7 @@
             players = [];
             for (let i = 0; i < np; i++) {
                 const p = createPlayer(i);
+                applyProfileStarshipsToPlayer(i, p);
                 players.push(p);
                 applyUpgrades(p);
                 resetPlayerPos(p);
@@ -2284,10 +2702,7 @@
             document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
             setupMobile();
             syncMobileControls();
-            // wave announcement
-            const el = document.getElementById('wave-announce');
-            el.textContent = 'WAVE 1'; el.style.opacity = '1'; el.style.color = 'var(--accent)';
-            setTimeout(() => { el.style.transition = 'opacity 1s'; el.style.opacity = '0'; setTimeout(() => el.style.transition = '', 1100); }, 1500);
+            showWaveAnnouncement('WAVE 1');
         }
 
         function pauseGame() {
@@ -2308,6 +2723,7 @@
             clearMobileInput();
             gameState = 'menu';
             pendingWave = null; waveAnnTimer = 0;
+            highestBossTierAnnounced = 0;
             checkpointWavePending = null;
             shopContext = 'gameover';
             shopReturnWave = null;
@@ -2319,7 +2735,6 @@
         }
 
         function showGameOver() {
-            const p = players[0];
             const totalScore = players.reduce((s, p) => s + Math.floor(p.score), 0);
             const totalKills = players.reduce((s, p) => s + p.kills, 0);
             const bestCombo = Math.max(...players.map(p => p.maxCombo));
@@ -2329,11 +2744,33 @@
             shopReturnWave = null;
             rewardUpgradePlayer = null;
             document.getElementById('go-score').textContent = totalScore.toLocaleString();
-            document.getElementById('go-wave').textContent = `Reached Wave ${currentWave + 1}`;
+            document.getElementById('go-wave').textContent = `Reached Wave ${Math.min(currentWave + 1, MAX_WAVE)}`;
             document.getElementById('go-kills').textContent = `${totalKills} enemies destroyed`;
             document.getElementById('go-combo').textContent = `Best combo: x${bestCombo}`;
+            document.getElementById('go-title').textContent = 'GAME OVER';
+            document.getElementById('go-continue').textContent = 'Continue';
             addToLeaderboard();
             showScreen('menu-gameover');
+            syncMobileControls();
+        }
+
+        function showVictory() {
+            gameState = 'victory';
+            pendingWave = null; waveAnnTimer = 0;
+            checkpointWavePending = null;
+            shopContext = 'gameover';
+            shopReturnWave = null;
+            rewardUpgradePlayer = null;
+            hideUpgradeChooser();
+            clearMobileInput();
+            const totalScore = players.reduce((s, p) => s + Math.floor(p.score), 0);
+            const totalKills = players.reduce((s, p) => s + p.kills, 0);
+            document.getElementById('victory-score').textContent = totalScore.toLocaleString();
+            document.getElementById('victory-wave').textContent = `Wave ${MAX_WAVE} Cleared`;
+            document.getElementById('victory-kills').textContent = `${totalKills} enemies destroyed`;
+            document.getElementById('victory-rank').textContent = `Rank: ${getRankForLevel(profile.level)}`;
+            addToLeaderboard();
+            showScreen('menu-victory');
             syncMobileControls();
         }
 
@@ -2391,11 +2828,13 @@
                 restartGame();
             }
         }
+
         function getActiveShopPlayer() {
             if (!players.length) return null;
             activeShopPlayer = Math.max(0, Math.min(players.length - 1, activeShopPlayer));
             const p = players[activeShopPlayer];
-            ensurePlayerSkins(p);
+            ensurePlayerStarships(p);
+            unlockStarshipsForPlayer(p);
             return p;
         }
 
@@ -2420,7 +2859,7 @@
             }
             tabs.style.display = 'flex';
             players.forEach((p, index) => {
-                ensurePlayerSkins(p);
+                ensurePlayerStarships(p);
                 const tab = document.createElement('button');
                 tab.className = 'shop-player-tab' + (index === activeShopPlayer ? ' active' : '');
                 tab.textContent = `P${index + 1}`;
@@ -2452,11 +2891,11 @@
                 const lv = p.upgrades[key];
                 const maxed = lv >= up.maxLv;
                 const cost = Math.floor(up.baseCost * (1 + lv * .6));
-                const linkedSkin = getSkinByUpgradeKey(key);
-                const hasFreeSkin = linkedSkin && isSkinMaxUnlocked(p, linkedSkin) && !p.ownedSkins.includes(linkedSkin.id);
+                const linkedShip = getStarshipByUpgradeKey(key);
+                const unlockHint = linkedShip && isUpgradeMaxUnlocked(p, linkedShip) && !p.ownedStarships.includes(linkedShip.id);
                 const item = document.createElement('div');
                 item.className = 'shop-item' + (maxed ? ' maxed' : '');
-                item.innerHTML = `<div class="shop-emoji">${up.emoji}</div><div class="shop-name">${up.name}</div><div class="shop-level">Lv ${lv}/${up.maxLv}</div><div class="shop-cost">${maxed ? 'MAX' : '💰 ' + cost}</div><div class="shop-note">${hasFreeSkin ? 'Skin claim unlocked in Skins tab.' : up.desc}</div>`;
+                item.innerHTML = `<div class="shop-emoji">${up.emoji}</div><div class="shop-name">${up.name}</div><div class="shop-level">Lv ${lv}/${up.maxLv}</div><div class="shop-cost">${maxed ? 'MAX' : 'C ' + cost}</div><div class="shop-note">${unlockHint ? 'Linked starship is now claimable.' : up.desc}</div>`;
                 if (!maxed) item.onclick = () => buyUpgrade(key);
                 grid.appendChild(item);
             }
@@ -2491,74 +2930,148 @@
             if (eligible.length === 0) {
                 p.lives = Math.min(p.maxLives, p.lives + 1);
                 rewardUpgradePlayer = null;
-                chooser.innerHTML = `<div class="shop-chooser-title">Bonus Applied</div><div class="shop-note">All upgrades are maxed. +1 life granted instead.</div>`;
+                chooser.innerHTML = `<div class="shop-chooser-title">Bonus Applied</div><div class="shop-note">All upgrades are maxed. +1 life granted.</div>`;
                 chooser.style.display = 'block';
                 setTimeout(() => {
                     if (rewardUpgradePlayer === null) hideUpgradeChooser();
                 }, 1200);
                 return;
             }
-            chooser.innerHTML = `<div class="shop-chooser-title">Skin Purchase Bonus: Free +1 Upgrade</div><div class="shop-chooser-grid"></div>`;
-            const grid = chooser.querySelector('.shop-chooser-grid');
+            chooser.innerHTML = `<div class="shop-chooser-title">Paid Starship Bonus: Free +1 Upgrade</div><div class="shop-chooser-grid"></div>`;
+            const row = chooser.querySelector('.shop-chooser-grid');
             for (const [key, up] of eligible) {
                 const btn = document.createElement('button');
                 btn.className = 'shop-chooser-item';
                 btn.textContent = `${up.emoji} ${up.name} (${p.upgrades[key] + 1}/${up.maxLv})`;
                 btn.onclick = () => claimFreeUpgradeChoice(key);
-                grid.appendChild(btn);
+                row.appendChild(btn);
             }
             chooser.style.display = 'block';
         }
 
-        function handleSkinAction(skinId) {
-            const skin = SKIN_BY_ID[skinId];
+        function getFinalStarshipStatus(p) {
+            const finalShip = STARSHIP_CATALOG.find(s => s.category === 'final');
+            const others = STARSHIP_CATALOG.filter(s => s.category !== 'final');
+            const ownedOthers = others.filter(s => p.ownedStarships.includes(s.id)).length;
+            const maxedCount = Object.entries(UPGRADES).filter(([key, up]) => p.upgrades[key] >= up.maxLv).length;
+            const allOthersOwned = ownedOthers === others.length;
+            const allMaxed = maxedCount === Object.keys(UPGRADES).length;
+            return {
+                finalShip,
+                allOthersOwned,
+                allMaxed,
+                ownedOthers,
+                totalOthers: others.length,
+                maxedCount,
+                totalUpgrades: Object.keys(UPGRADES).length,
+            };
+        }
+
+        function getStarshipState(p, ship) {
+            ensurePlayerStarships(p);
+            unlockStarshipsForPlayer(p);
+            const owned = p.ownedStarships.includes(ship.id);
+            if (owned) return p.equippedStarship === ship.id ? 'Owned' : 'Equip';
+
+            if (ship.category === 'base' || ship.category === 'side') {
+                if (isUpgradeMaxUnlocked(p, ship)) return 'Claim';
+                return ship.buyable ? 'Buy' : 'Locked';
+            }
+            if (ship.category === 'milestone') {
+                return countOwnedBaseCoreStarships(p) >= (ship.unlockBaseCount || 99) ? 'Claim' : 'Locked';
+            }
+            if (ship.category === 'final') {
+                const st = getFinalStarshipStatus(p);
+                return (st.allOthersOwned && st.allMaxed) ? 'Claim' : 'Final Locked';
+            }
+            return 'Locked';
+        }
+
+        function getStarshipRequirementText(p, ship, state) {
+            if (state === 'Buy') {
+                return `Premium unlock available for C ${getStarshipCost(ship)}.`;
+            }
+            if (state === 'Claim') {
+                return 'Requirement met. Claim and equip when ready.';
+            }
+            if (state === 'Equip' || state === 'Owned') {
+                return ship.description;
+            }
+            if (ship.category === 'base' || ship.category === 'side') {
+                const up = UPGRADES[ship.upgradeKey];
+                return `Need ${up.name} at max (${p.upgrades[ship.upgradeKey]}/${up.maxLv}) or premium buy.`;
+            }
+            if (ship.category === 'milestone') {
+                const ownedBase = countOwnedBaseCoreStarships(p);
+                return `Need Base Cores ${ownedBase}/${ship.unlockBaseCount}.`;
+            }
+            if (ship.category === 'final') {
+                const st = getFinalStarshipStatus(p);
+                return `Need starships ${st.ownedOthers}/${st.totalOthers} and upgrades max ${st.maxedCount}/${st.totalUpgrades}.`;
+            }
+            return ship.description;
+        }
+
+        function handleStarshipAction(starshipId) {
+            const ship = STARSHIP_BY_ID[starshipId];
             const p = getActiveShopPlayer();
-            if (!skin || !p) return;
-            ensurePlayerSkins(p);
-            const owned = p.ownedSkins.includes(skin.id);
-            const freeUnlock = isSkinMaxUnlocked(p, skin) && !owned;
-            if (owned) {
-                p.equippedSkin = skin.id;
+            if (!ship || !p) return;
+            const state = getStarshipState(p, ship);
+            if (state === 'Owned') {
+                sfxSelect();
+                return;
+            }
+            if (state === 'Equip') {
+                p.equippedStarship = ship.id;
+                p.equippedSkin = ship.id;
+                savePlayerStarshipsToProfile(p.id, p);
                 sfxSelect();
                 refreshShopView();
                 return;
             }
-            if (freeUnlock) {
-                p.ownedSkins.push(skin.id);
+            if (state === 'Claim') {
+                if (!p.ownedStarships.includes(ship.id)) p.ownedStarships.push(ship.id);
+                p.equippedStarship = ship.id;
+                p.equippedSkin = ship.id;
+                unlockStarshipsForPlayer(p);
+                savePlayerStarshipsToProfile(p.id, p);
                 sfxPowerup();
                 refreshShopView();
                 return;
             }
-            const cost = getSkinCost(skin);
-            if (p.credits < cost) return;
-            p.credits -= cost;
-            p.ownedSkins.push(skin.id);
-            p.equippedSkin = skin.id;
-            rewardUpgradePlayer = activeShopPlayer;
-            sfxPowerup();
-            refreshShopView();
-            showUpgradeRewardChooser(p);
+            if (state === 'Buy') {
+                const cost = getStarshipCost(ship);
+                if (p.credits < cost) return;
+                p.credits -= cost;
+                if (!p.ownedStarships.includes(ship.id)) p.ownedStarships.push(ship.id);
+                p.equippedStarship = ship.id;
+                p.equippedSkin = ship.id;
+                unlockStarshipsForPlayer(p);
+                savePlayerStarshipsToProfile(p.id, p);
+                rewardUpgradePlayer = activeShopPlayer;
+                sfxPowerup();
+                refreshShopView();
+                showUpgradeRewardChooser(p);
+                return;
+            }
         }
 
-        function renderSkinShop(p) {
+        function renderStarshipShop(p) {
             const grid = document.getElementById('shop-skin-grid');
             if (!grid) return;
             grid.innerHTML = '';
-            ensurePlayerSkins(p);
-            for (const skin of SKIN_CATALOG) {
-                const up = UPGRADES[skin.upgradeKey];
-                const owned = p.ownedSkins.includes(skin.id);
-                const equipped = p.equippedSkin === skin.id;
-                const freeUnlock = isSkinMaxUnlocked(p, skin) && !owned;
-                const cost = getSkinCost(skin);
-                let priceLabel = `💰 ${cost}`;
-                if (equipped) priceLabel = 'Equipped';
-                else if (owned) priceLabel = 'Owned';
-                else if (freeUnlock) priceLabel = 'Claim Free';
+            ensurePlayerStarships(p);
+            unlockStarshipsForPlayer(p);
+            for (const ship of STARSHIP_CATALOG) {
+                const state = getStarshipState(p, ship);
+                const owned = p.ownedStarships.includes(ship.id);
+                const equipped = p.equippedStarship === ship.id;
                 const card = document.createElement('div');
-                card.className = 'shop-item' + (equipped ? ' equipped' : '') + (owned ? ' owned' : '') + (!owned && !freeUnlock ? ' locked' : '');
-                card.innerHTML = `<div class="shop-emoji">${skin.emoji}</div><div class="shop-name">${skin.name}</div><div class="shop-level">${up.name}: ${p.upgrades[skin.upgradeKey]}/${up.maxLv}</div><div class="shop-cost">${priceLabel}</div><div class="shop-note">${skin.description}</div>`;
-                card.onclick = () => handleSkinAction(skin.id);
+                card.className = 'shop-item' + (equipped ? ' equipped' : '') + (owned ? ' owned' : '') + ((state === 'Locked' || state === 'Final Locked') ? ' locked' : '');
+                const costLabel = state;
+                const req = getStarshipRequirementText(p, ship, state);
+                card.innerHTML = `<div class="shop-emoji">${ship.emoji}</div><div class="shop-name">${ship.name}</div><div class="shop-level">${ship.category.toUpperCase()}</div><div class="shop-cost">${costLabel}</div><div class="shop-note">${req}</div>`;
+                card.onclick = () => handleStarshipAction(ship.id);
                 grid.appendChild(card);
             }
         }
@@ -2568,20 +3081,39 @@
             if (rewardUpgradePlayer !== null) activeShopPlayer = rewardUpgradePlayer;
             const p = getActiveShopPlayer();
             if (!p) return;
+
             renderShopPlayerTabs();
             const title = document.getElementById('shop-title');
-            if (title) title.textContent = shopContext === 'checkpoint' ? '⚡ Checkpoint Shop' : '⚡ Upgrade Shop';
-            document.getElementById('shop-credits').textContent = Math.floor(p.credits).toLocaleString();
+            if (title) title.textContent = shopContext === 'checkpoint' ? 'Checkpoint Shop' : 'Upgrade Shop';
+            const creditsEl = document.getElementById('shop-credits');
+            if (creditsEl) creditsEl.textContent = Math.floor(p.credits).toLocaleString();
+
+            const baseCount = countOwnedBaseCoreStarships(p);
+            const totalOwned = STARSHIP_CATALOG.filter(s => p.ownedStarships.includes(s.id)).length;
+            const progressEl = document.getElementById('shop-starship-progress');
+            if (progressEl) progressEl.textContent = `Base Cores Owned: ${baseCount}/5  Total Starships: ${totalOwned}/${STARSHIP_CATALOG.length}`;
+            const rulesEl = document.getElementById('shop-starship-rules');
+            if (rulesEl) rulesEl.textContent = 'Base cores unlock at max upgrade or premium buy. Milestones unlock at 2/3/4/5 base cores. Final flagship requires all starships plus all upgrades maxed.';
+
+            const finalReqEl = document.getElementById('shop-final-req');
+            if (finalReqEl) {
+                const st = getFinalStarshipStatus(p);
+                finalReqEl.textContent = `Final Flagship requirements -> Starships ${st.ownedOthers}/${st.totalOthers}, Upgrades ${st.maxedCount}/${st.totalUpgrades}.`;
+            }
+
             renderUpgradeShop(p);
-            renderSkinShop(p);
+            renderStarshipShop(p);
+
             const upgradeGrid = document.getElementById('shop-grid');
-            const skinGrid = document.getElementById('shop-skin-grid');
+            const shipGrid = document.getElementById('shop-skin-grid');
             if (upgradeGrid) upgradeGrid.style.display = shopMode === 'upgrades' ? 'grid' : 'none';
-            if (skinGrid) skinGrid.style.display = shopMode === 'skins' ? 'grid' : 'none';
-            const upgradeBtn = document.getElementById('shop-mode-upgrades');
-            const skinBtn = document.getElementById('shop-mode-skins');
-            if (upgradeBtn) upgradeBtn.classList.toggle('active', shopMode === 'upgrades');
-            if (skinBtn) skinBtn.classList.toggle('active', shopMode === 'skins');
+            if (shipGrid) shipGrid.style.display = shopMode === 'skins' ? 'grid' : 'none';
+
+            const upBtn = document.getElementById('shop-mode-upgrades');
+            const shipBtn = document.getElementById('shop-mode-skins');
+            if (upBtn) upBtn.classList.toggle('active', shopMode === 'upgrades');
+            if (shipBtn) shipBtn.classList.toggle('active', shopMode === 'skins');
+
             if (rewardUpgradePlayer !== null && players[rewardUpgradePlayer]) {
                 showUpgradeRewardChooser(players[rewardUpgradePlayer]);
             } else {
@@ -2600,32 +3132,8 @@
             refreshShopView();
             showScreen('menu-shop');
             syncMobileControls();
-            return;
-            /*
-            const p = players[0];
-            document.getElementById('shop-credits').textContent = p.credits;
-            const grid = document.getElementById('shop-grid');
-            grid.innerHTML = '';
-            for (const [key, up] of Object.entries(UPGRADES)) {
-                const lv = p.upgrades[key];
-                const maxed = lv >= up.maxLv;
-                const cost = Math.floor(up.baseCost * (1 + lv * .6));
-                const item = document.createElement('div');
-                item.className = 'shop-item' + (maxed ? ' maxed' : '');
-                item.innerHTML = `<div class="shop-emoji">${up.emoji}</div><div class="shop-name">${up.name}</div><div class="shop-level">Lv ${lv}/${up.maxLv}</div><div class="shop-cost">${maxed ? 'MAX' : '💰 ' + cost}</div>`;
-                if (!maxed) {
-                    item.onclick = () => {
-                        if (p.credits >= cost) {
-                            p.credits -= cost; p.upgrades[key]++;
-                            applyUpgrades(p); sfxPowerup(); showShop();
-                        }
-                    };
-                }
-                grid.appendChild(item);
-            }
-            showScreen('menu-shop');
-            */
         }
+
         function enterCheckpointShop() {
             if (checkpointWavePending === null) return;
             const targetWave = checkpointWavePending;
@@ -2674,20 +3182,28 @@
                 syncMobileControls();
                 return;
             }
-            // Revive and continue
             for (const p of players) {
-                ensurePlayerSkins(p);
-                p.lives = p.maxLives; p.alive = true; p.invincible = 2; p.respawnTimer = 0;
+                ensurePlayerStarships(p);
+                p.lives = p.maxLives;
+                p.alive = true;
+                p.invincible = 2;
+                p.respawnTimer = 0;
                 p.health = p.maxHealth;
-                resetPlayerPos(p); p.bullets = [];
+                p.fireAccumulator = 0;
+                p.timeSinceLastShot = 0;
+                resetPlayerPos(p);
+                p.bullets = [];
             }
-            pendingWave = null; waveAnnTimer = 0;
+            pendingWave = null;
+            waveAnnTimer = 0;
             checkpointWavePending = null;
             shopContext = 'gameover';
             shopReturnWave = null;
             rewardUpgradePlayer = null;
             hideUpgradeChooser();
-            pickups = []; enemyBullets = []; particles = [];
+            pickups = [];
+            enemyBullets = [];
+            particles = [];
             spawnWave(currentWave);
             gameState = 'playing';
             showScreen('');
@@ -2698,6 +3214,8 @@
         // ===== INIT =====
         initStars();
         resize();
+        profile = loadProfile();
+        saveProfile();
         leaderboard = loadLeaderboard();
         renderLeaderboard();
         setupMobile();
@@ -2706,3 +3224,6 @@
 </body>
 
 </html>
+
+
+

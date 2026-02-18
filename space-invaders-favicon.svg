@@ -1,15 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Nova Rift Invader">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#040812"/>
-      <stop offset="1" stop-color="#111f3f"/>
+      <stop offset="0" stop-color="#030814"/>
+      <stop offset="1" stop-color="#132a52"/>
     </linearGradient>
-    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#7df8ff"/>
-      <stop offset="1" stop-color="#ff6ab7"/>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5ff6ff"/>
+      <stop offset="0.55" stop-color="#8de7ff"/>
+      <stop offset="1" stop-color="#ff62b3"/>
     </linearGradient>
-    <filter id="soft-glow" x="-70%" y="-70%" width="240%" height="240%">
-      <feGaussianBlur stdDeviation="1.35" result="blur"/>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
@@ -17,13 +18,12 @@
     </filter>
   </defs>
 
-  <rect x="2.5" y="2.5" width="59" height="59" rx="14" fill="url(#bg)"/>
-  <rect x="2.5" y="2.5" width="59" height="59" rx="14" fill="none" stroke="url(#rim)" stroke-opacity=".9"/>
-  <rect x="4.5" y="4.5" width="55" height="55" rx="12" fill="none" stroke="#d8f9ff" stroke-opacity=".16"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#rim)" stroke-width="1.2"/>
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="#d9f6ff" stroke-opacity="0.18"/>
 
-  <g filter="url(#soft-glow)" shape-rendering="crispEdges">
-    <!-- invader -->
-    <g fill="#67f6ff">
+  <g filter="url(#glow)" shape-rendering="crispEdges">
+    <g fill="#62f4ff">
       <rect x="22" y="14" width="4" height="4"/>
       <rect x="26" y="14" width="4" height="4"/>
       <rect x="30" y="14" width="4" height="4"/>
@@ -42,6 +42,7 @@
       <rect x="34" y="22" width="4" height="4"/>
       <rect x="42" y="22" width="4" height="4"/>
 
+      <rect x="14" y="26" width="4" height="4"/>
       <rect x="18" y="26" width="4" height="4"/>
       <rect x="22" y="26" width="4" height="4"/>
       <rect x="26" y="26" width="4" height="4"/>
@@ -49,11 +50,15 @@
       <rect x="34" y="26" width="4" height="4"/>
       <rect x="38" y="26" width="4" height="4"/>
       <rect x="42" y="26" width="4" height="4"/>
+      <rect x="46" y="26" width="4" height="4"/>
 
-      <rect x="18" y="30" width="4" height="4"/>
+      <rect x="14" y="30" width="4" height="4"/>
+      <rect x="22" y="30" width="4" height="4"/>
       <rect x="26" y="30" width="4" height="4"/>
+      <rect x="30" y="30" width="4" height="4"/>
       <rect x="34" y="30" width="4" height="4"/>
-      <rect x="42" y="30" width="4" height="4"/>
+      <rect x="38" y="30" width="4" height="4"/>
+      <rect x="46" y="30" width="4" height="4"/>
 
       <rect x="14" y="34" width="4" height="4"/>
       <rect x="18" y="34" width="4" height="4"/>
@@ -65,10 +70,10 @@
       <rect x="42" y="34" width="4" height="4"/>
       <rect x="46" y="34" width="4" height="4"/>
 
-      <rect x="14" y="38" width="4" height="4"/>
+      <rect x="18" y="38" width="4" height="4"/>
       <rect x="22" y="38" width="4" height="4"/>
       <rect x="38" y="38" width="4" height="4"/>
-      <rect x="46" y="38" width="4" height="4"/>
+      <rect x="42" y="38" width="4" height="4"/>
 
       <rect x="14" y="42" width="4" height="4"/>
       <rect x="18" y="42" width="4" height="4"/>
@@ -76,9 +81,8 @@
       <rect x="46" y="42" width="4" height="4"/>
     </g>
 
-    <!-- eye and core accents -->
-    <rect x="26" y="22" width="4" height="4" fill="#ff62b0"/>
-    <rect x="34" y="22" width="4" height="4" fill="#ff62b0"/>
-    <rect x="30" y="30" width="4" height="4" fill="#ff62b0"/>
+    <rect x="26" y="22" width="4" height="4" fill="#ff61b2"/>
+    <rect x="34" y="22" width="4" height="4" fill="#ff61b2"/>
+    <rect x="30" y="30" width="4" height="4" fill="#ff61b2"/>
   </g>
 </svg>
