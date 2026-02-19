@@ -441,6 +441,11 @@
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
+        .quick-setting-item input[type="range"] {
+            width: 170px;
+            max-width: 100%;
+        }
+
         .quick-setting-item select:focus {
             outline: none;
             border-color: var(--gold);
@@ -511,6 +516,45 @@
             font-weight: 600;
         }
 
+        .go-top-btn {
+            position: fixed;
+            right: 16px;
+            bottom: 22px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: linear-gradient(145deg, var(--accent), var(--accent-deep));
+            color: #fff;
+            box-shadow: 0 10px 24px var(--shadow-soft);
+            cursor: pointer;
+            z-index: 970;
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .go-top-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .go-top-btn:hover {
+            filter: brightness(1.08);
+        }
+
+        body.in-read-section .go-top-btn {
+            bottom: 94px;
+        }
+
+        #quickAutoScrollRow,
+        #quickAutoScrollSpeedRow,
+        #autoScrollSpeedSettingRow {
+            display: none;
+        }
+
         /* Toggle Switch (NEW) */
         .toggle-switch {
             position: relative;
@@ -559,8 +603,12 @@
         /* Advanced Slider (NEW) */
         .advanced-slider,
         .setting-row input[type="range"],
+        .quick-setting-item input[type="range"],
+        #autoScrollSpeed,
+        #quickAutoScrollSpeed,
         #arabicFontSize,
-        #translationFontSize {
+        #translationFontSize,
+        #tafsirFontSize {
             width: 100%;
             margin-top: 8px;
             -webkit-appearance: none;
@@ -575,16 +623,24 @@
 
         .advanced-slider:focus,
         .setting-row input[type="range"]:focus,
+        .quick-setting-item input[type="range"]:focus,
+        #autoScrollSpeed:focus,
+        #quickAutoScrollSpeed:focus,
         #arabicFontSize:focus,
-        #translationFontSize:focus {
+        #translationFontSize:focus,
+        #tafsirFontSize:focus {
             outline: none;
             box-shadow: 0 0 0 3px var(--ring-gold), inset 0 1px 2px rgba(0, 0, 0, 0.25);
         }
 
         .advanced-slider::-webkit-slider-runnable-track,
         .setting-row input[type="range"]::-webkit-slider-runnable-track,
+        .quick-setting-item input[type="range"]::-webkit-slider-runnable-track,
+        #autoScrollSpeed::-webkit-slider-runnable-track,
+        #quickAutoScrollSpeed::-webkit-slider-runnable-track,
         #arabicFontSize::-webkit-slider-runnable-track,
-        #translationFontSize::-webkit-slider-runnable-track {
+        #translationFontSize::-webkit-slider-runnable-track,
+        #tafsirFontSize::-webkit-slider-runnable-track {
             height: 6px;
             border-radius: 999px;
             background: transparent;
@@ -592,8 +648,12 @@
 
         .advanced-slider::-webkit-slider-thumb,
         .setting-row input[type="range"]::-webkit-slider-thumb,
+        .quick-setting-item input[type="range"]::-webkit-slider-thumb,
+        #autoScrollSpeed::-webkit-slider-thumb,
+        #quickAutoScrollSpeed::-webkit-slider-thumb,
         #arabicFontSize::-webkit-slider-thumb,
-        #translationFontSize::-webkit-slider-thumb {
+        #translationFontSize::-webkit-slider-thumb,
+        #tafsirFontSize::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 16px;
@@ -609,15 +669,23 @@
 
         .advanced-slider::-webkit-slider-thumb:hover,
         .setting-row input[type="range"]::-webkit-slider-thumb:hover,
+        .quick-setting-item input[type="range"]::-webkit-slider-thumb:hover,
+        #autoScrollSpeed::-webkit-slider-thumb:hover,
+        #quickAutoScrollSpeed::-webkit-slider-thumb:hover,
         #arabicFontSize::-webkit-slider-thumb:hover,
-        #translationFontSize::-webkit-slider-thumb:hover {
+        #translationFontSize::-webkit-slider-thumb:hover,
+        #tafsirFontSize::-webkit-slider-thumb:hover {
             transform: scale(1.07);
         }
 
         .advanced-slider::-moz-range-track,
         .setting-row input[type="range"]::-moz-range-track,
+        .quick-setting-item input[type="range"]::-moz-range-track,
+        #autoScrollSpeed::-moz-range-track,
+        #quickAutoScrollSpeed::-moz-range-track,
         #arabicFontSize::-moz-range-track,
-        #translationFontSize::-moz-range-track {
+        #translationFontSize::-moz-range-track,
+        #tafsirFontSize::-moz-range-track {
             height: 6px;
             border-radius: 999px;
             background: transparent;
@@ -626,8 +694,12 @@
 
         .advanced-slider::-moz-range-thumb,
         .setting-row input[type="range"]::-moz-range-thumb,
+        .quick-setting-item input[type="range"]::-moz-range-thumb,
+        #autoScrollSpeed::-moz-range-thumb,
+        #quickAutoScrollSpeed::-moz-range-thumb,
         #arabicFontSize::-moz-range-thumb,
-        #translationFontSize::-moz-range-thumb {
+        #translationFontSize::-moz-range-thumb,
+        #tafsirFontSize::-moz-range-thumb {
             width: 16px;
             height: 16px;
             border-radius: 50%;
@@ -2446,6 +2518,18 @@
                 min-width: 0;
             }
 
+            .quick-setting-item input[type="range"] {
+                width: 100%;
+            }
+
+            .go-top-btn {
+                right: 10px;
+            }
+
+            body.in-read-section .go-top-btn {
+                bottom: calc(var(--mobile-audio-offset, 190px) + env(safe-area-inset-bottom) + 12px);
+            }
+
             .quick-adv-buttons {
                 width: 100%;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2575,7 +2659,8 @@
             .setting-row input[type="range"],
             #defaultSecondaryLang,
             #arabicFontSize,
-            #translationFontSize {
+            #translationFontSize,
+            #tafsirFontSize {
                 width: 100% !important;
                 max-width: none;
             }
@@ -2763,6 +2848,13 @@
                 font-size: 0.68rem;
             }
 
+            .go-top-btn {
+                width: 40px;
+                height: 40px;
+                right: 8px;
+                bottom: calc(10px + env(safe-area-inset-bottom));
+            }
+
         }
 
         @media (max-width: 520px) {
@@ -2930,6 +3022,14 @@
                     <div class="quick-setting-item">
                         <label>Expand All Tafsir</label>
                         <button class="quick-switch-btn" id="quickExpandAllTafsirToggle" type="button" aria-label="Expand all tafsir"></button>
+                    </div>
+                    <div class="quick-setting-item" id="quickAutoScrollRow">
+                        <label>Auto Scroll</label>
+                        <button class="quick-switch-btn" id="quickAutoScrollToggle" type="button" aria-label="Toggle auto scroll"></button>
+                    </div>
+                    <div class="quick-setting-item" id="quickAutoScrollSpeedRow">
+                        <label>Auto Scroll Speed</label>
+                        <input type="range" id="quickAutoScrollSpeed" min="0.5" max="4" step="0.1" value="1.0" aria-label="Auto scroll speed">
                     </div>
                     <div class="quick-adv-buttons">
                         <button class="quick-chip-btn" type="button" id="quickTajweedBasicBtn">Basic</button>
@@ -3329,6 +3429,13 @@
                         </div>
                         <input type="range" id="translationFontSize" min="12" max="24" value="17" style="width: 150px;">
                     </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Tafsir Font Size</div>
+                            <div class="setting-desc">Current: <span id="tafsirFontSizeValue">16px</span></div>
+                        </div>
+                        <input type="range" id="tafsirFontSize" min="12" max="28" value="16" style="width: 150px;">
+                    </div>
                 </div>
                 
                 <div class="settings-section">
@@ -3366,6 +3473,17 @@
                             <input type="checkbox" id="autoplayNextSetting" checked>
                             <span class="toggle-slider"></span>
                         </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">Scrolling Settings</div>
+                    <div class="setting-row" id="autoScrollSpeedSettingRow">
+                        <div>
+                            <div class="setting-label">Auto Scroll Speed</div>
+                            <div class="setting-desc">Current: <span id="autoScrollSpeedValue">1.0x</span></div>
+                        </div>
+                        <input type="range" id="autoScrollSpeed" min="0.5" max="4" step="0.1" value="1.0" style="width: 150px;">
                     </div>
                 </div>
                 
@@ -3491,6 +3609,9 @@
         </section>
     </main>
 
+    <button class="go-top-btn" id="goTopBtn" title="Go to top" aria-label="Go to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
     <!-- ABOUT MODAL -->
     <div class="modal about-modal" id="aboutModal" aria-hidden="true">
         <div class="modal-content">
@@ -3635,9 +3756,11 @@
             expandAllTafsir: false,
             wbwEnabled: false,
             autoPlayNext: true,
+            autoScrollSpeed: 1,
             audioVolume: 1,
             arabicFontSize: 32,
             translationFontSize: 17,
+            tafsirFontSize: 16,
             currentScript: 'uthmani',
             tafsirSource: '169',
             secondaryTranslation: '161',
@@ -3665,7 +3788,12 @@
             wordMapByVerse: {},
             audioCache: {},
             settings: { ...defaultSettings, ...storedSettings },
-            surahs: []
+            surahs: [],
+            autoScroll: {
+                active: false,
+                rafId: 0,
+                hideTopTimer: 0
+            }
         };
 
         state.settings.currentScript = state.settings.currentScript || state.settings.arabicScript || 'uthmani';
@@ -3674,8 +3802,10 @@
         state.settings.expandAllTafsir = !!state.settings.expandAllTafsir;
         state.settings.secondaryTranslation = String(state.settings.secondaryTranslation ?? mapLegacySecondary(state.settings.defaultSecondaryLang) ?? '161');
         state.settings.tafsirSource = String(state.settings.tafsirSource || '169');
-        state.settings.currentReciter = 7;
+        state.settings.currentReciter = Number(state.settings.currentReciter || 7);
         state.settings.audioVolume = Math.max(0, Math.min(1, Number(state.settings.audioVolume ?? 1)));
+        state.settings.autoScrollSpeed = Math.max(0.5, Math.min(4, Number(state.settings.autoScrollSpeed ?? 1)));
+        state.settings.tafsirFontSize = Math.max(12, Math.min(28, Number(state.settings.tafsirFontSize ?? 16)));
         state.settings.wbwDisplayMode = ['both', 'translation', 'transliteration', 'arabic'].includes(state.settings.wbwDisplayMode)
             ? state.settings.wbwDisplayMode
             : 'both';
@@ -3774,27 +3904,156 @@
 
         function getVersePlainArabic(verse, script = state.settings.currentScript) {
             if (!verse) return '';
+            if (script === 'indopak') {
+                return verse.text_indopak || verse.text_uthmani || verse.text_imlaei || '';
+            }
+            if (script === 'imlaei') {
+                return verse.text_imlaei || verse.text_uthmani || verse.text_indopak || '';
+            }
             if (verse.words && verse.words.length) {
                 return verse.words
                     .filter(w => w.char_type_name !== 'end')
-                    .map(w => getWordText(w, script))
+                    .map(w => getWordText(w, 'uthmani'))
                     .filter(Boolean)
                     .join(' ');
             }
-            if (script === 'indopak') return verse.text_indopak || verse.text_uthmani || verse.text_imlaei || '';
-            if (script === 'imlaei') return verse.text_imlaei || verse.text_uthmani || verse.text_indopak || '';
             return verse.text_uthmani || verse.text_indopak || verse.text_imlaei || '';
         }
 
         function getVerseDisplayArabic(verse) {
             if (
                 state.settings.tajweedEnabled &&
-                state.settings.currentScript === 'uthmani' &&
                 verse?.text_uthmani_tajweed
             ) {
-                return verse.text_uthmani_tajweed;
+                if (state.settings.currentScript === 'uthmani') {
+                    return verse.text_uthmani_tajweed;
+                }
+                return buildScriptTajweedHtml(verse, state.settings.currentScript);
             }
             return escapeHtml(getVersePlainArabic(verse));
+        }
+
+        function extractTajweedWordCharClasses(tajweedHtml) {
+            const source = String(tajweedHtml || '')
+                .replace(/<span[^>]*class\s*=\s*["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
+            if (!source) return [];
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = source;
+            const words = [];
+            let currentWord = [];
+
+            const flushWord = () => {
+                if (!currentWord.length) return;
+                words.push(currentWord);
+                currentWord = [];
+            };
+
+            const walk = (node, inheritedClass = '') => {
+                if (!node) return;
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.nodeValue || '';
+                    for (const ch of Array.from(text)) {
+                        if (/\s/.test(ch)) {
+                            flushWord();
+                        } else {
+                            currentWord.push({
+                                char: ch,
+                                className: inheritedClass || ''
+                            });
+                        }
+                    }
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+                const tag = String(node.tagName || '').toLowerCase();
+                const nextClass = tag === 'tajweed' ? (node.getAttribute('class') || '').trim() : inheritedClass;
+                node.childNodes.forEach(child => walk(child, nextClass));
+            };
+
+            wrapper.childNodes.forEach(child => walk(child, ''));
+            flushWord();
+            return words;
+        }
+
+        function renderTargetWordWithTajweed(targetWord, sourceWordChars) {
+            const chars = Array.from(String(targetWord || ''));
+            if (!chars.length) return '';
+
+            const source = Array.isArray(sourceWordChars) ? sourceWordChars : [];
+            const sourceClasses = source.map(item => String(item?.className || ''));
+            const sourceLen = sourceClasses.length;
+            const targetLen = chars.length;
+
+            const hasAnyClass = sourceClasses.some(Boolean);
+            if (!hasAnyClass || !sourceLen) return escapeHtml(targetWord);
+
+            let html = '';
+            let runText = '';
+            let runClass = null;
+
+            const flushRun = () => {
+                if (!runText) return;
+                if (runClass) {
+                    html += `<tajweed class="${escapeHtml(runClass)}">${escapeHtml(runText)}</tajweed>`;
+                } else {
+                    html += escapeHtml(runText);
+                }
+                runText = '';
+            };
+
+            for (let i = 0; i < targetLen; i++) {
+                const sourceIdx = Math.min(sourceLen - 1, Math.floor((i * sourceLen) / targetLen));
+                const nextClass = sourceClasses[sourceIdx] || '';
+                if (runClass === null) {
+                    runClass = nextClass;
+                } else if (nextClass !== runClass) {
+                    flushRun();
+                    runClass = nextClass;
+                }
+                runText += chars[i];
+            }
+
+            flushRun();
+            return html;
+        }
+
+        function buildScriptTajweedHtml(verse, script) {
+            const targetText = getVersePlainArabic(verse, script);
+            const sourceTajweed = verse?.text_uthmani_tajweed || '';
+            if (!targetText || !sourceTajweed) return escapeHtml(targetText || '');
+
+            const sourceWords = extractTajweedWordCharClasses(sourceTajweed);
+            if (!sourceWords.length) return escapeHtml(targetText);
+
+            const tokens = String(targetText).split(/(\s+)/);
+            let wordIdx = 0;
+            return tokens.map(token => {
+                if (!token) return '';
+                if (/^\s+$/.test(token)) return escapeHtml(token);
+                const sourceWordChars = sourceWords[wordIdx++] || [];
+                return renderTargetWordWithTajweed(token, sourceWordChars);
+            }).join('');
+        }
+
+        function autoScrollPlayingVerse(verseNum) {
+            if (state.currentSection !== 'read') return;
+            const target = document.getElementById(`verse-${verseNum}`);
+            if (!target) return;
+            const rect = target.getBoundingClientRect();
+            const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+            const topSafe = 68;
+            const mobileOffset = Number.parseInt(getComputedStyle(document.body).getPropertyValue('--mobile-audio-offset'), 10);
+            const bottomSafe = vh - (Number.isFinite(mobileOffset) && mobileOffset > 0 ? mobileOffset + 10 : 90);
+            const inView = rect.top >= topSafe && rect.bottom <= bottomSafe;
+            if (!inView) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function isSameVerse(a, b) {
+            return Number(a) === Number(b);
         }
 
         function getTranslationById(verse, resourceId) {
@@ -3863,9 +4122,11 @@
             quickAlwaysEnglishToggle: document.getElementById('quickAlwaysEnglishToggle'),
             quickTajweedToggle: document.getElementById('quickTajweedToggle'),
             quickExpandAllTafsirToggle: document.getElementById('quickExpandAllTafsirToggle'),
+            quickAutoScrollToggle: document.getElementById('quickAutoScrollToggle'),
             quickTajweedBasicBtn: document.getElementById('quickTajweedBasicBtn'),
             quickTajweedAdvancedBtn: document.getElementById('quickTajweedAdvancedBtn'),
             quickTajweedGuideBtn: document.getElementById('quickTajweedGuideBtn'),
+            goTopBtn: document.getElementById('goTopBtn'),
             bottomAudioBar: document.getElementById('bottomAudioBar'),
             audioPlayer: document.getElementById('audioPlayer'),
             playPauseBtn: document.getElementById('playPauseBtn'),
@@ -3911,11 +4172,13 @@
             await loadTafsirSources();
             populateSurahSelects();
             applySettings();
+            syncAutoScrollAvailability();
             renderSurahList();
             renderJuzList('juz');
             renderBookmarks();
             updateAudioInfo();
             requestAnimationFrame(syncMobileAudioOffset);
+            handleScrollActivity();
         }
 
         // ========== THEME MANAGEMENT ==========
@@ -3936,6 +4199,7 @@
             elements.quickAlwaysEnglishToggle?.classList.toggle('active', !!state.settings.alwaysEnglish);
             elements.quickTajweedToggle?.classList.toggle('active', !!state.settings.tajweedEnabled);
             elements.quickExpandAllTafsirToggle?.classList.toggle('active', !!state.settings.expandAllTafsir);
+            elements.quickAutoScrollToggle?.classList.toggle('active', !!state.autoScroll.active);
             elements.quickTajweedBasicBtn?.classList.toggle('active', !state.settings.tajweedAdvanced);
             elements.quickTajweedAdvancedBtn?.classList.toggle('active', !!state.settings.tajweedAdvanced);
             elements.repeatBtn?.classList.toggle('repeat-active', !!(state.settings.repeatVerse || state.repeatVerseNumber !== null));
@@ -3952,6 +4216,16 @@
             saveSettings();
         }
 
+        function applyTafsirFontSizeToDOM() {
+            const size = `${state.settings.tafsirFontSize}px`;
+            document.querySelectorAll('.tafsir-text').forEach(el => {
+                el.style.fontSize = size;
+            });
+            elements.tafsirContainer?.querySelectorAll('.translation-text').forEach(el => {
+                el.style.fontSize = size;
+            });
+        }
+
         // ========== SETTINGS MANAGEMENT ==========
         function applySettings() {
             const tajweedEnabledSetting = document.getElementById('tajweedEnabledSetting');
@@ -3960,8 +4234,13 @@
             const autoplayNextSetting = document.getElementById('autoplayNextSetting');
             const arabicFontSize = document.getElementById('arabicFontSize');
             const translationFontSize = document.getElementById('translationFontSize');
+            const tafsirFontSize = document.getElementById('tafsirFontSize');
+            const autoScrollSpeed = document.getElementById('autoScrollSpeed');
+            const quickAutoScrollSpeed = document.getElementById('quickAutoScrollSpeed');
             const arabicFontSizeValue = document.getElementById('arabicFontSizeValue');
             const translationFontSizeValue = document.getElementById('translationFontSizeValue');
+            const tafsirFontSizeValue = document.getElementById('tafsirFontSizeValue');
+            const autoScrollSpeedValue = document.getElementById('autoScrollSpeedValue');
 
             if (tajweedEnabledSetting) tajweedEnabledSetting.checked = !!state.settings.tajweedEnabled;
             if (advancedTajweedSetting) advancedTajweedSetting.checked = !!state.settings.tajweedAdvanced;
@@ -3972,6 +4251,9 @@
             if (autoplayNextSetting) autoplayNextSetting.checked = !!state.settings.autoPlayNext;
             if (arabicFontSize) arabicFontSize.value = String(state.settings.arabicFontSize);
             if (translationFontSize) translationFontSize.value = String(state.settings.translationFontSize);
+            if (tafsirFontSize) tafsirFontSize.value = String(state.settings.tafsirFontSize);
+            if (autoScrollSpeed) autoScrollSpeed.value = String(state.settings.autoScrollSpeed);
+            if (quickAutoScrollSpeed) quickAutoScrollSpeed.value = String(state.settings.autoScrollSpeed);
             setSelectValue(elements.quickScriptSelect, state.settings.currentScript, 'uthmani');
             setSelectValue(document.getElementById('secondaryLangSelect'), state.settings.secondaryTranslation, '161');
             setSelectValue(document.getElementById('defaultSecondaryLang'), state.settings.secondaryTranslation, '161');
@@ -3987,31 +4269,40 @@
             wordAudioPlayer.volume = state.settings.audioVolume;
             if (arabicFontSizeValue) arabicFontSizeValue.textContent = state.settings.arabicFontSize + 'px';
             if (translationFontSizeValue) translationFontSizeValue.textContent = state.settings.translationFontSize + 'px';
+            if (tafsirFontSizeValue) tafsirFontSizeValue.textContent = state.settings.tafsirFontSize + 'px';
+            if (autoScrollSpeedValue) autoScrollSpeedValue.textContent = `${state.settings.autoScrollSpeed.toFixed(1)}x`;
             document.body.classList.toggle('tajweed-advanced-enabled', !!state.settings.tajweedAdvanced);
             const guide = document.getElementById('advancedTajweedGuide');
             if (guide) guide.style.display = state.settings.tajweedAdvanced ? 'block' : 'none';
+            applyTafsirFontSizeToDOM();
+            syncAutoScrollAvailability();
             syncTopButtons();
         }
 
         function saveSettings() {
-            localStorage.setItem('quran-settings', JSON.stringify({
-                theme: state.settings.theme,
+            const normalized = {
+                ...defaultSettings,
+                ...state.settings,
+                theme: String(state.settings.theme || 'dark'),
                 tajweedEnabled: !!state.settings.tajweedEnabled,
                 tajweedAdvanced: !!state.settings.tajweedAdvanced,
                 alwaysEnglish: !!state.settings.alwaysEnglish,
                 wbwEnabled: !!state.settings.wbwEnabled,
                 autoPlayNext: !!state.settings.autoPlayNext,
+                autoScrollSpeed: Number(state.settings.autoScrollSpeed),
                 expandAllTafsir: !!state.settings.expandAllTafsir,
                 audioVolume: Number(state.settings.audioVolume),
                 arabicFontSize: Number(state.settings.arabicFontSize),
                 translationFontSize: Number(state.settings.translationFontSize),
-                currentScript: String(state.settings.currentScript),
-                tafsirSource: String(state.settings.tafsirSource),
-                secondaryTranslation: String(state.settings.secondaryTranslation),
-                currentReciter: Number(state.settings.currentReciter),
-                wbwDisplayMode: String(state.settings.wbwDisplayMode),
+                tafsirFontSize: Number(state.settings.tafsirFontSize),
+                currentScript: String(state.settings.currentScript || 'uthmani'),
+                tafsirSource: String(state.settings.tafsirSource || '169'),
+                secondaryTranslation: String(state.settings.secondaryTranslation || '161'),
+                currentReciter: Number(state.settings.currentReciter || 7),
+                wbwDisplayMode: String(state.settings.wbwDisplayMode || 'both'),
                 repeatVerse: !!state.settings.repeatVerse
-            }));
+            };
+            localStorage.setItem('quran-settings', JSON.stringify(normalized));
         }
 
         function showNotification(message, error = false) {
@@ -4027,6 +4318,103 @@
             note.style.opacity = '1';
             clearTimeout(note._hideTimer);
             note._hideTimer = setTimeout(() => { note.style.opacity = '0'; }, 2200);
+        }
+
+        function getRootScroller() {
+            return document.scrollingElement || document.documentElement;
+        }
+
+        function isPhoneAutoScroll() {
+            return window.matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+        }
+
+        function setGoTopVisible(visible) {
+            elements.goTopBtn?.classList.toggle('show', !!visible);
+        }
+
+        function scheduleGoTopHide() {
+            if (state.autoScroll.hideTopTimer) {
+                clearTimeout(state.autoScroll.hideTopTimer);
+            }
+            state.autoScroll.hideTopTimer = window.setTimeout(() => {
+                setGoTopVisible(false);
+            }, 1400);
+        }
+
+        function handleScrollActivity() {
+            if (state.autoScroll.active) {
+                setGoTopVisible(false);
+                return;
+            }
+            const top = getRootScroller().scrollTop || 0;
+            if (top < 100) {
+                setGoTopVisible(false);
+                return;
+            }
+            setGoTopVisible(true);
+            scheduleGoTopHide();
+        }
+
+        function syncAutoScrollAvailability() {
+            const enabled = isPhoneAutoScroll();
+            const quickRow = document.getElementById('quickAutoScrollRow');
+            const quickSpeedRow = document.getElementById('quickAutoScrollSpeedRow');
+            const speedSettingRow = document.getElementById('autoScrollSpeedSettingRow');
+            if (quickRow) quickRow.style.display = enabled ? 'flex' : 'none';
+            if (quickSpeedRow) quickSpeedRow.style.display = enabled ? 'flex' : 'none';
+            if (speedSettingRow) speedSettingRow.style.display = enabled ? 'flex' : 'none';
+            if (!enabled && state.autoScroll.active) {
+                stopAutoScroll({ interrupted: true });
+            }
+        }
+
+        function stopAutoScroll({ interrupted = false } = {}) {
+            if (state.autoScroll.rafId) {
+                cancelAnimationFrame(state.autoScroll.rafId);
+                state.autoScroll.rafId = 0;
+            }
+            state.autoScroll.active = false;
+            document.body.classList.remove('auto-scroll-active');
+            syncTopButtons();
+            if (interrupted) {
+                handleScrollActivity();
+            }
+        }
+
+        function autoScrollStep() {
+            if (!state.autoScroll.active) return;
+            const root = getRootScroller();
+            const velocity = Math.max(0.6, Number(state.settings.autoScrollSpeed || 1) * 1.8);
+            root.scrollTop += velocity;
+            state.autoScroll.rafId = requestAnimationFrame(autoScrollStep);
+        }
+
+        function startAutoScroll() {
+            if (!isPhoneAutoScroll()) return;
+            const root = getRootScroller();
+            if (root.scrollHeight <= root.clientHeight + 2) {
+                showNotification('No scrollable area here.', true);
+                return;
+            }
+            if (state.autoScroll.active) return;
+            state.autoScroll.active = true;
+            elements.quickSettingsDropdown?.classList.remove('show');
+            document.body.classList.add('auto-scroll-active');
+            setGoTopVisible(false);
+            syncTopButtons();
+            autoScrollStep();
+        }
+
+        function toggleAutoScrollArm() {
+            if (!isPhoneAutoScroll()) {
+                showNotification('Auto scroll is available on phone only.', true);
+                return;
+            }
+            if (state.autoScroll.active) {
+                stopAutoScroll({ interrupted: true });
+                return;
+            }
+            startAutoScroll();
         }
 
         // ========== SURAH LIST POPULATION ==========
@@ -4297,7 +4685,7 @@
                                             ${getTafsirOptionsHtml(selectedTafsir)}
                                         </select>
                                     </div>
-                                    <div class="tafsir-text" id="verse-tafsir-text-${verseNum}">
+                                    <div class="tafsir-text" id="verse-tafsir-text-${verseNum}" style="font-size:${state.settings.tafsirFontSize}px;">
                                         Click to load tafsir for ${state.currentSurah.number}:${verseNum}.
                                     </div>
                                 </div>
@@ -4734,11 +5122,15 @@
             }
             const verse = state.verses.find(v => Number(v.verse_number) === Number(verseNum));
             if (!verse) return;
+            const prevVerse = Number(state.currentVerse);
 
             state.currentVerse = Number(verseNum);
             state.currentVerseIndex = Math.max(0, state.verses.findIndex(v => Number(v.verse_number) === Number(verseNum)));
             updateAudioInfo();
             setPlayingVerseUI(verseNum);
+            if (!isSameVerse(prevVerse, verseNum)) {
+                requestAnimationFrame(() => autoScrollPlayingVerse(verseNum));
+            }
 
             try {
                 const audioUrl = await resolveVerseAudioUrl(verse);
@@ -5170,7 +5562,7 @@
                 const data = await fetchJSON(`${API_BASE}/tafsirs/${source}/by_ayah/${surahNum}:${verseNum}`);
                 const text = cleanTranslationText(data.tafsir?.text || data.text || '') || 'No tafsir available for this ayah.';
                 elements.tafsirContainer.innerHTML = `
-                    <div class="translation-text" style="margin-bottom:0;">
+                    <div class="translation-text" style="margin-bottom:0;font-size:${state.settings.tafsirFontSize}px;">
                         <div class="translation-label">Tafsir ${surahNum}:${verseNum}</div>
                         ${escapeHtml(text)}
                     </div>
@@ -5234,8 +5626,40 @@
 
             elements.themeToggle?.addEventListener('click', toggleTheme);
 
-            window.addEventListener('resize', syncMobileAudioOffset, { passive: true });
-            window.addEventListener('orientationchange', syncMobileAudioOffset);
+            window.addEventListener('resize', () => {
+                syncMobileAudioOffset();
+                syncAutoScrollAvailability();
+            }, { passive: true });
+            window.addEventListener('orientationchange', () => {
+                syncMobileAudioOffset();
+                syncAutoScrollAvailability();
+            });
+            window.addEventListener('scroll', handleScrollActivity, { passive: true });
+            window.addEventListener('wheel', () => {
+                if (state.autoScroll.active) {
+                    stopAutoScroll({ interrupted: true });
+                    return;
+                }
+                handleScrollActivity();
+            }, { passive: true });
+            window.addEventListener('touchmove', () => {
+                if (state.autoScroll.active) {
+                    stopAutoScroll({ interrupted: true });
+                    return;
+                }
+                handleScrollActivity();
+            }, { passive: true });
+            document.addEventListener('scroll', () => {
+                handleScrollActivity();
+            }, true);
+
+            document.addEventListener('pointerdown', (e) => {
+                if (state.autoScroll.active) {
+                    if (!e.target.closest('#quickAutoScrollToggle')) {
+                        stopAutoScroll({ interrupted: true });
+                    }
+                }
+            }, true);
 
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', () => {
@@ -5263,6 +5687,9 @@
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') closeAboutModal();
+                if (state.autoScroll.active && !['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
+                    stopAutoScroll({ interrupted: true });
+                }
             });
 
             elements.quickSettingsBtn?.addEventListener('click', (e) => {
@@ -5357,6 +5784,9 @@
             elements.readTafsirSourceSelect?.addEventListener('change', (e) => applyTafsirSource(e.target.value));
             elements.quickExpandAllTafsirToggle?.addEventListener('click', () => {
                 setExpandAllTafsir(!state.settings.expandAllTafsir);
+            });
+            elements.quickAutoScrollToggle?.addEventListener('click', () => {
+                toggleAutoScrollArm();
             });
 
             const applyReciter = (value) => {
@@ -5513,6 +5943,40 @@
                 renderVerses();
             });
 
+            document.getElementById('tafsirFontSize')?.addEventListener('input', (e) => {
+                state.settings.tafsirFontSize = Number(e.target.value || 16);
+                const label = document.getElementById('tafsirFontSizeValue');
+                if (label) label.textContent = `${state.settings.tafsirFontSize}px`;
+                saveSettings();
+                applyTafsirFontSizeToDOM();
+                if (document.getElementById('tafsirVerseSelect')?.value) {
+                    loadMainTafsir();
+                }
+            });
+            const applyAutoScrollSpeed = (value, sourceId = '') => {
+                state.settings.autoScrollSpeed = Math.max(0.5, Math.min(4, Number(value || 1)));
+                const mainSlider = document.getElementById('autoScrollSpeed');
+                const quickSlider = document.getElementById('quickAutoScrollSpeed');
+                const label = document.getElementById('autoScrollSpeedValue');
+                if (label) label.textContent = `${state.settings.autoScrollSpeed.toFixed(1)}x`;
+                if (mainSlider && sourceId !== 'autoScrollSpeed') mainSlider.value = String(state.settings.autoScrollSpeed);
+                if (quickSlider && sourceId !== 'quickAutoScrollSpeed') quickSlider.value = String(state.settings.autoScrollSpeed);
+                saveSettings();
+            };
+
+            document.getElementById('autoScrollSpeed')?.addEventListener('input', (e) => {
+                applyAutoScrollSpeed(e.target.value, 'autoScrollSpeed');
+            });
+            document.getElementById('quickAutoScrollSpeed')?.addEventListener('input', (e) => {
+                applyAutoScrollSpeed(e.target.value, 'quickAutoScrollSpeed');
+            });
+
+            elements.goTopBtn?.addEventListener('click', () => {
+                stopAutoScroll();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setGoTopVisible(false);
+            });
+
             const wbwSurahSelect = document.getElementById('wbwSurahSelect');
             const wbwVerseSelect = document.getElementById('wbwVerseSelect');
             wbwSurahSelect?.addEventListener('change', (e) => {
@@ -5557,4 +6021,3 @@
     </script>
 </body>
 </html>
-
