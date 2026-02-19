@@ -3771,6 +3771,7 @@
 
         const storedSettings = parseStoredJson('quran-settings', {});
         const storedBookmarks = parseStoredJson('quran-bookmarks', []);
+        const storedSession = parseStoredJson('quran-session', {});
 
         const state = {
             currentSurah: null,
@@ -3789,10 +3790,12 @@
             audioCache: {},
             settings: { ...defaultSettings, ...storedSettings },
             surahs: [],
+            session: storedSession && typeof storedSession === 'object' ? storedSession : {},
             autoScroll: {
                 active: false,
                 rafId: 0,
-                hideTopTimer: 0
+                hideTopTimer: 0,
+                desktopForced: false
             }
         };
 
@@ -3814,6 +3817,8 @@
 
         const wordAudioPlayer = new Audio();
         let currentWordEl = null;
+        let sessionSaveTimer = 0;
+        let lastSessionSaveAt = 0;
 
         function escapeHtml(str) {
             return String(str ?? '')
@@ -4172,10 +4177,11 @@
             await loadTafsirSources();
             populateSurahSelects();
             applySettings();
-            syncAutoScrollAvailability();
+            syncAutoScrollMode();
             renderSurahList();
             renderJuzList('juz');
             renderBookmarks();
+            await restoreSessionFromStorage();
             updateAudioInfo();
             requestAnimationFrame(syncMobileAudioOffset);
             handleScrollActivity();
@@ -4275,7 +4281,7 @@
             const guide = document.getElementById('advancedTajweedGuide');
             if (guide) guide.style.display = state.settings.tajweedAdvanced ? 'block' : 'none';
             applyTafsirFontSizeToDOM();
-            syncAutoScrollAvailability();
+            syncAutoScrollMode();
             syncTopButtons();
         }
 
@@ -4324,8 +4330,86 @@
             return document.scrollingElement || document.documentElement;
         }
 
+        function normalizeSectionForSession(sectionId) {
+            const candidate = String(sectionId || '').trim();
+            if (!candidate) return 'home';
+            return document.getElementById(`section-${candidate}`) ? candidate : 'home';
+        }
+
+        function saveSessionSnapshot() {
+            try {
+                const snapshot = {
+                    section: normalizeSectionForSession(state.currentSection),
+                    surah: Number(state.currentSurah?.number || 0) || null,
+                    verse: Number(state.currentVerse || 0) || null,
+                    scrollTop: Math.max(0, Math.round(Number(getRootScroller().scrollTop || 0))),
+                    script: String(state.settings.currentScript || 'uthmani'),
+                    secondaryTranslation: String(state.settings.secondaryTranslation || '161'),
+                    reciter: Number(state.settings.currentReciter || 7),
+                    updatedAt: Date.now()
+                };
+                state.session = snapshot;
+                localStorage.setItem('quran-session', JSON.stringify(snapshot));
+            } catch (_) {
+                // Ignore storage write errors (private mode/quota) without breaking UX.
+            }
+        }
+
+        function queueSessionSave(options = {}) {
+            const { immediate = false } = options;
+            const now = Date.now();
+            if (immediate || now - lastSessionSaveAt >= 1200) {
+                if (sessionSaveTimer) {
+                    clearTimeout(sessionSaveTimer);
+                    sessionSaveTimer = 0;
+                }
+                saveSessionSnapshot();
+                lastSessionSaveAt = now;
+                return;
+            }
+            if (!sessionSaveTimer) {
+                const wait = Math.max(120, 1200 - (now - lastSessionSaveAt));
+                sessionSaveTimer = window.setTimeout(() => {
+                    sessionSaveTimer = 0;
+                    saveSessionSnapshot();
+                    lastSessionSaveAt = Date.now();
+                }, wait);
+            }
+        }
+
+        async function restoreSessionFromStorage() {
+            const snapshot = state.session && typeof state.session === 'object' ? state.session : null;
+            if (!snapshot) return;
+            const hasSavedData = snapshot.section || snapshot.surah || snapshot.verse || snapshot.scrollTop;
+            if (!hasSavedData) return;
+
+            const targetSection = normalizeSectionForSession(snapshot.section || 'home');
+            const surahNum = Number(snapshot.surah || 0);
+            const verseNum = Math.max(1, Number(snapshot.verse || 1));
+            const scrollTop = Number(snapshot.scrollTop);
+            const canRestoreSurah = Number.isInteger(surahNum) && surahNum >= 1 && surahNum <= 114;
+
+            if (canRestoreSurah) {
+                await loadSurah(surahNum, { showReadSection: false, scrollToVerse: verseNum });
+            }
+
+            showSection(targetSection, { fromHistory: true, force: true });
+
+            if (Number.isFinite(scrollTop) && scrollTop > 0) {
+                window.setTimeout(() => {
+                    getRootScroller().scrollTo({ top: scrollTop, behavior: 'auto' });
+                }, canRestoreSurah ? 100 : 0);
+            }
+
+            queueSessionSave({ immediate: true });
+        }
+
         function isPhoneAutoScroll() {
             return window.matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+        }
+
+        function isDesktopAutoScroll() {
+            return !isPhoneAutoScroll();
         }
 
         function setGoTopVisible(visible) {
@@ -4363,7 +4447,31 @@
             if (quickRow) quickRow.style.display = enabled ? 'flex' : 'none';
             if (quickSpeedRow) quickSpeedRow.style.display = enabled ? 'flex' : 'none';
             if (speedSettingRow) speedSettingRow.style.display = enabled ? 'flex' : 'none';
-            if (!enabled && state.autoScroll.active) {
+        }
+
+        function startDesktopAutoScroll() {
+            if (!isDesktopAutoScroll()) return;
+            state.autoScroll.desktopForced = true;
+            if (state.autoScroll.active) {
+                document.body.classList.add('auto-scroll-active');
+                setGoTopVisible(false);
+                syncTopButtons();
+                return;
+            }
+            state.autoScroll.active = true;
+            document.body.classList.add('auto-scroll-active');
+            setGoTopVisible(false);
+            syncTopButtons();
+            autoScrollStep();
+        }
+
+        function syncAutoScrollMode() {
+            syncAutoScrollAvailability();
+            if (!isPhoneAutoScroll()) {
+                startDesktopAutoScroll();
+                return;
+            }
+            if (state.autoScroll.desktopForced) {
                 stopAutoScroll({ interrupted: true });
             }
         }
@@ -4374,6 +4482,7 @@
                 state.autoScroll.rafId = 0;
             }
             state.autoScroll.active = false;
+            state.autoScroll.desktopForced = false;
             document.body.classList.remove('auto-scroll-active');
             syncTopButtons();
             if (interrupted) {
@@ -4397,6 +4506,7 @@
                 return;
             }
             if (state.autoScroll.active) return;
+            state.autoScroll.desktopForced = false;
             state.autoScroll.active = true;
             elements.quickSettingsDropdown?.classList.remove('show');
             document.body.classList.add('auto-scroll-active');
@@ -4407,7 +4517,6 @@
 
         function toggleAutoScrollArm() {
             if (!isPhoneAutoScroll()) {
-                showNotification('Auto scroll is available on phone only.', true);
                 return;
             }
             if (state.autoScroll.active) {
@@ -4563,6 +4672,7 @@
                 if (options.autoplay) {
                     await playVerse(Number(options.scrollToVerse || state.currentVerse));
                 }
+                queueSessionSave({ immediate: true });
             } catch (error) {
                 console.error('Error loading surah:', error);
                 elements.versesContainer.innerHTML = `
@@ -5128,6 +5238,7 @@
             state.currentVerseIndex = Math.max(0, state.verses.findIndex(v => Number(v.verse_number) === Number(verseNum)));
             updateAudioInfo();
             setPlayingVerseUI(verseNum);
+            queueSessionSave();
             if (!isSameVerse(prevVerse, verseNum)) {
                 requestAnimationFrame(() => autoScrollPlayingVerse(verseNum));
             }
@@ -5237,6 +5348,7 @@
         function scrollToVerse(verseNum) {
             const target = document.getElementById(`verse-${verseNum}`);
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            queueSessionSave();
         }
 
         // ========== SEARCH (MODIFIED) ==========
@@ -5386,6 +5498,7 @@
                 syncReadSectionUI();
                 updateBackButtonState();
                 setSidebarOpen(false);
+                queueSessionSave();
                 return;
             }
 
@@ -5398,6 +5511,7 @@
             syncReadSectionUI();
             updateBackButtonState();
             setSidebarOpen(false);
+            queueSessionSave();
         }
 
         function copyVerse(verseNum) {
@@ -5628,22 +5742,25 @@
 
             window.addEventListener('resize', () => {
                 syncMobileAudioOffset();
-                syncAutoScrollAvailability();
+                syncAutoScrollMode();
             }, { passive: true });
             window.addEventListener('orientationchange', () => {
                 syncMobileAudioOffset();
-                syncAutoScrollAvailability();
+                syncAutoScrollMode();
             });
-            window.addEventListener('scroll', handleScrollActivity, { passive: true });
+            window.addEventListener('scroll', () => {
+                handleScrollActivity();
+                queueSessionSave();
+            }, { passive: true });
             window.addEventListener('wheel', () => {
-                if (state.autoScroll.active) {
+                if (state.autoScroll.active && isPhoneAutoScroll()) {
                     stopAutoScroll({ interrupted: true });
                     return;
                 }
                 handleScrollActivity();
             }, { passive: true });
             window.addEventListener('touchmove', () => {
-                if (state.autoScroll.active) {
+                if (state.autoScroll.active && isPhoneAutoScroll()) {
                     stopAutoScroll({ interrupted: true });
                     return;
                 }
@@ -5651,10 +5768,20 @@
             }, { passive: true });
             document.addEventListener('scroll', () => {
                 handleScrollActivity();
+                queueSessionSave();
             }, true);
 
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    queueSessionSave({ immediate: true });
+                }
+            });
+            window.addEventListener('beforeunload', () => {
+                queueSessionSave({ immediate: true });
+            });
+
             document.addEventListener('pointerdown', (e) => {
-                if (state.autoScroll.active) {
+                if (state.autoScroll.active && isPhoneAutoScroll()) {
                     if (!e.target.closest('#quickAutoScrollToggle')) {
                         stopAutoScroll({ interrupted: true });
                     }
@@ -5687,7 +5814,7 @@
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') closeAboutModal();
-                if (state.autoScroll.active && !['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
+                if (state.autoScroll.active && isPhoneAutoScroll() && !['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
                     stopAutoScroll({ interrupted: true });
                 }
             });
@@ -5972,7 +6099,9 @@
             });
 
             elements.goTopBtn?.addEventListener('click', () => {
-                stopAutoScroll();
+                if (isPhoneAutoScroll() && state.autoScroll.active) {
+                    stopAutoScroll();
+                }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 setGoTopVisible(false);
             });
