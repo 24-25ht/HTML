@@ -2946,7 +2946,22 @@
 
                 } catch (error) {
                     console.error('Error creating room:', error);
-                    alert('Failed to create room: ' + error.message + '\n\nFull error: ' + JSON.stringify(error));
+                    console.log('Error name:', error.name);
+                    console.log('Error message:', error.message);
+                    
+                    // Check for specific error types
+                    let errorMsg = error.message || 'Unknown error';
+                    if (errorMsg.includes('401') || errorMsg.includes('UNAUTHENTICATED')) {
+                        errorMsg = 'Firebase authentication failed. This is likely because your API key has restrictions.\n\n' +
+                            'To fix this:\n' +
+                            '1. Go to https://console.cloud.google.com/apis/credentials\n' +
+                            '2. Find your API key and click on it\n' +
+                            '3. Under "Application restrictions", set to "None" or add your website as a referrer\n' +
+                            '4. Under "API restrictions", select "Don\'t restrict key"\n\n' +
+                            'Or create a new API key without restrictions.';
+                    }
+                    
+                    alert('Failed to create room: ' + errorMsg);
                 } finally {
                     // Reset button state
                     if (createBtn) {
