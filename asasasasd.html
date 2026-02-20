@@ -2946,7 +2946,7 @@
 
                 } catch (error) {
                     console.error('Error creating room:', error);
-                    alert('Failed to create room: ' + error.message);
+                    alert('Failed to create room: ' + error.message + '\n\nFull error: ' + JSON.stringify(error));
                 } finally {
                     // Reset button state
                     if (createBtn) {
