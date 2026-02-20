@@ -2886,6 +2886,10 @@
             },
 
             async createRoom() {
+                console.log('Firebase ready:', window.firebaseReady);
+                console.log('FirebaseDB:', window.FirebaseDB);
+                console.log('FirebaseUtils:', window.FirebaseUtils);
+
                 if (!window.firebaseReady) {
                     alert('Firebase not ready. Please try again.');
                     return;
@@ -2897,10 +2901,13 @@
                 this.isHost = true;
                 this.myColor = 'w';
 
+                console.log('Creating room:', this.roomId, 'for player:', this.myName);
+
                 try {
                     const { doc, setDoc, serverTimestamp } = window.FirebaseUtils;
                     const db = window.FirebaseDB;
 
+                    console.log('Attempting to create room document...');
                     await setDoc(doc(db, 'rooms', this.roomId), {
                         hostId: this.myId,
                         hostName: this.myName,
@@ -2914,6 +2921,7 @@
                         createdAt: serverTimestamp()
                     });
 
+                    console.log('Room created successfully!');
                     document.getElementById('roomIdDisplay').textContent = this.roomId;
                     this.showStep('onlineStepHost');
                     this.listenToRoom();
@@ -2921,7 +2929,7 @@
 
                 } catch (error) {
                     console.error('Error creating room:', error);
-                    alert('Failed to create room. Please try again.');
+                    alert('Failed to create room: ' + error.message);
                 }
             },
 
