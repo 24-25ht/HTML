@@ -1273,6 +1273,75 @@
             border-color: #4CAF50;
         }
 
+        /* Read Checkmark Button */
+        .verse-action-btn.read-check {
+            background: var(--input-bg);
+            color: var(--text-secondary);
+        }
+
+        .verse-action-btn.read-check:hover {
+            background: linear-gradient(140deg, var(--accent), var(--accent-deep));
+            color: white;
+            border-color: var(--gold);
+            transform: translateY(-1px);
+        }
+
+        .verse-action-btn.read-check.checked {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .verse-action-btn.read-check.checked:hover {
+            background: #45a049;
+            border-color: #45a049;
+        }
+
+        /* Page/Hizb/Juz Info Display */
+        .verse-metadata {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .verse-metadata span {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .verse-metadata span.juz-info { color: var(--gold); border-color: var(--gold); }
+        .verse-metadata span.hizb-info { color: var(--accent); border-color: var(--accent); }
+        .verse-metadata span.page-info { color: #9C27B0; border-color: #9C27B0; }
+
+        /* Section Start Marker */
+        .verse-section-start {
+            background: linear-gradient(135deg, rgba(212, 168, 83, 0.15), rgba(26, 107, 76, 0.1));
+            border-left: 3px solid var(--gold);
+            padding: 12px 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .verse-section-start .section-label {
+            font-size: 0.75rem;
+            color: var(--gold);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .verse-section-start .section-title {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
         .verse-content {
             padding: 25px;
         }
@@ -4428,7 +4497,8 @@
             readingLog: storedReadingLog,
             readingStreak: storedReadingStreak,
             prayerLog: storedPrayerLog,
-            prayerStreak: storedPrayerStreak
+            prayerStreak: storedPrayerStreak,
+            sessionReadAyahs: {}  // Track read ayahs in current session: { "surahNum:verseNum": true }
         };
 
         state.settings.currentScript = state.settings.currentScript || state.settings.arabicScript || 'uthmani';
@@ -5383,6 +5453,21 @@
                     ? getTranslationById(verse, state.settings.secondaryTranslation)
                     : '';
 
+                // Get verse metadata for page, hizb, juz
+                const verseKey = verse?.verse_key || `${state.currentSurah.number}:${verseNum}`;
+                const metadata = getVerseMetadata(verseKey);
+                const isReadInSession = isAyahReadInSession(state.currentSurah.number, verseNum);
+                
+                // Check if this is the start of a new page, hizb, or juz
+                const isPageStart = verseNum === 1 || (verseNum > 1 && getVerseMetadata(verse?.verse_key || `${state.currentSurah.number}:${verseNum-1}`).page !== metadata.page);
+                const isHizbStart = verseNum === 1 || (verseNum > 1 && getVerseMetadata(verse?.verse_key || `${state.currentSurah.number}:${verseNum-1}`).hizb !== metadata.hizb);
+                const isJuzStart = verseNum === 1 || (verseNum > 1 && getVerseMetadata(verse?.verse_key || `${state.currentSurah.number}:${verseNum-1}`).juz !== metadata.juz);
+                
+                const sectionMarkers = [];
+                if (isJuzStart) sectionMarkers.push(`<span class="juz-info">Juz ${metadata.juz}</span>`);
+                if (isHizbStart) sectionMarkers.push(`<span class="hizb-info">Hizb ${metadata.hizb}</span>`);
+                if (isPageStart) sectionMarkers.push(`<span class="page-info">Page ${metadata.page}</span>`);
+
                 return `
                     <div class="verse-container" data-verse="${verseNum}" id="verse-${verseNum}">
                         <div class="verse-header">
@@ -5391,6 +5476,9 @@
                                 <span>${escapeHtml(state.currentSurah.name)} ${state.currentSurah.number}:${verseNum}</span>
                             </div>
                             <div class="verse-actions">
+                                <button class="verse-action-btn read-check ${isReadInSession ? 'checked' : ''}" onclick="toggleReadCheck(${state.currentSurah.number}, ${verseNum})" title="Mark as Read" id="read-check-${verseNum}">
+                                    <i class="${isReadInSession ? 'fas fa-check' : 'far fa-circle'}"></i>
+                                </button>
                                 <button class="verse-action-btn" onclick="playVerse(${verseNum})" title="Play Audio">
                                     <i class="fas fa-play"></i>
                                 </button>
@@ -5406,6 +5494,7 @@
                             </div>
                         </div>
                         <div class="verse-content">
+                            ${sectionMarkers.length > 0 ? `<div class="verse-metadata">${sectionMarkers.join('')}</div>` : ''}
                             <div class="arabic-text ${state.settings.currentScript} ${state.settings.tajweedEnabled ? 'tajweed-enabled' : ''}" style="font-size:${state.settings.arabicFontSize}px;">
                                 ${getVerseDisplayArabic(verse)}
                             </div>
@@ -6128,6 +6217,83 @@
             localStorage.setItem('quran-reading-log', JSON.stringify(log));
             recalcReadingStreak();
             renderDashboard();
+        }
+
+        // --- Manual Ayah Reading Checkmark ---
+        // Get verse metadata from verse_key (format: "surahNum:verseNum")
+        function getVerseMetadata(verseKey) {
+            if (!verseKey) return { page: 1, hizb: 1, juz: 1 };
+            const parts = String(verseKey).split(':');
+            const surahNum = Number(parts[0]) || 1;
+            const verseNum = Number(parts[1]) || 1;
+            
+            // Calculate approximate values based on common Quran knowledge
+            // These will be refined when API provides actual data
+            const juz = Math.ceil(surahNum / 3.8); // Approximate
+            const hizb = Math.ceil((surahNum * 7 + verseNum) / 8); // Very rough estimate
+            const page = Math.ceil((surahNum * 6 + verseNum) / 1.5); // Very rough estimate
+            
+            return { 
+                page: Math.min(604, Math.max(1, page)), 
+                hizb: Math.min(60, Math.max(1, hizb)), 
+                juz: Math.min(30, Math.max(1, juz)) 
+            };
+        }
+
+        // Mark a specific ayah as read in the current session
+        function markAyahAsRead(surahNum, verseNum) {
+            const key = `${surahNum}:${verseNum}`;
+            if (!state.sessionReadAyahs[key]) {
+                state.sessionReadAyahs[key] = true;
+                // Also count towards today's reading
+                const today = getDateString();
+                if (!state.readingLog[today]) {
+                    state.readingLog[today] = { ayahsRead: 0, surahsVisited: [] };
+                }
+                state.readingLog[today].ayahsRead = (state.readingLog[today].ayahsRead || 0) + 1;
+                localStorage.setItem('quran-reading-log', JSON.stringify(state.readingLog));
+                recalcReadingStreak();
+                renderDashboard();
+                return true;
+            }
+            return false;
+        }
+
+        // Check if ayah was already read in this session
+        function isAyahReadInSession(surahNum, verseNum) {
+            const key = `${surahNum}:${verseNum}`;
+            return !!state.sessionReadAyahs[key];
+        }
+
+        // Toggle ayah read status
+        function toggleReadCheck(surahNum, verseNum) {
+            const key = `${surahNum}:${verseNum}`;
+            const wasRead = state.sessionReadAyahs[key];
+            
+            if (wasRead) {
+                // Remove from session read (but don't decrease count as user already "earned" it)
+                delete state.sessionReadAyahs[key];
+            } else {
+                // Mark as read and increment count
+                state.sessionReadAyahs[key] = true;
+                const today = getDateString();
+                if (!state.readingLog[today]) {
+                    state.readingLog[today] = { ayahsRead: 0, surahsVisited: [] };
+                }
+                state.readingLog[today].ayahsRead = (state.readingLog[today].ayahsRead || 0) + 1;
+                localStorage.setItem('quran-reading-log', JSON.stringify(state.readingLog));
+                recalcReadingStreak();
+                renderDashboard();
+            }
+            
+            // Update UI
+            const btn = document.getElementById(`read-check-${verseNum}`);
+            if (btn) {
+                btn.classList.toggle('checked', !wasRead);
+                btn.innerHTML = !wasRead ? '<i class="fas fa-check"></i>' : '<i class="far fa-circle"></i>';
+            }
+            
+            return !wasRead;
         }
 
         function recalcReadingStreak() {
