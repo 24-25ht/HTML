@@ -2903,23 +2903,40 @@
 
                 console.log('Creating room:', this.roomId, 'for player:', this.myName);
 
+                // Show loading state
+                const createBtn = document.querySelector('#onlineStep1 .btn-primary');
+                if (createBtn) {
+                    createBtn.textContent = 'Creating...';
+                    createBtn.disabled = true;
+                }
+
                 try {
                     const { doc, setDoc, serverTimestamp } = window.FirebaseUtils;
                     const db = window.FirebaseDB;
 
                     console.log('Attempting to create room document...');
-                    await setDoc(doc(db, 'rooms', this.roomId), {
-                        hostId: this.myId,
-                        hostName: this.myName,
-                        guestId: null,
-                        guestName: null,
-                        status: 'waiting',
-                        timeControl: this.timeControl,
-                        fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-                        turn: 'w',
-                        moveSeq: 0,
-                        createdAt: serverTimestamp()
-                    });
+                    
+                    // Create a timeout promise (15 seconds)
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Request timed out. Check your internet connection. Try disabling ad blockers.')), 15000)
+                    );
+                    
+                    // Race between setDoc and timeout
+                    await Promise.race([
+                        setDoc(doc(db, 'rooms', this.roomId), {
+                            hostId: this.myId,
+                            hostName: this.myName,
+                            guestId: null,
+                            guestName: null,
+                            status: 'waiting',
+                            timeControl: this.timeControl,
+                            fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+                            turn: 'w',
+                            moveSeq: 0,
+                            createdAt: serverTimestamp()
+                        }),
+                        timeoutPromise
+                    ]);
 
                     console.log('Room created successfully!');
                     document.getElementById('roomIdDisplay').textContent = this.roomId;
@@ -2930,6 +2947,12 @@
                 } catch (error) {
                     console.error('Error creating room:', error);
                     alert('Failed to create room: ' + error.message);
+                } finally {
+                    // Reset button state
+                    if (createBtn) {
+                        createBtn.textContent = '🏠 Create Room';
+                        createBtn.disabled = false;
+                    }
                 }
             },
 
