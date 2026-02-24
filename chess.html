@@ -8,233 +8,551 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="shortcut icon" href="favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Firebase SDKs (Modular v12.9.0) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-        import {
-            getFirestore, collection, doc, setDoc, getDoc, updateDoc, addDoc, query, orderBy,
-            onSnapshot, serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    <!-- PeerJS for Online Multiplayer -->
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
-        // Firebase Configuration (User-provided)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDVWsKncX7ogMB6dAdkFXBuW5AjwHjy0Q8",
-            authDomain: "chess-25213.firebaseapp.com",
-            databaseURL: "https://chess-25213-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "chess-25213",
-            storageBucket: "chess-25213.firebasestorage.app",
-            messagingSenderId: "933391487760",
-            appId: "1:933391487760:web:c2d84092d467e1d7b60b95",
-            measurementId: "G-1V6T1CYE96"
-        };
+    <script>
+        /* ═══════════════════════════════════════════════════════════════════════════
+           OG-NET  |  Obsidian Gambit Online Multiplayer  |  PeerJS 1.5.4 / WebRTC
+           ═══════════════════════════════════════════════════════════════════════════ */
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        ;(() => {
+          'use strict';
 
-        let roomId = null;
+          /* ── Runtime constants ───────────────────────────────────────────────── */
+
+          const ID_PFX       = 'og7-';
+          const PROTO_VER    = '7.0';
+          // Unambiguous charset: no 0/O, 1/I/L confusion
+          const ROOM_CHARS   = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          const ROOM_LEN     = 6;
+          const MAX_RECON    = 14;
+          const RECON_BASE   = 1500;    // ms
+          const RECON_CAP    = 32000;   // ms
+          const OPEN_TIMEOUT = 22000;   // ms — abort if DataChannel never opens
+          const PING_MS      = 7000;
+          const PONG_LIMIT   = 12000;
+          const SEEN_CAP     = 512;     // dedup ring-buffer depth
+
+          const ICE_CFG = {
+            sdpSemantics : 'unified-plan',
+            iceServers   : [
+              /* STUN — free, no credentials */
+              { urls: 'stun:stun.l.google.com:19302'  },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' },
+              { urls: 'stun:stun.cloudflare.com:3478' },
+              /* TURN — free OpenRelay; only activated for symmetric NAT */
+              {
+                urls       : 'turn:openrelay.metered.ca:80',
+                username   : 'openrelayproject',
+                credential : 'openrelayproject',
+              },
+              {
+                urls       : 'turn:openrelay.metered.ca:443',
+                username   : 'openrelayproject',
+                credential : 'openrelayproject',
+              },
+              {
+                urls       : 'turn:openrelay.metered.ca:443?transport=tcp',
+                username   : 'openrelayproject',
+                credential : 'openrelayproject',
+              },
+            ],
+          };
+
+          /* ── Mutable module state ────────────────────────────────────────────── */
+
+          let _peer       = null;   // Peer instance
+          let _conn       = null;   // DataConnection instance
+          let _isHost     = false;
+          let _roomId     = null;
+          let _myName     = '';
+          let _oppName    = '';
+          let _connected  = false;
+          let _started    = false;  // true after first handshake; survives reconnects
+
+          // Per-DataChannel sequence counters — reset every time a new channel opens
+          let _outSeq  = 0;
+          let _inSeq   = -1;
+          let _buf     = [];   // out-of-order hold [{type,seq,data}]
+          let _seen    = [];   // dedup ring
+
+          // Timer handles
+          let _openTmr  = null;
+          let _reconTmr = null;
+          let _pingIval = null;
+          let _pongTmr  = null;
+          let _reconCnt = 0;
+
+          // Callback registry
+          const _cb = {
+            opponentJoined : null,
+            opponentMove   : null,
+            opponentChat   : null,
+            opponentResign : null,
+            timeUpdate     : null,
+            stateSync      : null,
+            disconnected   : null,
+            reconnected    : null,
+            error          : null,
+          };
+
+          /* ── Utilities ───────────────────────────────────────────────────────── */
+
+          const _genRoomId = () => {
+            let s = '';
+            for (let i = 0; i < ROOM_LEN; i++)
+              s += ROOM_CHARS[Math.floor(Math.random() * ROOM_CHARS.length)];
+            return s;
+          };
+
+          const _pid      = r  => ID_PFX + r;
+          const _kt       = t  => { clearTimeout(t);  return null; };
+          const _ki       = t  => { clearInterval(t); return null; };
+          const _killAll  = () => {
+            _openTmr  = _kt(_openTmr);
+            _reconTmr = _kt(_reconTmr);
+            _pingIval = _ki(_pingIval);
+            _pongTmr  = _kt(_pongTmr);
+          };
+
+          const _fire = (evt, ...a) => { if (_cb[evt]) _cb[evt](...a); };
+
+          // Dedup ring — returns true if seq was already seen
+          const _dedupe = seq => {
+            if (_seen.includes(seq)) return true;
+            _seen.push(seq);
+            if (_seen.length > SEEN_CAP) _seen.shift();
+            return false;
+          };
+
+          // Reset per-DataChannel state when a new channel opens
+          const _resetSeq = () => {
+            _outSeq = 0;
+            _inSeq  = -1;
+            _buf    = [];
+            _seen   = [];
+          };
+
+          /* ── Peer factory ────────────────────────────────────────────────────── */
+
+          const _spawnPeer = (withId, onReady, onFatal) => {
+            let p;
+            try {
+              p = withId
+                ? new Peer(_pid(withId), { config: ICE_CFG, debug: 0 })
+                : new Peer(              { config: ICE_CFG, debug: 0 });
+            } catch (e) {
+              if (onFatal) onFatal('WebRTC unavailable: ' + e.message);
+              return;
+            }
+
+            p.on('open', () => {
+              _peer = p;
+              onReady(p);
+            });
+
+            p.on('error', err => _handlePeerErr(err, onFatal));
+
+            // Signaling server dropped — re-register without destroying DataChannel
+            p.on('disconnected', () => {
+              if (p && !p.destroyed) {
+                try { p.reconnect(); } catch (_) { /* PeerJS internal — harmless */ }
+              }
+            });
+
+            p.on('close', () => {
+              if (_peer === p) _peer = null;
+            });
+          };
+
+          const _handlePeerErr = (err, onFatal) => {
+            const t = err && err.type;
+            switch (t) {
+              case 'peer-unavailable':
+                if (onFatal) onFatal('Room not found. Verify the Room ID and try again.');
+                break;
+              case 'unavailable-id':
+                if (onFatal) onFatal('Room ID already hosted. Try hosting again for a new ID.');
+                break;
+              case 'invalid-id':
+                if (onFatal) onFatal('Invalid Room ID format.');
+                break;
+              case 'browser-incompatible':
+                if (onFatal) onFatal('Your browser does not support WebRTC. Please update it.');
+                break;
+              case 'ssl-unavailable':
+                if (onFatal) onFatal('SSL required for WebRTC. Please use HTTPS.');
+                break;
+              case 'network':
+              case 'socket-error':
+              case 'socket-closed':
+              case 'webrtc':
+                // Recoverable network fault
+                if (_started) {
+                  _scheduleRecon();
+                } else {
+                  if (onFatal) onFatal('Network error. Check your internet connection.');
+                }
+                break;
+              case 'server-error':
+                if (onFatal) onFatal('PeerJS signaling server unreachable. Please retry.');
+                break;
+              default:
+                console.error('[OG-NET] Peer error:', t, err);
+                _fire('error', (err && err.message) || t || 'Unknown network error');
+            }
+          };
+
+          /* ── Connection wiring ───────────────────────────────────────────────── */
+
+          const _armHost = p => {
+            // Remove any previous 'connection' listeners before re-arming
+            p.removeAllListeners('connection');
+            p.on('connection', incoming => {
+              // Reject a second simultaneous guest while current channel is alive
+              if (_connected && _conn && _conn.open) {
+                incoming.close();
+                return;
+              }
+              _wireConn(incoming, null);
+            });
+          };
+
+          const _connectGuest = (id, onFail) => {
+            // Use default BinaryPack serialization — avoids iOS Safari json recv bug
+            const c = _peer.connect(_pid(id), { reliable: true });
+            _wireConn(c, onFail);
+          };
+
+          const _wireConn = (c, onFail) => {
+            _conn = c;
+
+            // Abort if channel never opens (cold start, firewall, peer gone offline)
+            _openTmr = setTimeout(() => {
+              if (!_connected) {
+                _teardown(true);
+                if (onFail) onFail('Connection timed out. Please retry.');
+              }
+            }, OPEN_TIMEOUT);
+
+            c.on('open', () => {
+              _openTmr    = _kt(_openTmr);
+              _connected  = true;
+              _reconCnt   = 0;
+              _resetSeq(); // fresh sequence space per DataChannel session
+
+              // Immediate handshake — both sides fire simultaneously
+              _tx('handshake', {
+                name : _myName,
+                role : _isHost ? 'host' : 'guest',
+                v    : PROTO_VER,
+              });
+
+              _startPing();
+            });
+
+            c.on('data',  raw => _recv(raw));
+            c.on('close', ()  => _connLost());
+            c.on('error', err => { console.error('[OG-NET] DataChannel error:', err); _connLost(); });
+          };
+
+          /* ── Receive pipeline ────────────────────────────────────────────────── */
+
+          const _recv = raw => {
+            if (!raw || typeof raw !== 'object') return;
+            const { type, seq, data } = raw;
+
+            // ── Control frames: bypass ordering, no seq required ─────────────────
+            if (type === 'ping') {
+              // Reflect ts so sender can measure RTT if desired
+              _low({ type: 'pong', seq: -1, ts: raw.ts, data: null });
+              return;
+            }
+            if (type === 'pong') {
+              _pongTmr = _kt(_pongTmr);
+              return;
+            }
+
+            // ── Sequenced frames ─────────────────────────────────────────────────
+            if (typeof seq !== 'number') return;
+
+            // Duplicate detection (belt-and-suspenders over SCTP ordering)
+            if (_dedupe(seq)) return;
+
+            // In-order: deliver immediately
+            if (seq === _inSeq + 1) {
+              _dispatch(type, data);
+              _inSeq = seq;
+              _drain();
+              return;
+            }
+
+            // Already processed (after dedupe — extra guard)
+            if (seq <= _inSeq) return;
+
+            // Out-of-order: buffer, sorted ascending
+            if (!_buf.some(m => m.seq === seq)) {
+              _buf.push({ type, seq, data });
+              _buf.sort((a, b) => a.seq - b.seq);
+            }
+          };
+
+          const _drain = () => {
+            while (_buf.length && _buf[0].seq === _inSeq + 1) {
+              const m = _buf.shift();
+              _dispatch(m.type, m.data);
+              _inSeq = m.seq;
+            }
+          };
+
+          const _dispatch = (type, data) => {
+            switch (type) {
+
+              case 'handshake':
+                _oppName = (data && data.name) ? data.name : 'Opponent';
+                if (!_started) {
+                  // First connection — start the online game
+                  _started = true;
+                  _fire('opponentJoined', _oppName);
+                } else {
+                  // Reconnection path — host must push full state sync
+                  _fire('reconnected');
+                }
+                break;
+
+              case 'move'  : _fire('opponentMove',   data); break;
+              case 'chat'  : _fire('opponentChat',   data); break;
+              case 'resign': _fire('opponentResign'       ); break;
+              case 'time'  : _fire('timeUpdate',     data); break;
+              case 'sync'  : _fire('stateSync',      data); break;
+
+              default:
+                // Forward-compatible: silently ignore unknown future message types
+                break;
+            }
+          };
+
+          /* ── Transmit ────────────────────────────────────────────────────────── */
+
+          const _tx = (type, data) => _low({
+            type,
+            seq  : _outSeq++,
+            ts   : Date.now(),
+            data,
+          });
+
+          const _low = envelope => {
+            if (!_conn || !_conn.open) return;
+            try {
+              _conn.send(envelope);
+            } catch (e) {
+              console.error('[OG-NET] Send error:', e);
+            }
+          };
+
+          /* ── Keep-alive (detects stale connections SCTP did not self-close) ──── */
+
+          const _startPing = () => {
+            _pingIval = _ki(_pingIval);
+            _pingIval = setInterval(() => {
+              if (!_conn || !_conn.open) return;
+              _low({ type: 'ping', seq: -1, ts: Date.now(), data: null });
+              _pongTmr = setTimeout(() => {
+                console.warn('[OG-NET] Pong timeout — treating connection as dead');
+                _connLost();
+              }, PONG_LIMIT);
+            }, PING_MS);
+          };
+
+          const _stopPing = () => {
+            _pingIval = _ki(_pingIval);
+            _pongTmr  = _kt(_pongTmr);
+          };
+
+          /* ── Disconnect & reconnect ──────────────────────────────────────────── */
+
+          const _connLost = () => {
+            // Guard against double-firing (close + error can both fire)
+            if (!_connected && !_started) return;
+            _connected = false;
+            _stopPing();
+            _fire('disconnected');
+            if (_started) _scheduleRecon();
+          };
+
+          const _scheduleRecon = () => {
+            if (_reconTmr) return; // already queued
+            if (_reconCnt >= MAX_RECON) {
+              _teardown(true);
+              _fire('error', 'Connection lost permanently after ' + MAX_RECON + ' retries.');
+              return;
+            }
+            // Exponential backoff with jitter  (±10 %)
+            const base  = Math.min(RECON_BASE * Math.pow(1.5, _reconCnt), RECON_CAP);
+            const jitter = base * 0.1 * (Math.random() * 2 - 1);
+            const delay  = Math.round(base + jitter);
+            _reconCnt++;
+            _reconTmr = setTimeout(() => {
+              _reconTmr = null;
+              _doRecon();
+            }, delay);
+          };
+
+          const _doRecon = () => {
+            const dead = !_peer || _peer.destroyed;
+            if (dead) {
+              // Full peer rebuild required
+              _spawnPeer(
+                _isHost ? _roomId : null,
+                p => (_isHost ? _armHost(p) : _connectGuest(_roomId, null)),
+                null  // non-fatal during reconnect — just retry next cycle
+              );
+            } else {
+              // Peer signaling socket still alive — only DataChannel rebuild needed
+              if (_isHost) {
+                _armHost(_peer);
+              } else {
+                _connectGuest(_roomId, null);
+              }
+            }
+          };
+
+          /* ── Teardown & reset ────────────────────────────────────────────────── */
+
+          const _teardown = hard => {
+            _killAll();
+            _connected = false;
+
+            if (_conn) {
+              if (typeof _conn.removeAllListeners === 'function') _conn.removeAllListeners();
+              try { _conn.close(); } catch (_) { /* ignore — may already be closed */ }
+              _conn = null;
+            }
+
+            if (hard && _peer) {
+              if (typeof _peer.removeAllListeners === 'function') _peer.removeAllListeners();
+              try { _peer.destroy(); } catch (_) { /* ignore */ }
+              _peer = null;
+            }
+          };
+
+          const _fullReset = () => {
+            _teardown(true);
+            _isHost    = false;
+            _roomId    = null;
+            _myName    = '';
+            _oppName   = '';
+            _connected = false;
+            _started   = false;
+            _reconCnt  = 0;
+            _resetSeq();
+          };
+
+          /* ── Page Visibility — handle iOS Safari / Android backgrounding ─────── */
+
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !_connected && _started) {
+              // Page returned from background and connection is down — try immediately
+              _scheduleRecon();
+            }
+          });
+
+          /* ── Network online event — recover after total network loss ─────────── */
+
+          window.addEventListener('online', () => {
+            if (!_connected && _started) _scheduleRecon();
+          });
+
+          /* ── Public API ──────────────────────────────────────────────────────── */
+
+          window.OG_NET = {
+
+            on (event, fn) {
+              if (Object.prototype.hasOwnProperty.call(_cb, event)) _cb[event] = fn;
+              return this; // chainable
+            },
+
+            hostGame (playerName, onRoomReady) {
+              _fullReset();
+              _isHost = true;
+              _myName = playerName || 'White';
+              _roomId = _genRoomId();
+              _spawnPeer(
+                _roomId,
+                p => {
+                  _armHost(p);
+                  if (onRoomReady) onRoomReady(_roomId);
+                },
+                msg => _fire('error', msg)
+              );
+            },
+
+            joinGame (playerName, roomId, onFail) {
+              _fullReset();
+              _isHost = false;
+              _myName = playerName || 'Black';
+              // Sanitise input: uppercase, strip characters outside allowed set
+              _roomId = String(roomId).trim().toUpperCase().replace(/[^A-Z2-9]/g, '');
+              _spawnPeer(
+                null,
+                p => _connectGuest(_roomId, onFail),
+                onFail
+              );
+            },
+
+            sendMove (moveObj) {
+              _tx('move', moveObj);
+            },
+
+            sendChat (text) {
+              _tx('chat', { sender: _myName, text: String(text) });
+            },
+
+            sendResign () {
+              _tx('resign', {});
+            },
+
+            sendTimeUpdate (whiteMs, blackMs, turn) {
+              _tx('time', { white: whiteMs, black: blackMs, turn: turn });
+            },
+
+            sendStateSync (fen, moveHistory, whiteMs, blackMs, turn) {
+              _tx('sync', {
+                fen   : fen,
+                moves : moveHistory,
+                white : whiteMs,
+                black : blackMs,
+                turn  : turn,
+              });
+            },
+
+            disconnect () {
+              _fullReset();
+            },
+
+            getRoomId ()       { return _roomId;    },
+            getOpponentName () { return _oppName;   },
+            isHost ()          { return _isHost;    },
+            isConnected ()     { return _connected; },
+          };
+
+        })();
+        /* ═══════════════════════════════════════════════════════════════════════════
+           END OF OG-NET MODULE
+        ═══════════════════════════════════════════════════════════════════════════ */
+
+        // ── Online Game State ──
         let onlineGameActive = false;
         let myOnlineName = '';
         let opponentOnlineName = '';
         let myColor = null;
-        let isHost = false;
-        let unsubRoom = null, unsubMoves = null, unsubChats = null;
-        let lastMoveCount = 0;
-        const DEBUG = false;
+        let _isRemoteMove = false;
 
-        function dbg(msg) {
-            if (DEBUG) console.log('[NetDbg] ' + msg);
-            const el = document.getElementById('lanDebugStatus');
-            if (el) {
-                el.style.display = 'block';
-                el.textContent = 'Status: ' + msg;
-            }
-        }
-
-        function safeListen(fn) {
-            try { return fn(); }
-            catch (e) {
-                dbg("Retry listen...");
-                setTimeout(fn, 2000);
-            }
-        }
-
-        async function hostOnlineGame() {
-            const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
-            myOnlineName = name;
-            const rid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID().slice(0, 6).toUpperCase() :
-                Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ2345789'[Math.floor(Math.random() * 31)]).join('');
-            roomId = rid;
-
-            dbg('Creating room: ' + rid);
-            try {
-                await setDoc(doc(db, 'rooms', rid), {
-                    hN: name, // hostName
-                    tC: U.timeCtl, // timeControl
-                    s: 'waiting', // status
-                    cA: serverTimestamp(), // createdAt
-                    gS: 'initial' // gameState
-                });
-
-                isHost = true;
-                document.getElementById('lanHostIdDisplay').textContent = rid;
-                window.lanShowStep('lanStepHost');
-                listenToRoom(rid);
-            } catch (err) {
-                dbg('Error: ' + err.message);
-                document.getElementById('lanStatus').textContent = "Firestore Error: " + err.message;
-            }
-        }
-
-        async function joinOnlineGame() {
-            const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
-            const rid = document.getElementById('lanJoinId').value.trim().toUpperCase();
-            myOnlineName = name;
-            if (!rid) { document.getElementById('lanJoinStatus').textContent = 'Enter ID'; return; }
-
-            dbg('Joining room: ' + rid);
-            try {
-                const docRef = doc(db, 'rooms', rid);
-                const dSnap = await getDoc(docRef);
-                if (!dSnap.exists()) {
-                    document.getElementById('lanJoinStatus').textContent = 'Room not found.';
-                    return;
-                }
-                const data = dSnap.data();
-                if (data.s !== 'waiting') {
-                    document.getElementById('lanJoinStatus').textContent = 'Room is full or active.';
-                    return;
-                }
-
-                await updateDoc(docRef, {
-                    gN: name, // guestName
-                    s: 'active',
-                    gH: JSON.stringify(G.board) // gameHash for sync check
-                });
-                isHost = false;
-                roomId = rid;
-                opponentOnlineName = data.hN;
-                U.timeCtl = data.tC;
-                listenToRoom(rid);
-                startOnlineGame('b');
-            } catch (err) {
-                dbg('Error: ' + err.message);
-                document.getElementById('lanJoinStatus').textContent = "Firestore Error: " + err.message;
-            }
-        }
-
-        function listenToRoom(rid) {
-            cleanupOnline();
-
-            unsubRoom = safeListen(() => onSnapshot(doc(db, 'rooms', rid), (docSnap) => {
-                if (!docSnap.exists()) { handleDisconnect("Room vanished."); return; }
-                const data = docSnap.data();
-                if (isHost && data.s === 'active' && !onlineGameActive) {
-                    opponentOnlineName = data.gN;
-                    if (data.gH && data.gH !== JSON.stringify(G.board)) {
-                        dbg("Sync Note: Board hash verified.");
-                    }
-                    startOnlineGame('w');
-                }
-                if (onlineGameActive) {
-                    if (data.p !== undefined && data.p !== U.paused) { // paused -> p
-                        U.paused = data.p;
-                        if (U.paused) window.openModal('pauseModal'); else window.closeModal('pauseModal');
-                    }
-                    if (data.rs && data.rs !== myColor) { // resigned -> rs
-                        window.handleGameOver({ type: 'resign', winner: window.opp(data.rs) });
-                    }
-                }
-            }, (err) => dbg('Room Sync error: ' + err.message)));
-
-            unsubMoves = safeListen(() => onSnapshot(query(collection(db, 'rooms', rid, 'm'), orderBy('ts')), (snap) => {
-                if (!onlineGameActive) return;
-                if (snap.size <= lastMoveCount) return;
-                lastMoveCount = snap.size;
-
-                snap.docChanges().forEach(change => {
-                    if (change.type === "added") {
-                        const m = change.doc.data();
-                        if (m.p !== myColor) {
-                            window.executeOnlineMove(m.fr, m.fc, m.tr, m.tc, m.pr);
-                        }
-                    }
-                });
-            }, (err) => dbg('Move Sync error: ' + err.message)));
-
-            unsubChats = safeListen(() => onSnapshot(query(collection(db, 'rooms', rid, 'c'), orderBy('ts')), (snap) => {
-                snap.docChanges().forEach(change => {
-                    if (change.type === "added") {
-                        const c = change.doc.data();
-                        if (c.p !== myColor) {
-                            window.addChatMsg('opp', c.m);
-                        }
-                    }
-                });
-            }, (err) => dbg('Chat Sync error: ' + err.message)));
-        }
-
-        function startOnlineGame(color) {
-            myColor = color;
-            onlineGameActive = true;
-            U.mode = 'lan';
-            window.closeModal('lanModal');
-            window.startGame();
-            if (myColor === 'w') { U.playerNames = { w: myOnlineName, b: opponentOnlineName }; U.viewTurn = 'w'; }
-            else { U.playerNames = { w: opponentOnlineName, b: myOnlineName }; U.viewTurn = 'b'; }
-            window.renderAll();
-            document.getElementById('chatPanel').style.display = 'flex';
-            document.getElementById('chatList').innerHTML = '';
-            window.addChatMsg('sys', 'Online Match Started.');
-            dbg('Match Connected: ' + opponentOnlineName);
-        }
-
-        function handleDisconnect(reason) {
-            if (onlineGameActive && !G.over) alert(reason || 'Disconnected.');
-            cleanupOnline();
-        }
-
-        function cleanupOnline() {
-            if (unsubRoom) { unsubRoom(); unsubRoom = null; }
-            if (unsubMoves) { unsubMoves(); unsubMoves = null; }
-            if (unsubChats) { unsubChats(); unsubChats = null; }
-            onlineGameActive = false;
-            isHost = false;
-            roomId = null;
-            lastMoveCount = 0;
-            const deb = document.getElementById('lanDebugStatus');
-            if (deb) deb.style.display = 'none';
-        }
-
-        // Export core networking to window
-        window.lanDoHost = hostOnlineGame;
-        window.lanDoJoin = joinOnlineGame;
-        window.onLocalMoveMade = (mv) => {
-            if (onlineGameActive && roomId && !U.isRemoteMove) {
-                addDoc(collection(db, 'rooms', roomId, 'm'), {
-                    p: myColor, fr: mv.fr, fc: mv.fc, tr: mv.tr, tc: mv.tc, pr: mv.promo || null,
-                    ts: serverTimestamp()
-                });
-            }
-        };
-        window.sendChat = () => {
-            const i = document.getElementById('chatInput');
-            const txt = i.value.trim();
-            if (!txt) return;
-            if (onlineGameActive && roomId) {
-                addDoc(collection(db, 'rooms', roomId, 'c'), { p: myColor, m: txt, ts: serverTimestamp() });
-                window.addChatMsg('me', txt);
-            }
-            i.value = '';
-        };
-        window.closeLanModal = () => { window.closeModal('lanModal'); if (!onlineGameActive) cleanupOnline(); };
-        window.LAN = {
-            active: () => onlineGameActive,
-            color: () => myColor,
-            sendResign: () => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { rs: myColor }); },
-            sendPause: (p) => { if (roomId) updateDoc(doc(db, 'rooms', roomId), { p: p }); }
-        };
-
-        // UI Helpers
+        // ── UI Helpers for Online ──
         window.showLanModal = () => {
             window.openModal('lanModal');
             window.lanShowStep('lanStep1');
@@ -271,11 +589,6 @@
             });
         };
 
-        window.isMyTurn = () => {
-            if (!window.LAN || !window.LAN.active()) return true;
-            return G.turn === window.LAN.color();
-        };
-
         window.addChatMsg = (type, txt) => {
             const list = document.getElementById('chatList');
             if (!list) return;
@@ -290,10 +603,195 @@
             const mvs = window.legalMoves(G.board, G.castle, G.ep, G.turn);
             const mv = mvs.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc && m.promo === promo);
             if (mv) {
-                U.isRemoteMove = true;
+                _isRemoteMove = true;
                 window.execMove(mv);
-                U.isRemoteMove = false;
+                _isRemoteMove = false;
             }
+        };
+
+        // ── Register OG_NET Event Handlers ──
+        OG_NET.on('opponentJoined', (name) => {
+            opponentOnlineName = name;
+            if (OG_NET.isHost()) {
+                // I'm host, guest joined - start as white
+                myColor = 'w';
+                startOnlineGame('w');
+            }
+        });
+
+        OG_NET.on('opponentMove', (move) => {
+            // move = {from, to, promotion, fen} - convert to our format
+            window.executeOnlineMove(move.from.r, move.from.c, move.to.r, move.to.c, move.promotion);
+        });
+
+        OG_NET.on('opponentChat', (msg) => {
+            window.addChatMsg('opp', msg.sender + ': ' + msg.text);
+        });
+
+        OG_NET.on('opponentResign', () => {
+            window.handleGameOver({ type: 'resign', winner: opp(G.turn) });
+        });
+
+        OG_NET.on('timeUpdate', (t) => {
+            // Sync clock from network
+            if (G.clockTime) {
+                G.clockTime.w = t.white;
+                G.clockTime.b = t.black;
+                window.renderBars();
+            }
+        });
+
+        OG_NET.on('stateSync', (s) => {
+            // Full resync after reconnect (guest side)
+            window.fromFEN(s.fen);
+            G.notation = s.moves || [];
+            G.clockTime = { w: s.white, b: s.black };
+            G.turn = s.turn;
+            window.renderAll();
+        });
+
+        OG_NET.on('disconnected', () => {
+            if (onlineGameActive && !G.over) {
+                // Show reconnecting status
+                const deb = document.getElementById('lanDebugStatus');
+                if (deb) {
+                    deb.style.display = 'block';
+                    deb.textContent = 'Status: Reconnecting...';
+                }
+            }
+        });
+
+        OG_NET.on('reconnected', () => {
+            const deb = document.getElementById('lanDebugStatus');
+            if (deb) deb.style.display = 'none';
+            
+            if (OG_NET.isHost()) {
+                // Host sends full state sync to guest
+                OG_NET.sendStateSync(
+                    window.toFEN(),
+                    G.notation,
+                    G.clockTime.w,
+                    G.clockTime.b,
+                    G.turn
+                );
+            }
+        });
+
+        OG_NET.on('error', (msg) => {
+            document.getElementById('lanStatus').textContent = msg;
+            document.getElementById('lanJoinStatus').textContent = msg;
+            window.closeLanModal();
+            alert('Online Error: ' + msg);
+        });
+
+        // ── Online Game Functions ──
+        function startOnlineGame(color) {
+            myColor = color;
+            onlineGameActive = true;
+            U.mode = 'lan';
+            window.closeModal('lanModal');
+            window.startGame();
+            if (myColor === 'w') { 
+                U.playerNames = { w: myOnlineName, b: opponentOnlineName }; 
+                U.viewTurn = 'w'; 
+            }
+            else { 
+                U.playerNames = { w: opponentOnlineName, b: myOnlineName }; 
+                U.viewTurn = 'b'; 
+            }
+            window.renderAll();
+            document.getElementById('chatPanel').style.display = 'flex';
+            document.getElementById('chatList').innerHTML = '';
+            window.addChatMsg('sys', 'Online Match Started.');
+        }
+
+        function hostOnlineGame() {
+            const name = document.getElementById('lanPlayerName').value.trim() || 'Host';
+            myOnlineName = name;
+            
+            OG_NET.hostGame(name, (roomId) => {
+                document.getElementById('lanHostIdDisplay').textContent = roomId;
+                window.lanShowStep('lanStepHost');
+            });
+        }
+
+        function joinOnlineGame() {
+            const name = document.getElementById('lanPlayerName').value.trim() || 'Guest';
+            const rid = document.getElementById('lanJoinId').value.trim().toUpperCase();
+            myOnlineName = name;
+            
+            if (!rid) { 
+                document.getElementById('lanJoinStatus').textContent = 'Enter ID'; 
+                return; 
+            }
+
+            OG_NET.joinGame(name, rid, (errMsg) => {
+                document.getElementById('lanJoinStatus').textContent = errMsg || 'Connection failed';
+            });
+            
+            // Guest joins as black
+            myColor = 'b';
+        }
+
+        // Wait for opponent to trigger game start
+        OG_NET.on('opponentJoined', (name) => {
+            if (!OG_NET.isHost()) {
+                // Guest - host already started game for us
+                opponentOnlineName = name;
+                startOnlineGame('b');
+            }
+        });
+
+        window.lanDoHost = hostOnlineGame;
+        window.lanDoJoin = joinOnlineGame;
+
+        window.onLocalMoveMade = (mv) => {
+            if (onlineGameActive && OG_NET.isConnected() && !_isRemoteMove) {
+                OG_NET.sendMove({
+                    from: { r: mv.fr, c: mv.fc },
+                    to: { r: mv.tr, c: mv.tc },
+                    promotion: mv.promo
+                });
+                // Also sync clock
+                if (G.clockTime) {
+                    OG_NET.sendTimeUpdate(G.clockTime.w, G.clockTime.b, G.turn);
+                }
+            }
+        };
+
+        window.sendChat = () => {
+            const i = document.getElementById('chatInput');
+            const txt = i.value.trim();
+            if (!txt) return;
+            if (onlineGameActive && OG_NET.isConnected()) {
+                OG_NET.sendChat(txt);
+                window.addChatMsg('me', txt);
+            }
+            i.value = '';
+        };
+
+        window.closeLanModal = () => { 
+            window.closeModal('lanModal'); 
+            if (!onlineGameActive) {
+                OG_NET.disconnect();
+            }
+        };
+
+        window.LAN = {
+            active: () => onlineGameActive,
+            color: () => myColor,
+            sendResign: () => { if (OG_NET.isConnected()) OG_NET.sendResign(); },
+            sendPause: (p) => { 
+                // Pause is handled locally, just sync state
+                if (OG_NET.isConnected() && G.clockTime) {
+                    OG_NET.sendTimeUpdate(G.clockTime.w, G.clockTime.b, G.turn);
+                }
+            }
+        };
+
+        window.isMyTurn = () => {
+            if (!window.LAN || !window.LAN.active()) return true;
+            return G.turn === window.LAN.color();
         };
     </script>
     <style>
@@ -2328,12 +2826,12 @@
                         <button class="btn" data-t="900" onclick="pickLanTime(this)">🕑 15m</button>
                     </div>
                 </div>
-                <!-- FIREBASE NOTE (Removed PeerJS Rescue Mode) -->
+                <!-- PeerJS WebRTC Multiplayer -->
                 <div
                     style="margin: 0.8rem 0; padding: 0.6rem; background: rgba(201, 168, 76, 0.08); border-radius: 0.4rem; border: 1px solid rgba(201, 168, 76, 0.2); display: flex; align-items: center; justify-content: center; gap: 0.6rem;">
                     <span
                         style="font-size:0.75rem; color: var(--gold2); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;">📡
-                        Firebase Spark Plan Multiplied</span>
+                        WebRTC Peer-to-Peer</span>
                 </div>
                 <div class="mbtn" style="width:100%">
                     <button class="btn btn-p" onclick="lanDoHost()">📡 Host Game</button>
@@ -2374,8 +2872,8 @@
                 <ul style="text-align:left; padding-left:1.2rem; line-height:1.4;">
                     <li>Ensure both players have a <b>stable internet connection</b>.</li>
                     <li>Both players must use the <b>same version</b> of the game.</li>
-                    <li><b>Matched ID:</b> Check that the Room ID matches exactly.</li>
-                    <li><b>Firewall:</b> Firebase usually bypasses firewalls better than PeerJS.</li>
+                    <li><b>Room ID:</b> Check that the Room ID matches exactly.</li>
+                    <li><b>NAT:</b> Some networks (symmetric NAT) may require TURN servers for connection.</li>
                 </ul>
             </div>
 
