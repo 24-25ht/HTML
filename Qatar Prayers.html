@@ -1381,7 +1381,7 @@
 
         async function fetchPrayerTimes() {
             const date = getQatarApiDate();
-            const url = `https://api.aladhan.com/v1/timings/${date}?latitude=25.263047&longitude=51.520788&method=10&tune=0,-1,0,1,2,3,1,3,-1&format=12h`;
+            const url = `https://api.aladhan.com/v1/timings/${date}?latitude=25.263047&longitude=51.520788&method=10&tune=0,-1,0,1,2,3,0,3,-1&format=12h`;
 
             try {
                 const response = await fetch(url, { cache: 'no-store' });
