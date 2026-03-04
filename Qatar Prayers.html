@@ -338,32 +338,35 @@
 
         .toast-container {
             position: fixed;
-            top: 16px;
-            right: 16px;
+            right: max(16px, env(safe-area-inset-right));
+            bottom: max(16px, env(safe-area-inset-bottom));
             z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            align-items: flex-end;
             pointer-events: none;
-            max-width: min(360px, 92vw);
+            max-width: min(420px, 94vw);
         }
 
         .toast-message {
-            background: rgba(26, 26, 46, 0.96);
+            width: 100%;
+            background: rgba(16, 16, 30, 0.98);
             color: #fff;
-            border-left: 3px solid var(--gold);
-            border-radius: 10px;
-            padding: 10px 12px;
-            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
-            font-size: 0.9rem;
-            line-height: 1.4;
+            border-left: 5px solid var(--gold);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
             animation: toast-in 0.2s ease-out;
         }
 
         @keyframes toast-in {
             from {
                 opacity: 0;
-                transform: translateY(-8px);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
@@ -555,6 +558,13 @@
             .locations-grid {
                 grid-template-columns: 1fr;
             }
+
+            .toast-container {
+                right: 10px;
+                left: 10px;
+                bottom: max(10px, env(safe-area-inset-bottom));
+                max-width: none;
+            }
         }
 
         @media (min-width: 1600px) {
@@ -616,38 +626,38 @@
 
         <!-- Location Adjustments -->
         <div class="adjustments-section">
-            <h3><i class="fas fa-sliders"></i> Location Adjustments</h3>
+            <h3><i class="fas fa-sliders"></i> Location Adjustments (1st = Fajr, 2nd = Maghrib)</h3>
             <div class="locations-grid">
                 <div class="location-item">
                     <i class="fas fa-location-dot"></i>
                     <span class="name">Abu Samra</span>
                     <div class="adjustments">
-                        <span class="adj sun"><i class="fas fa-sun"></i> +4</span>
-                        <span class="adj moon"><i class="fas fa-moon"></i> +2</span>
+                        <span class="adj sun"><i class="fas fa-sun"></i> Fajr +4</span>
+                        <span class="adj moon"><i class="fas fa-moon"></i> Maghrib +2</span>
                     </div>
                 </div>
                 <div class="location-item">
                     <i class="fas fa-location-dot"></i>
                     <span class="name">Doha</span>
                     <div class="adjustments">
-                        <span class="adj sun"><i class="fas fa-sun"></i> 0</span>
-                        <span class="adj moon"><i class="fas fa-moon"></i> 0</span>
+                        <span class="adj sun"><i class="fas fa-sun"></i> Fajr 0</span>
+                        <span class="adj moon"><i class="fas fa-moon"></i> Maghrib 0</span>
                     </div>
                 </div>
                 <div class="location-item">
                     <i class="fas fa-location-dot"></i>
                     <span class="name">Dukhan</span>
                     <div class="adjustments">
-                        <span class="adj sun"><i class="fas fa-sun"></i> +5</span>
-                        <span class="adj moon"><i class="fas fa-moon"></i> +1</span>
+                        <span class="adj sun"><i class="fas fa-sun"></i> Fajr +5</span>
+                        <span class="adj moon"><i class="fas fa-moon"></i> Maghrib +1</span>
                     </div>
                 </div>
                 <div class="location-item">
                     <i class="fas fa-location-dot"></i>
                     <span class="name">Al Shamal</span>
                     <div class="adjustments">
-                        <span class="adj sun"><i class="fas fa-sun"></i> +3</span>
-                        <span class="adj moon"><i class="fas fa-moon"></i> -2</span>
+                        <span class="adj sun"><i class="fas fa-sun"></i> Fajr +3</span>
+                        <span class="adj moon"><i class="fas fa-moon"></i> Maghrib -1</span>
                     </div>
                 </div>
             </div>
@@ -655,15 +665,15 @@
 
         <!-- Quick Links -->
         <div class="quick-links">
-            <a href="https://www.islam.gov.qa/e-services/search-mosques" class="quick-link">
+            <a href="https://www.islam.gov.qa/e-services/search-mosques" class="quick-link" target="_blank" rel="noopener noreferrer">
                 <i class="fas fa-mosque"></i>
                 <span>Find Nearby Mosques</span>
             </a>
-            <a href="#" class="quick-link">
+            <a href="https://qiblafinder.withgoogle.com/" class="quick-link" target="_blank" rel="noopener noreferrer">
                 <i class="fas fa-compass"></i>
                 <span>Qibla Direction</span>
             </a>
-            <a href="file:///C:/Users/nowgo/OneDrive/Documents/Coding/HTML/Quran Explorer.html" class="quick-link">
+            <a href="Quran Explorer.html" class="quick-link">
                 <i class="fas fa-book-open"></i>
                 <span>Quran</span>
             </a>
@@ -676,7 +686,7 @@
                 Qatar Prayer Times
             </div>
             <p>Times are calculated for Doha, Qatar using Al Adhan API (Method 10 - Qatar)</p>
-            <p>Version 3.5 • Made By Abdullah Karim • Made with <i class="fas fa-heart" style="color: #e74c3c;"></i></p>
+            <p>Version 3.6 • Made By Abdullah Karim • Made with <i class="fas fa-heart" style="color: #e74c3c;"></i></p>
         </footer>
     </div>
     <script>
@@ -685,7 +695,7 @@
         const EVENT_STATE_KEY = 'qatar_prayer_event_state_v2';
         const EVENT_CHECKPOINT_KEY = 'qatar_prayer_event_checkpoint_v2';
         const TRACKED_PRAYER_KEYS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-        const REMINDER_MINUTES = [60, 45, 30, 15, 10, 5];
+        const REMINDER_MINUTES = [180, 150, 120, 90, 60, 45, 30, 15, 10, 5];
 
         const prayers = [
             { id: 'fajr', name: 'Fajr', arabic: 'الفجر', icon: 'fa-cloud-moon', key: 'Fajr' },
@@ -896,14 +906,12 @@
         }
 
         function formatDuration(totalMinutes) {
-            const safeMinutes = Math.max(0, totalMinutes);
+            const safeMinutes = Math.max(0, Math.floor(totalMinutes));
             const hours = Math.floor(safeMinutes / 60);
             const minutes = safeMinutes % 60;
 
-            if (hours === 0 && minutes === 0) return 'less than 1 minute';
-            if (hours > 0 && minutes > 0) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-            if (hours > 0) return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-            return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+            if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')} min`;
+            return `${minutes} min`;
         }
 
         function updateDateCards(hijri, gregorian) {
@@ -1042,8 +1050,33 @@
             return Boolean(error && (error.name === 'NotAllowedError' || error.name === 'AbortError'));
         }
 
+        function parseAdhanEventKey(adhanEventKey) {
+            const [prayerKey = '', phase = 'first'] = String(adhanEventKey || '').split(':');
+            return {
+                prayerKey,
+                phase: phase === 'second' ? 'second' : 'first'
+            };
+        }
+
         function getPrayerKeyFromAdhanEventKey(adhanEventKey) {
-            return String(adhanEventKey || '').split(':')[0];
+            return parseAdhanEventKey(adhanEventKey).prayerKey;
+        }
+
+        function getAdhanMinuteFromEventKey(adhanEventKey) {
+            const { prayerKey, phase } = parseAdhanEventKey(adhanEventKey);
+            if (!prayerKey) return null;
+            if (phase === 'second') return getPrayerSecondAdhanMinute(prayerKey);
+            return getPrayerPrimaryMinute(prayerKey);
+        }
+
+        // Prevent stale blocked events (for example old Fajr) from replaying much later.
+        function isAdhanEventFresh(adhanEventKey, maxDelayMinutes = 2) {
+            const eventMinute = getAdhanMinuteFromEventKey(adhanEventKey);
+            if (eventMinute === null) return false;
+
+            const nowMinute = getQatarCurrentMinutes();
+            const elapsed = (nowMinute - eventMinute + (24 * 60)) % (24 * 60);
+            return elapsed <= maxDelayMinutes;
         }
 
         function getAdhanAudioForPrayer(prayerKey) {
@@ -1082,6 +1115,7 @@
             pendingAutoplayAdhanEvents.clear();
 
             for (const adhanEventKey of queue) {
+                if (!isAdhanEventFresh(adhanEventKey)) continue;
                 await playAdhanForPrayer(adhanEventKey, true);
             }
         }
@@ -1207,7 +1241,7 @@
 
         async function fetchPrayerTimes() {
             const date = getQatarApiDate();
-            const url = `https://api.aladhan.com/v1/timings/${date}?latitude=25.2854&longitude=51.5310&method=10&tune=0,0,0,2,2,3,0,3,-1&format=12h`;
+            const url = `https://api.aladhan.com/v1/timings/${date}?latitude=25.2854&longitude=51.5310&method=10&tune=0,-1,0,-1,2,3,0,3,-1&format=12h`;
 
             try {
                 const response = await fetch(url, { cache: 'no-store' });
@@ -1550,4 +1584,3 @@
     </script>
 </body>
 </html>
-
