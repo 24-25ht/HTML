@@ -870,8 +870,8 @@
                     <i class="fas fa-location-dot"></i>
                     <span class="name">Doha</span>
                     <div class="adjustments">
-                        <span class="adj sun" title="Fajr offset"><i class="fas fa-cloud-moon"></i> 0</span>
-                        <span class="adj moon" title="Maghrib offset"><i class="fas fa-circle-half-stroke"></i> 0</span>
+                        <span class="adj sun" title="Fajr offset"><i class="fas fa-cloud-moon"></i> +0</span>
+                        <span class="adj moon" title="Maghrib offset"><i class="fas fa-circle-half-stroke"></i> +0</span>
                     </div>
                 </div>
                 <div class="location-item" data-location-key="dukhan" tabindex="0" role="button" aria-pressed="false">
@@ -926,7 +926,7 @@
                 Qatar Prayer Times
             </div>
             <p>Times are calculated for Doha, Qatar using Al Adhan API (Method 10 - Qatar)</p>
-            <p>Version 5.0 • Made By Abdullah Karim • Made with <i class="fas fa-heart" style="color: #e74c3c;"></i></p>
+            <p>Version 5.1 • Made By Abdullah Karim • Made with <i class="fas fa-heart" style="color: #e74c3c;"></i></p>
         </footer>
     </div>
     <script>
@@ -1007,6 +1007,7 @@
         const pendingAutoplayAdhanEvents = new Set();
         const failedAudioAdhanEvents = new Set();
         let audioUnlockBound = false;
+        let adhanAudioPrimed = false;
         let adhanVolume = loadSavedAdhanVolume();
 
         const adhanAudio = new Audio('Adhan.mp3');
@@ -1496,6 +1497,33 @@
             return prayerKey === 'Fajr' ? fajrAdhanAudio : adhanAudio;
         }
 
+        async function primeAdhanAudio() {
+            if (adhanAudioPrimed) return true;
+
+            const tracks = [adhanAudio, fajrAdhanAudio];
+            let allTracksPrimed = true;
+
+            for (const track of tracks) {
+                const previousMuted = track.muted;
+
+                try {
+                    track.muted = true;
+                    track.currentTime = 0;
+                    await track.play();
+                    track.pause();
+                    track.currentTime = 0;
+                } catch {
+                    // Some browsers may still block; keep retrying on next interaction.
+                    allTracksPrimed = false;
+                } finally {
+                    track.muted = previousMuted;
+                }
+            }
+
+            adhanAudioPrimed = allTracksPrimed;
+            return allTracksPrimed;
+        }
+
         async function playAdhanForPrayer(adhanEventKey, fromUnlockAttempt = false) {
             ensureEventStateForToday();
             if (hasAdhanPlayed(adhanEventKey)) return;
@@ -1511,8 +1539,11 @@
                 markAdhanPlayed(adhanEventKey);
                 pendingAutoplayAdhanEvents.delete(adhanEventKey);
             } catch (error) {
-                if (isAutoplayBlocked(error) && !fromUnlockAttempt) {
+                if (isAutoplayBlocked(error)) {
                     pendingAutoplayAdhanEvents.add(adhanEventKey);
+                    if (fromUnlockAttempt) {
+                        adhanAudioPrimed = false;
+                    }
                     return;
                 }
 
@@ -1538,10 +1569,12 @@
             audioUnlockBound = true;
 
             // Keep listeners active so blocked Adhan can retry on future interactions.
-            const unlockHandler = () => {
+            const unlockHandler = async () => {
+                await primeAdhanAudio();
                 flushPendingAdhanPlays();
             };
 
+            document.addEventListener('pointerdown', unlockHandler, { capture: true, passive: true });
             document.addEventListener('click', unlockHandler, { capture: true, passive: true });
             document.addEventListener('touchstart', unlockHandler, { capture: true, passive: true });
             document.addEventListener('keydown', unlockHandler, true);
