@@ -926,7 +926,7 @@
                 Qatar Prayer Times
             </div>
             <p>Times are calculated for Doha, Qatar using Al Adhan API (Method 10 - Qatar)</p>
-            <p>Version 5.1 • Made By Abdullah Karim • Made with <i class="fas fa-heart" style="color: #e74c3c;"></i></p>
+            <p>Version 5.2 • Made By Abdullah Karim • Made with <i class="fas fa-heart" style="color: #e74c3c;"></i></p>
         </footer>
     </div>
     <script>
@@ -1464,16 +1464,44 @@
             return Boolean(error && (error.name === 'NotAllowedError' || error.name === 'AbortError'));
         }
 
-        function parseAdhanEventKey(adhanEventKey) {
-            const [prayerKey = '', phase = 'first'] = String(adhanEventKey || '').split(':');
-            return {
-                prayerKey,
-                phase: phase === 'second' ? 'second' : 'first'
-            };
+        function buildAdhanEventKey(prayerKey, phase = 'first') {
+            return `${prayerKey}:${phase === 'second' ? 'second' : 'first'}`;
         }
 
-        function getPrayerKeyFromAdhanEventKey(adhanEventKey) {
-            return parseAdhanEventKey(adhanEventKey).prayerKey;
+        function normalizePrayerKey(prayerKey) {
+            const normalizedInput = String(prayerKey || '').trim().toLowerCase();
+            return TRACKED_PRAYER_KEYS.find(key => key.toLowerCase() === normalizedInput) || '';
+        }
+
+        function parseAdhanEventKey(adhanEventKey) {
+            const parts = String(adhanEventKey || '')
+                .split(':')
+                .map(part => part.trim())
+                .filter(Boolean);
+
+            let prayerKey = '';
+            for (const key of TRACKED_PRAYER_KEYS) {
+                if (parts.includes(key)) {
+                    prayerKey = key;
+                    break;
+                }
+            }
+
+            if (!prayerKey) {
+                for (const part of parts) {
+                    const matchedPrayerKey = normalizePrayerKey(part);
+                    if (matchedPrayerKey) {
+                        prayerKey = matchedPrayerKey;
+                        break;
+                    }
+                }
+            }
+
+            const phase = parts.includes('second') ? 'second' : 'first';
+            return {
+                prayerKey,
+                phase
+            };
         }
 
         function getAdhanMinuteFromEventKey(adhanEventKey) {
@@ -1494,7 +1522,7 @@
         }
 
         function getAdhanAudioForPrayer(prayerKey) {
-            return prayerKey === 'Fajr' ? fajrAdhanAudio : adhanAudio;
+            return normalizePrayerKey(prayerKey) === 'Fajr' ? fajrAdhanAudio : adhanAudio;
         }
 
         async function primeAdhanAudio() {
@@ -1524,16 +1552,21 @@
             return allTracksPrimed;
         }
 
-        async function playAdhanForPrayer(adhanEventKey, fromUnlockAttempt = false) {
+        async function playAdhanForPrayer(prayerKey, phase = 'first', fromUnlockAttempt = false) {
+            const resolvedPrayerKey = normalizePrayerKey(prayerKey);
+            if (!resolvedPrayerKey) return;
+
+            const adhanEventKey = buildAdhanEventKey(resolvedPrayerKey, phase);
             ensureEventStateForToday();
             if (hasAdhanPlayed(adhanEventKey)) return;
             if (failedAudioAdhanEvents.has(adhanEventKey)) return;
 
-            const prayerKey = getPrayerKeyFromAdhanEventKey(adhanEventKey);
-            const audio = getAdhanAudioForPrayer(prayerKey);
+            const audio = getAdhanAudioForPrayer(resolvedPrayerKey);
             if (!audio) return;
 
             try {
+                audio.volume = adhanVolume;
+                audio.muted = false;
                 audio.currentTime = 0;
                 await audio.play();
                 markAdhanPlayed(adhanEventKey);
@@ -1560,7 +1593,9 @@
 
             for (const adhanEventKey of queue) {
                 if (!isAdhanEventFresh(adhanEventKey)) continue;
-                await playAdhanForPrayer(adhanEventKey, true);
+                const { prayerKey, phase } = parseAdhanEventKey(adhanEventKey);
+                if (!prayerKey) continue;
+                await playAdhanForPrayer(prayerKey, phase, true);
             }
         }
 
@@ -1730,7 +1765,7 @@
 
                     const firstAdhanAudioEventKey = `${prayerKey}:first`;
                     if (!hasAdhanPlayed(firstAdhanAudioEventKey)) {
-                        playAdhanForPrayer(firstAdhanAudioEventKey);
+                        playAdhanForPrayer(prayerKey, 'first');
                     }
                 }
 
@@ -1745,7 +1780,7 @@
 
                         const secondAdhanAudioEventKey = `${prayerKey}:second`;
                         if (!hasAdhanPlayed(secondAdhanAudioEventKey)) {
-                            playAdhanForPrayer(secondAdhanAudioEventKey);
+                            playAdhanForPrayer(prayerKey, 'second');
                         }
                     }
                     return;
